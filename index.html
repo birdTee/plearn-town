@@ -76,6 +76,7 @@
   .mgGame .ic{width:46px;height:46px}.mgHead .ic,.mgInvite .ic{width:1.5em;height:1.5em}
   .actB .ic{width:34px;height:34px;margin-bottom:-2px}.actB.tag .ic{width:28px;height:28px}
   .lgTitle .ic{width:1.4em;height:1.4em;vertical-align:-.3em}
+  .chatPanel.upright{position:fixed;left:8px;right:8px;top:8px;bottom:auto;transform:none;width:auto;min-width:0;z-index:50}
   .chatNote{font-size:11px;color:#9a7a5a;text-align:center;margin-top:4px}
 
   .logout{margin-top:10px;width:100%;border:0;border-radius:12px;padding:8px;background:#e8483f;color:#fff;font:inherit;font-weight:700;cursor:pointer}
@@ -554,7 +555,7 @@ const IS_TOUCH = matchMedia('(pointer:coarse)').matches || navigator.maxTouchPoi
 const app=document.getElementById('app'); if(IS_TOUCH)app.classList.add('touch'); app.classList.add('hudOpen');
 const MAX_PIX=2.2e6;                                   // cap on canvas pixels: big/4K PC screens render a bit softer but stay smooth
 function resize(){dpr=Math.min(window.devicePixelRatio||1,2);
-  ROT = IS_TOUCH && innerHeight>innerWidth;           // phone/tablet held upright -> draw the game sideways (landscape)
+  ROT = IS_TOUCH && innerHeight>innerWidth && !!window.__inGame;   // phone held upright: login stays upright, the game is drawn sideways
   W = ROT?innerHeight:innerWidth; H = ROT?innerWidth:innerHeight;
   app.classList.toggle('rot',ROT);app.style.width=W+'px';app.style.height=H+'px';app.style.setProperty('--aw',W+'px');app.style.setProperty('--ah',H+'px');
   Z=Math.min(W/VIEW_W,H/VIEW_HMIN);VW=W/Z;VH=H/Z;
@@ -565,6 +566,7 @@ addEventListener('resize',resize);addEventListener('orientationchange',()=>setTi
 // screen (client) coords -> coords inside the (maybe rotated) game
 const toApp=(cx,cy)=>ROT?{x:cy,y:innerWidth-cx}:{x:cx,y:cy};
 // best effort: real landscape lock (works on Android in fullscreen); otherwise the sideways drawing above is used
+document.addEventListener('pointerdown',e=>{if(IS_TOUCH&&e.target.closest&&e.target.closest('.lgGo'))tryLandscape();},true);
 async function tryLandscape(){try{if(!document.fullscreenElement&&document.documentElement.requestFullscreen)await document.documentElement.requestFullscreen({navigationUI:'hide'});await screen.orientation.lock('landscape');}catch(e){}}
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 
@@ -1208,9 +1210,10 @@ function buildEmoPanel(){emoPanel.innerHTML='';EMO_ORDER.forEach(i=>{const em=EM
 buildEmoPanel();
 QUICK.forEach(q=>{const b=document.createElement('button');b.textContent=q;b.addEventListener('click',e=>{e.stopPropagation();if(sendChat(q))closeChat();});$('quick').appendChild(b);});
 function clearKeys(){for(const k in keys)keys[k]=false;}
-function openChat(){if(!loggedIn)return;emoPanel.style.display='none';chatPanel.style.display='block';app.classList.add('chatting');clearKeys();JOY.x=JOY.y=0;JOY.id=null;knob.style.transform='';if(!IS_TOUCH)setTimeout(()=>chatIn.focus(),0);}
-function closeChat(){chatPanel.style.display='none';app.classList.remove('chatting');chatIn.value='';chatIn.blur();}
+function openChat(){if(!loggedIn)return;placeChat();emoPanel.style.display='none';chatPanel.style.display='block';app.classList.add('chatting');clearKeys();JOY.x=JOY.y=0;JOY.id=null;knob.style.transform='';if(!IS_TOUCH)setTimeout(()=>chatIn.focus(),0);}
+function closeChat(){chatPanel.style.display='none';if(chatPanel.parentNode!==app)app.appendChild(chatPanel);chatPanel.classList.remove('upright');app.classList.remove('chatting');chatIn.value='';chatIn.blur();}
 const chatOpen=()=>chatPanel.style.display!=='none';
+function placeChat(){if(ROT){document.body.appendChild(chatPanel);chatPanel.classList.add('upright');}else{if(chatPanel.parentNode!==app)app.appendChild(chatPanel);chatPanel.classList.remove('upright');}}
 $('btnChat').addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();chatOpen()?closeChat():openChat();});
 $('btnEmo').addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();closeChat();emoPanel.style.display=emoPanel.style.display==='none'?'grid':'none';});
 $('chatSend').addEventListener('click',e=>{e.stopPropagation();if(sendChat(chatIn.value))closeChat();});
@@ -1364,7 +1367,7 @@ function lgBuild(){const seg=(id,items,cur,fn,cls)=>{const b=$(id);b.innerHTML='
 function lgReady(){const btn=$('lgEnter'),btn2=$('lgEnter2'),btn3=$('lgEnter3');[btn,btn2,btn3].forEach(b=>{b.disabled=!ready;if(!ready&&!/%/.test(b.textContent))b.textContent='Loading…';});
   if(ready){btn.textContent='Let’s go!';btn2.textContent='Play';btn3.textContent='Play';}}
 function enterGame(p){store.set('sw_session',{on:true});LG.g=p.g;LG.h=p.h;LG.c=p.c;pick.g=p.g;pick.o='sport';pick.h[p.g]=p.h;pick.c=p.c;P.name=p.name;applyPick();variant(P.char);
-  loggedIn=true;document.getElementById('loading').classList.add('done');
+  loggedIn=true;window.__inGame=true;resize();document.getElementById('loading').classList.add('done');
   hud.style.display='none';showBtn.style.display='block';app.classList.remove('hudOpen');}
 $('lgEnter').onclick=async()=>{const name=$('nameIn').value.trim(),a=$('pinA').value,b=$('pinB').value,err=$('lgErr');
   if(!name){err.textContent='Please type your nickname';return;}if(!/^\d{4}$/.test(a)){err.textContent='PIN must be 4 numbers';return;}if(a!==b){err.textContent='PINs do not match, try again';return;}
