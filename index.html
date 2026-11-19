@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,interactive-widget=overlays-content">
 <title>Plearn Town</title>
 <link href="https://fonts.googleapis.com/css2?family=Mali:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -27,6 +27,22 @@
   .narrow .lgGrid{grid-template-columns:96px 1fr}.narrow .lgGrid>.lgCol:last-child{grid-column:1 / span 2}
   .short .lgTitle{font-size:20px;margin:0 0 6px}.short .login{margin:6px auto}.short .lgCard{padding:10px 12px}.short .lgLbl{margin:5px 0 3px}
   .short .lgGo{padding:9px;margin-top:8px;font-size:16px}.short .login .ldBar{margin-top:8px;height:10px}.short #lgPrev2,.short #lgPrev3{height:110px;width:94px}
+  /* register page: compact, no title, the same 8px rhythm everywhere */
+  #loading:not(.simple) .lgTitle{display:none}
+  #loading:not(.simple){align-items:flex-start}
+  #loading:not(.simple) .login{width:min(560px,94%);margin:12px auto}
+  #lgNewCard{padding:12px 14px}
+  #lgNewCard .lgGrid{grid-template-columns:84px 1fr;gap:8px 12px}
+  #lgNewCard .lgGrid>.lgCol:last-child{grid-column:1 / span 2}
+  #lgNewCard #lgPrev{width:84px;height:100px}
+  #lgNewCard .lgLbl{margin:8px 0 4px;font-size:12px}
+  #lgNewCard .lgCol>.lgLbl:first-child{margin-top:0}
+  #lgNewCard .lgSeg{flex-wrap:nowrap}
+  #lgNewCard .lgSeg button{min-width:0;padding:6px 2px;height:34px}
+  #lgNewCard .lgInput,#lgNewCard .lgPin{height:38px;padding:6px 10px}
+  #lgNewCard .lgGo{margin-top:8px;padding:10px;font-size:17px}
+  #lgNewCard .lgErr{min-height:0;margin-top:4px}
+  .ldBar,#ldPct{display:none!important}
   .lgTitle{text-align:center;font-size:30px;font-weight:700;color:#fff;text-shadow:0 3px 0 #e8483f,0 5px 10px rgba(0,0,0,.25);margin:4px 0 10px}
   .lgCard{background:#fffaf0;border-radius:22px;padding:14px 16px;box-shadow:0 6px 0 #e7d7b8,0 10px 24px rgba(0,0,0,.2)}
   .lgRow{display:flex;gap:12px;align-items:center}.lgCol{flex:1;min-width:0}.lgRow2{display:flex;gap:8px}
@@ -67,7 +83,7 @@
   .chatRow input{flex:1;min-width:0;border:2px solid #e7d7b8;border-radius:14px;padding:8px 10px;font:inherit;font-size:15px;color:#3b2a1a;background:#fff;outline:none;user-select:text;-webkit-user-select:text}
   .chatRow input:focus{border-color:#e8a33f}
   .chatRow button{border:0;border-radius:14px;height:40px;min-width:44px;padding:0 10px;font:inherit;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px}
-  #chatSend{background:#ff9a3c;color:#fff;box-shadow:0 3px 0 #d47420}#chatX{background:#eee2cc;color:#7a5a3a}
+  #chatSend{background:#ff9a3c;color:#fff;box-shadow:0 3px 0 #d47420}#chatX{background:#fff3d6;border:2px solid #f0d9a8;color:#c0392b}
   .chatRow button img{width:24px;height:24px}
   .chatting #joy,.chatting #actBtns{display:none!important}
   .chatting .chatPanel{width:min(600px,calc(100% - 150px))}
@@ -96,8 +112,8 @@
   .mgBox{width:min(440px,92%);max-height:calc(var(--ah) - 30px);overflow:auto;background:#fffaf0;border-radius:22px;padding:14px 16px;color:#3b2a1a;box-shadow:0 6px 0 #e7d7b8}
   .mgHead{display:flex;justify-content:space-between;align-items:center;font-size:18px;margin-bottom:8px}
   .mgGames{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-  .mgGame{border:2px solid #f0c98b;background:#fff;border-radius:16px;padding:10px 4px;font:inherit;color:#3b2a1a;cursor:pointer;text-align:center}
-  .mgGame b{display:block;font-size:30px}.mgGame span{font-size:13px;font-weight:700}.mgGame small{display:block;font-size:11px;opacity:.75;margin-top:2px}
+  .mgGame{border:2px solid #f0c98b;background:#fff;border-radius:16px;padding:10px 6px;font:inherit;color:#3b2a1a;cursor:pointer;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:flex-start}
+  .mgGame b{display:flex;align-items:center;justify-content:center;height:50px;font-size:30px}.mgGame span{display:flex;align-items:center;justify-content:center;height:2.5em;line-height:1.15;font-size:13px;font-weight:700}.mgGame small{display:block;font-size:11px;line-height:1.3;opacity:.75}
   .mgSub{font-size:13px;margin-bottom:6px}.mgList{display:flex;flex-direction:column;gap:6px}
   .mgP{display:flex;justify-content:space-between;align-items:center;background:#fff;border:2px solid #f0e2c4;border-radius:12px;padding:6px 10px;font-size:14px}
   .mgP i{font-style:normal;font-size:12px;color:#3cb54a;font-weight:700}.mgP i.wait{color:#c9a46a}
@@ -150,7 +166,8 @@
   .tab{flex:1;border:0;border-radius:9px;background:#3a4252;color:#ccc;font:inherit;font-size:13px;padding:7px 4px;cursor:pointer}
   .tab.on{background:#e8483f;color:#fff}
   .chips.acc{grid-template-columns:repeat(5,1fr)}
-  .hideX{border:0;border-radius:9px;background:#3a4252;color:#fff;font:inherit;font-size:13px;padding:6px 10px;cursor:pointer;flex:none}
+  .hideX{border:2px solid #f0d9a8;border-radius:50%;background:#fff3d6;color:#c0392b;font:inherit;font-size:15px;font-weight:700;width:38px;height:38px;padding:0;display:flex;align-items:center;justify-content:center;cursor:pointer;flex:none;box-shadow:0 2px 0 #e7d7b8}
+  .hideX .ic{width:20px;height:20px}.hideX:active{transform:translateY(2px);box-shadow:none}
   .cmpShow{position:absolute;right:12px;top:12px;z-index:2;display:none;border:0;border-radius:12px;background:rgba(255,255,255,.93);font:inherit;padding:10px 14px;cursor:pointer}
   @media (max-width:700px){.cmpShow{top:auto;bottom:150px}.cmp{top:auto;bottom:150px}}
 </style>
@@ -189,7 +206,7 @@
       <div class="lgCol">
         <label class="lgLbl">Hair</label><div class="lgSeg" id="lgH"></div>
         <label class="lgLbl">Set a 4-digit PIN</label>
-        <div class="lgRow2"><input id="pinA" class="lgPin" inputmode="numeric" maxlength="4" type="password" placeholder="PIN" autocomplete="off"><input id="pinB" class="lgPin" inputmode="numeric" maxlength="4" type="password" placeholder="Confirm" autocomplete="off"></div>
+        <input id="pinA" class="lgPin" inputmode="numeric" maxlength="4" type="password" placeholder="••••" autocomplete="off">
         <div id="lgErr" class="lgErr"></div>
         <button id="lgEnter" class="lgGo">Let’s go!</button>
       </div>
@@ -271,7 +288,7 @@ const FRAME_W = 170, FRAME_H = 244, N_FRAMES = 8, DRAW = 0.55; // HD frames draw
 
 const LD={total:0,done:0};
 function ldTick(){const pc=LD.total?Math.round(100*LD.done/LD.total):0;const f=document.getElementById('ldFill');if(f){f.style.width=pc+'%';document.getElementById('ldPct').textContent=pc>=100?'Ready ✓':'Loading '+pc+'%';
-  try{if(!ready)['lgEnter2','lgEnter3'].forEach(id=>{const b=document.getElementById(id);if(b)b.textContent='Loading '+pc+'%';});}catch(e){}}}
+  try{if(!ready)['lgEnter','lgEnter2','lgEnter3'].forEach(id=>{const b=document.getElementById(id);if(b)b.textContent='Loading '+pc+'%';});}catch(e){}}}
 function loadImg(src){LD.total++;return new Promise(res=>{const im=new Image();const fin=v=>{LD.done++;ldTick();res(v);};im.onload=()=>(im.decode?im.decode().catch(()=>{}):Promise.resolve()).then(()=>fin(im));im.onerror=()=>fin(null);im.src=src;});}
 const cv = document.getElementById('c'), ctx = cv.getContext('2d');
 const TILE = 48, MW = 40, MH = 30; // map in tiles
@@ -554,7 +571,9 @@ const VIEW_W=1000, VIEW_HMIN=520;
 const IS_TOUCH = matchMedia('(pointer:coarse)').matches || navigator.maxTouchPoints>0;
 const app=document.getElementById('app'); if(IS_TOUCH)app.classList.add('touch'); app.classList.add('hudOpen');
 const MAX_PIX=2.2e6;                                   // cap on canvas pixels: big/4K PC screens render a bit softer but stay smooth
-function resize(){dpr=Math.min(window.devicePixelRatio||1,2);
+function resize(){const ae=document.activeElement;
+  if(ae&&(ae.tagName==='INPUT'||ae.tagName==='TEXTAREA')&&resize._w===innerWidth&&W)return;   // keyboard opened: keep the page as it is
+  resize._w=innerWidth;dpr=Math.min(window.devicePixelRatio||1,2);
   ROT = IS_TOUCH && innerHeight>innerWidth && !!window.__inGame;   // phone held upright: login stays upright, the game is drawn sideways
   W = ROT?innerHeight:innerWidth; H = ROT?innerWidth:innerHeight;
   app.classList.toggle('rot',ROT);app.style.width=W+'px';app.style.height=H+'px';app.style.setProperty('--aw',W+'px');app.style.setProperty('--ah',H+'px');
@@ -562,7 +581,7 @@ function resize(){dpr=Math.min(window.devicePixelRatio||1,2);
   app.classList.toggle('narrow',W<600);app.classList.toggle('short',H<560);
   dpr=Math.min(dpr,Math.sqrt(MAX_PIX/(W*H)));
   cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr);ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='medium'}
-addEventListener('resize',resize);addEventListener('orientationchange',()=>setTimeout(resize,200));resize();
+document.addEventListener('focusout',()=>setTimeout(resize,350));addEventListener('resize',resize);addEventListener('orientationchange',()=>setTimeout(resize,200));resize();
 // screen (client) coords -> coords inside the (maybe rotated) game
 const toApp=(cx,cy)=>ROT?{x:cy,y:innerWidth-cx}:{x:cx,y:cy};
 // best effort: real landscape lock (works on Android in fullscreen); otherwise the sideways drawing above is used
@@ -733,7 +752,7 @@ function loop(now){const dt=Math.min(.05,(now-last)/1000);last=now;
   const len=Math.hypot(vx,vy);const wasMoving=P.moving;P.moving=len>0;
   if(P.moving){vx/=len;vy/=len;
     const nd=DIRS[((Math.round(Math.atan2(vy,vx)/(Math.PI/4))%8)+8)%8];if(nd!==P.dir){P.dir=nd;drawStrip();}
-    if(MG.on&&MG.mode==='zombie'&&P.role==='zombie')spdK*=.8;   // zombies are 20% slower
+    if(MG.on&&MG.mode==='zombie'&&P.role==='zombie')spdK*=.7;   // zombies walk at 0.7x
     const moved=tryMove(P,clamp(P.x+vx*S.speed*spdK*dt,TILE,WORLD_W-TILE),clamp(P.y+vy*S.speed*spdK*dt,MIN_Y,WORLD_H-TILE*.6));
     if(!moved){P.moving=false;P.stuck=(P.stuck||0)+dt;if(P.target&&!hold&&P.stuck>.3){P.target=null;}}else P.stuck=0;
   }
@@ -775,7 +794,7 @@ const NAME_FONT="700 15px Mali, sans-serif";
 function drawName(a,x,y,isPlayer){let t=a.name||'';if(!t)return;
   let col='#ffffff';if(MG.on&&a.mg){if(isChaser(a))col='#ff6b6b';if(a.found)col='#bbbbbb';}
   ctx.font=NAME_FONT;ctx.textAlign='center';ctx.textBaseline='bottom';ctx.lineJoin='round';ctx.lineWidth=4;ctx.strokeStyle='rgba(40,25,10,.85)';ctx.strokeText(t,x,y);ctx.fillStyle=col;ctx.fillText(t,x,y);
-  if(MG.on&&a.mg){const ic=isChaser(a)?(MG.mode==='zombie'?'🧟':(MG.mode==='hide'?'🔦':'🔥')):(MG.mode==='freeze'&&!a.frozen?'🏃':'');if(ic){const nm={'🧟':'zombie','🔦':'flash','🔥':'fire','🏃':'run'}[ic];if(IC_C[nm])ctx.drawImage(IC_C[nm],x-11,y-40,22,22);else{ctx.font='16px sans-serif';ctx.fillText(ic,x,y-17);}}}
+  if(MG.on&&a.mg){const ic=isChaser(a)?(MG.mode==='zombie'?'':(MG.mode==='hide'?'🔦':'🔥')):(MG.mode==='freeze'&&!a.frozen?'🏃':'');if(ic){const nm={'🧟':'zombie','🔦':'flash','🔥':'fire','🏃':'run'}[ic];if(IC_C[nm])ctx.drawImage(IC_C[nm],x-11,y-40,22,22);else{ctx.font='16px sans-serif';ctx.fillText(ic,x,y-17);}}}
   if(isPlayer&&!(MG.on&&a.mg&&isChaser(a))){ctx.fillStyle='#ffd84a';ctx.beginPath();ctx.moveTo(x-6,y-20);ctx.lineTo(x+6,y-20);ctx.lineTo(x,y-12);ctx.fill();}}
 // hide & seek: a seeker sees only the map + what is inside a flashlight (and anyone lit is caught at once),
 // so for a seeker the hiders are never drawn; hiders always see the seekers (drawn above the darkness)
@@ -993,7 +1012,7 @@ function updateBot(b,dt){b.tagCd=Math.max(0,(b.tagCd||0)-dt);if(b.pop)b.pop.t+=d
   if(tg.chase&&dist(b,tg.chase)<TAG_R()*.85&&b.tagCd<=0){doTag(b);}
   if(tg.help&&dist(b,tg.help)<TAG_R()*.85&&b.tagCd<=0){doTag(b);}
   const dx=tg.x-b.x,dy=tg.y-b.y,d=Math.hypot(dx,dy);if(d<(tg.stay?8:30)&&!tg.chase){b.moving=false;return;}
-  const sp=(isChaser(b)?(MG.mode==='zombie'?122:178):168)*(S.speed/200);   // zombies shuffle a bit slower than humans
+  const sp=(isChaser(b)?(MG.mode==='zombie'?118:178):168)*(S.speed/200);   // zombies shuffle a bit slower than humans
   if(!tg.chase&&noProgress(b,tg.x,tg.y,dt)){b.plan=null;b.hideSpot=null;b.patrol=null;b.pgx=null;b.moving=false;return;}   // goal unreachable: pick another
   if(!steerMove(b,tg.x,tg.y,sp,dt)){b.stuck=(b.stuck||0)+dt;if(b.stuck>.5){b.plan=null;b.hideSpot=null;b.stuck=0;}b.moving=false;}else{b.stuck=0;b.moving=true;}
   b.t=(b.t||0)+dt;b.frame=frameAt(8,8,b.t,12*(sp/120));}
@@ -1369,14 +1388,14 @@ function lgReady(){const btn=$('lgEnter'),btn2=$('lgEnter2'),btn3=$('lgEnter3');
 function enterGame(p){store.set('sw_session',{on:true});LG.g=p.g;LG.h=p.h;LG.c=p.c;pick.g=p.g;pick.o='sport';pick.h[p.g]=p.h;pick.c=p.c;P.name=p.name;applyPick();variant(P.char);
   loggedIn=true;window.__inGame=true;resize();document.getElementById('loading').classList.add('done');
   hud.style.display='none';showBtn.style.display='block';app.classList.remove('hudOpen');}
-$('lgEnter').onclick=async()=>{const name=$('nameIn').value.trim(),a=$('pinA').value,b=$('pinB').value,err=$('lgErr');
-  if(!name){err.textContent='Please type your nickname';return;}if(!/^\d{4}$/.test(a)){err.textContent='PIN must be 4 numbers';return;}if(a!==b){err.textContent='PINs do not match, try again';return;}
+$('lgEnter').onclick=async()=>{const name=$('nameIn').value.trim(),a=$('pinA').value,err=$('lgErr');
+  if(!name){err.textContent='Please type your nickname';return;}if(!/^\d{4}$/.test(a)){err.textContent='PIN must be 4 numbers';return;}
   const prof={name,g:LG.g,h:LG.h,c:LG.c,pin:await hashPin(a)};store.set('sw_profile',prof);enterGame(prof);};
 $('lgEnter2').onclick=async()=>{const prof=store.get('sw_profile');const pin=$('pinIn').value;
   if(!prof)return;if(await hashPin(pin)!==prof.pin){$('lgErr2').textContent='Wrong PIN';$('pinIn').value='';return;}enterGame(prof);};
 $('pinIn').addEventListener('keydown',e=>{if(e.key==='Enter')$('lgEnter2').click();});
 $('lgNew').onclick=()=>{$('loading').classList.remove('simple');$('lgBack').style.display='none';$('lgNewCard').style.display='block';lgBuild();};
-['nameIn','pinA','pinB','pinIn'].forEach(id=>$(id).addEventListener('input',e=>{if(id!=='nameIn')e.target.value=e.target.value.replace(/\D/g,'').slice(0,4);$('lgErr').textContent='';$('lgErr2').textContent='';}));
+['nameIn','pinA','pinIn'].forEach(id=>$(id).addEventListener('input',e=>{if(id!=='nameIn')e.target.value=e.target.value.replace(/\D/g,'').slice(0,4);$('lgErr').textContent='';$('lgErr2').textContent='';}));
 (function initLogin(){const prof=store.get('sw_profile'),ses=store.get('sw_session');
   if(prof&&prof.name){$('lgNewCard').style.display='none';LG.g=prof.g;LG.h=prof.h;LG.c=prof.c;
     $('loading').classList.add('simple');
