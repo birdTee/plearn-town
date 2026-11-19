@@ -270,6 +270,7 @@
   <label class="chk"><input type="checkbox" id="npcToggle" checked> Show friends</label>
   <label class="chk"><input type="checkbox" id="musicToggle" checked> Music</label>
   <label class="chk"><input type="checkbox" id="soundToggle" checked> Sounds</label>
+  <label class="chk" id="fsRow"><input type="checkbox" id="fsToggle"> Full screen</label>
   <button id="logoutBtn" class="logout"><i class="ic" data-ic="logout"></i> Log out</button>
   </div>
 </div>
@@ -589,7 +590,6 @@ document.addEventListener('focusout',()=>setTimeout(resize,350));addEventListene
 // screen (client) coords -> coords inside the (maybe rotated) game
 const toApp=(cx,cy)=>ROT?{x:cy,y:innerWidth-cx}:{x:cx,y:cy};
 // best effort: real landscape lock (works on Android in fullscreen); otherwise the sideways drawing above is used
-document.addEventListener('pointerdown',e=>{if(IS_TOUCH&&e.target.closest&&e.target.closest('.lgGo'))window.__landP=tryLandscape();},true);
 async function tryLandscape(){try{if(!document.fullscreenElement&&document.documentElement.requestFullscreen)await document.documentElement.requestFullscreen({navigationUI:'hide'});}catch(e){}}
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 
@@ -614,7 +614,7 @@ const joy=document.getElementById('joy'),knob=document.getElementById('knob');co
 function joyMove(e){const r=joy.getBoundingClientRect();const c=toApp(r.left+r.width/2,r.top+r.height/2),p=toApp(e.clientX,e.clientY);
   let dx=p.x-c.x,dy=p.y-c.y;const R=joy.offsetWidth/2-20,d=Math.hypot(dx,dy);if(d>R){dx*=R/d;dy*=R/d;}
   knob.style.transform=`translate(${dx}px,${dy}px)`;const m=Math.hypot(dx,dy)/R;JOY.x=m<.18?0:dx/R;JOY.y=m<.18?0:dy/R;}
-joy.addEventListener('pointerdown',e=>{e.preventDefault();JOY.id=e.pointerId;try{joy.setPointerCapture(e.pointerId)}catch(_){}tryLandscape();joyMove(e);});
+joy.addEventListener('pointerdown',e=>{e.preventDefault();JOY.id=e.pointerId;try{joy.setPointerCapture(e.pointerId)}catch(_){}joyMove(e);});
 joy.addEventListener('pointermove',e=>{if(e.pointerId===JOY.id)joyMove(e);});
 const joyEnd=e=>{if(e.pointerId!==JOY.id)return;JOY.id=null;JOY.x=JOY.y=0;knob.style.transform='';};
 joy.addEventListener('pointerup',joyEnd);joy.addEventListener('pointercancel',joyEnd);
@@ -629,7 +629,10 @@ scl.oninput=()=>{S.scale=scl.value/10;$('sclv').textContent=S.scale.toFixed(1)+'
 $('hideBtn').onclick=()=>{hud.style.display='none';showBtn.style.display='block';app.classList.remove('hudOpen')};
 showBtn.onclick=()=>{hud.style.display='block';showBtn.style.display='none';app.classList.add('hudOpen')};
 $('npcToggle').onchange=e=>{S.npcs=e.target.checked};
-setTimeout(()=>{$('musicToggle').checked=SND.music;$('soundToggle').checked=SND.sounds;$('musicToggle').onchange=e=>{sndInit();setMusic(e.target.checked)};$('soundToggle').onchange=e=>{sndInit();setSounds(e.target.checked)};},0);
+setTimeout(()=>{const fsOk=!!document.documentElement.requestFullscreen;$('fsRow').style.display=fsOk?'':'none';
+  $('fsToggle').onchange=e=>{if(e.target.checked)tryLandscape();else if(document.fullscreenElement)document.exitFullscreen().catch(()=>{});};
+  document.addEventListener('fullscreenchange',()=>{$('fsToggle').checked=!!document.fullscreenElement;});
+  $('musicToggle').checked=SND.music;$('soundToggle').checked=SND.sounds;$('musicToggle').onchange=e=>{sndInit();setMusic(e.target.checked)};$('soundToggle').onchange=e=>{sndInit();setSounds(e.target.checked)};},0);
 const pick={g:'girl',o:'school',h:{girl:'ponytail',boy:'short'},c:'blue',acc:'none'};
 const lookKey=(g,o,h,c)=>`${g}_${o}_${h}:${OUTFITS[o].sport?c:'-'}`;
 function thumb(key,idx=1){const v=variant(key);const c=document.createElement('canvas');c.width=FRAME_W;c.height=FRAME_H;if(v)c.getContext('2d').drawImage(v.idle,idx*FRAME_W,0,FRAME_W,FRAME_H,0,0,FRAME_W,FRAME_H);return c;}
