@@ -752,7 +752,7 @@ function loop(now){const dt=Math.min(.05,(now-last)/1000);last=now;
   const len=Math.hypot(vx,vy);const wasMoving=P.moving;P.moving=len>0;
   if(P.moving){vx/=len;vy/=len;
     const nd=DIRS[((Math.round(Math.atan2(vy,vx)/(Math.PI/4))%8)+8)%8];if(nd!==P.dir){P.dir=nd;drawStrip();}
-    if(MG.on&&MG.mode==='zombie'&&P.role==='zombie')spdK*=.7;   // zombies walk at 0.7x
+    if(MG.on&&MG.mode==='zombie'&&P.role==='zombie')spdK*=zombieK();
     const moved=tryMove(P,clamp(P.x+vx*S.speed*spdK*dt,TILE,WORLD_W-TILE),clamp(P.y+vy*S.speed*spdK*dt,MIN_Y,WORLD_H-TILE*.6));
     if(!moved){P.moving=false;P.stuck=(P.stuck||0)+dt;if(P.target&&!hold&&P.stuck>.3){P.target=null;}}else P.stuck=0;
   }
@@ -858,7 +858,7 @@ function drawDarkness(){if(!(MG.on&&MG.mode==='hide'&&(MG.phase==='play'||MG.pha
     if(p===P||isChaser(p)){const r=p===P?70:45;const gr=g.createRadialGradient(p.x,p.y-30,5,p.x,p.y-30,r);gr.addColorStop(0,'rgba(0,0,0,.75)');gr.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=gr;g.beginPath();g.arc(p.x,p.y-30,r,0,7);g.fill();}}
   ctx.save();ctx.setTransform(1,0,0,1,0,0);ctx.drawImage(DARK,0,0);ctx.restore();
   if(P.mg){ctx.save();ctx.setTransform(dpr*Z,0,0,dpr*Z,0,0);ctx.translate(-cam.x,-cam.y);MG.players.filter(isChaser).sort((a,b)=>a.y-b.y).forEach(s=>drawActor(s,false));ctx.restore();}
-  if(MG.phase==='play'&&MG.seekT>0&&MG.seekerIsP){ctx.save();ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='rgba(0,0,0,.85)';ctx.fillRect(0,0,cv.width,cv.height);ctx.restore();msg('Eyes closed… '+Math.ceil(MG.seekT));}}
+  if(MG.seekT>0&&MG.seekerIsP){ctx.save();ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='rgba(0,0,0,.85)';ctx.fillRect(0,0,cv.width,cv.height);ctx.restore();}}
 const FLASH_L=()=>330,FLASH_A=0.6;   // flashlight length (world px) and half-angle (~34°)
 function inFlash(s,h){const dx=h.x-s.x,dy=(h.y-30)-(s.y-30-(s.z||0));const d=Math.hypot(dx,dy);if(d<70)return true;if(d>FLASH_L()+(s.z||0)*3)return false;let da=Math.atan2(dy,dx)-(DIR_ANG[s.dir]||0);da=Math.atan2(Math.sin(da),Math.cos(da));return Math.abs(da)<FLASH_A;}
 
@@ -874,9 +874,11 @@ function doTag(a){if(a.tagCd>0||a.frozen||a.found)return;a.tagCd=.45;const zb=ch
   applyTag(a,best);}
 function isChaser(a){return a.role==='it'||a.role==='zombie'||a.role==='seeker';}
 // Freeze / Zombie Tag: chasers wait 3 s after Go! so runners can scatter first
-const GAME_T=45,SEEK_T=3;   // every mini-game lasts 45 s; Hide & Seek seekers keep their eyes closed for the first 3 s
-const GRACE=3;const inGrace=a=>MG.on&&MG.phase==='play'&&MG.mode!=='hide'&&isChaser(a)&&MG.t>GAME_T-GRACE;
-function canTag(a,b){if(inGrace(a))return false;if(MG.mode==='freeze'){if(a.role==='it')return b.role==='run'&&!b.frozen;return a.role==='run'&&b.role==='run'&&b.frozen;}
+const GAME_T=45,SEEK_T=0;   // every mini-game lasts 45 s; Hide & Seek seekers keep their eyes closed for the first 3 s
+function zombieK(){const n=MG.players.length||4;if(window.ZK_FIX)return window.ZK_FIX;return clamp(1.04-.034*n,.58,.92);}   // zombie speed vs a normal walker, tuned by simulation so about half the games are won by zombies: 4 players .90, 7 .80, 10 .70, 13 .60
+const HEAD=5;   // head start: runners run right away, chasers wait 5 s
+const inGrace=a=>MG.on&&MG.phase==='count'&&isChaser(a);
+function canTag(a,b){if(MG.phase!=='play'||inGrace(a))return false;if(MG.mode==='freeze'){if(a.role==='it')return b.role==='run'&&!b.frozen;return a.role==='run'&&b.role==='run'&&b.frozen;}
   if(MG.mode==='zombie')return a.role==='zombie'&&b.role==='human';
   if(MG.mode==='hide')return false;   /* caught by the light, not by tagging */
   return false;}
@@ -924,7 +926,7 @@ $('mgNoBots').onclick=()=>{MG.bots=[];mgList();};
 function mgClose(){MG.joinTimers.forEach(clearTimeout);mgPanel.style.display='none';}
 $('mgBtn').onclick=mgOpen;$('mgClose').onclick=()=>{if(MG.phase==='end')mgFinish();mgClose();};$('mgCancel').onclick=()=>{if(!MG.on){if(MG.online&&MG.isHost){NET.g=null;MG.online=false;MG.isHost=false;}if(NET.j){NET.j=null;NET.host=null;}NET.sendT=0;$('mgStart').style.display='';$('mgCancel').textContent='Cancel';}mgClose();};$('mgStart').onclick=mgStart;
 $('mgAgain').onclick=()=>{mgFinish();mgOpen();mgLobby(MG.mode);};$('mgDone').onclick=()=>{mgFinish();mgClose();};
-function mgStart(){mgClose();if(MG.online&&MG.isHost)mgList();const ps=[P,...MG.joined,...(MG.online&&MG.isHost?MG.bots||[]:[])];MG.players=ps;MG.on=true;MG.phase='count';MG.t=3;MG.seekT=0;MG.win=null;
+function mgStart(){mgClose();if(MG.online&&MG.isHost)mgList();const ps=[P,...MG.joined,...(MG.online&&MG.isHost?MG.bots||[]:[])];MG.players=ps;MG.on=true;MG.phase='count';MG.t=HEAD;MG.seekT=0;MG.win=null;
   // everyone starts from where they are standing now
   ps.forEach(p=>{p.mg=true;p.frozen=false;p.found=false;p.tagCd=0;p.jt=null;p.z=0;p.target=null;p.moving=false;});
   // random teams: freeze tag = half chasers / half runners; hide & seek and zombie = 1/3 seekers/zombies (rounded down, at least 1)
@@ -942,12 +944,15 @@ function mgHudUpdate(){app.classList.toggle('inMG',MG.on);
   const ps=MG.players,ic=(n,f)=>`<i class="ic" data-ic="${n}">${f}</i>`;let info='';
   if(MG.mode==='freeze'){const q=ps.filter(p=>p.role==='run');info=`${ic('run','🏃')}<b>${q.filter(p=>!p.frozen).length}</b>/${q.length}`;}
   if(MG.mode==='zombie')info=`${ic('run','🏃')}<b>${ps.filter(p=>p.role==='human').length}</b>/${ps.length}`;
-  if(MG.mode==='hide'){const h=ps.filter(p=>p.role==='hider');info=MG.phase==='play'&&MG.seekT>0?`${ic('flash','🔦')}<b>${Math.ceil(MG.seekT)}</b>s`:`${ic('hide','🙈')}<b>${h.filter(p=>!p.found).length}</b>/${h.length}`;}
+  if(MG.mode==='hide'){const h=ps.filter(p=>p.role==='hider');info=MG.seekT>0?`${ic('flash','🔦')}<b>${Math.ceil(MG.seekT)}</b>s`:`${ic('hide','🙈')}<b>${h.filter(p=>!p.found).length}</b>/${h.length}`;}
   if(mgHudUpdate.i!==info){mgHudUpdate.i=info;$('mgInfo').innerHTML=info;}}
 function msg(t,ms,sub){const m=$('mgMsg');const key=t+'|'+(sub||'');if(msg._k!==key||m.style.display==='none'){msg._k=key;if(sub){m.innerHTML='';m.append(t);const sm=document.createElement('small');sm.innerHTML=sub;m.appendChild(sm);}else m.textContent=t;
   m.classList.toggle('big',/^(3|2|1|Start!)$/.test(t));m.classList.remove('pop');void m.offsetWidth;m.classList.add('pop');}
   m.style.display='block';clearTimeout(msg._t);if(ms)msg._t=setTimeout(()=>{m.style.display='none';msg._k=null;},ms);}
-function countMsg(){msg(MG.t>2?'3':MG.t>1?'2':'1',0,roleText(P));}
+function countMsg(){const n=String(Math.ceil(MG.t));
+  if(!P.mg)return;
+  if(isChaser(P))msg(n,0,MG.mode==='hide'?'Eyes closed… seekers start soon':'Get ready to chase!');
+  else msg('Run! 🏃',0,`Chasers start in ${n}`);}
 function checkEnd(){if(!MG.on||MG.phase!=='play')return;const ps=MG.players;let done=null;
   if(MG.mode==='freeze'&&!ps.some(p=>p.role==='run'&&!p.frozen))done='chaser';
   if(MG.mode==='zombie'&&!ps.some(p=>p.role==='human'))done='chaser';
@@ -968,6 +973,22 @@ function mgFinish(){if(MG.online){if(MG.isHost){NET.g=null;}else{NET.j=null;NET.
 function litBySeekerA(x,y){return MG.players.some(s=>isChaser(s)&&MG.seekT<=0&&inFlash(s,{x,y}));}
 const covers=()=>[...bushes.filter(q=>q.big).map(q=>({x:q.x,y:q.y,r:44})),...trees.map(t=>({x:t[0],y:t[1],r:34}))];
 function litBySeeker(x,y){return MG.players.some(s=>isChaser(s)&&MG.seekT<=0&&inFlash(s,{x,y}));}
+function velOf(p){const dt=MG.dt||1/60;return p.lastX!=null?{x:(p.x-p.lastX)/dt,y:(p.y-p.lastY)/dt}:{x:0,y:0};}
+function zombieTarget(b,ps){
+  // every kid can have up to two zombies: the nearer one chases where the kid is heading, the other one swings round to block the way out
+  const zs=MG.players.filter(p=>isChaser(p)&&!p.frozen),hs=ps.filter(p=>canTag(b,p));if(!hs.length)return null;
+  let best=null,bc=1e9;
+  for(const h of hs){const on=zs.filter(z=>z!==b&&z.target&&z.target.chase===h).length;if(on>=2)continue;
+    let c=dist(b,h)+on*(window.ZP??120);if(h.jt!=null)c+=40;if(c<bc){bc=c;best=h;}}
+  if(!best){best=hs.sort((a,c)=>dist(b,a)-dist(b,c))[0];}
+  const v=velOf(best),sp=168*zombieK()*(S.speed/200),d=dist(b,best),lead=Math.min(window.ZL??.3,d/Math.max(60,sp));
+  const mate=zs.find(z=>z!==b&&z.target&&z.target.chase===best);
+  if(mate&&dist(mate,best)<d&&d>110&&dist(mate,best)<(window.ZF??260)){
+    // flanker: get to the far side of the kid from the other zombie, a bit ahead of where it runs
+    let ux=best.x-mate.x,uy=best.y-mate.y;const l=Math.hypot(ux,uy)||1;ux/=l;uy/=l;
+    const tx=best.x+ux*150+v.x*.6,ty=best.y+uy*150+v.y*.6;
+    return {x:clamp(tx,TILE*1.5,WORLD_W-TILE*1.5),y:clamp(ty,MIN_Y+20,WORLD_H-TILE),chase:best,flank:true};}
+  return {x:clamp(best.x+v.x*lead,TILE*1.5,WORLD_W-TILE*1.5),y:clamp(best.y+v.y*lead,MIN_Y+20,WORLD_H-TILE),chase:best};}
 function botTarget(b){const ps=MG.players.filter(p=>p!==b);
   if(b.frozen||b.found)return null;
   b.planT=(b.planT||0)-(MG.dt||1/60);
@@ -985,7 +1006,8 @@ function botTarget(b){const ps=MG.players.filter(p=>p!==b);
         if(b.patrol&&b.scan)return null;}
       if(b.jt==null&&Math.random()<.004)startJump(b);                     // hop to lift the light and see further
       return {x:b.patrol.x,y:b.patrol.y};}
-    // chaser / zombie: go after the nearest free target, lead it a little, don't all chase the same kid
+    if(MG.mode==='zombie'&&!window.ZK_DUMB)return zombieTarget(b,ps);
+    // chaser: go after the nearest free target, lead it a little, don't all chase the same kid
     let best=null,bd=1e9;
     for(const p of ps)if(canTag(b,p)){let d=dist(b,p);if(MG.players.some(o=>o!==b&&isChaser(o)&&o.target&&o.target.chase===p))d+=200;if(p.jt!=null)d+=40;if(d<bd){bd=d;best=p;}}
     if(!best)return null;
@@ -1007,18 +1029,21 @@ function botTarget(b){const ps=MG.players.filter(p=>p!==b);
   if(!b.plan||b.planT<=-1.5){const e=bestEscape(b,ch.length?ch:[{x:WORLD_W/2,y:WORLD_H}]);b.plan={x:e.x,y:e.y};b.planT=0;}
   return b.plan;}
 function updateBot(b,dt){b.tagCd=Math.max(0,(b.tagCd||0)-dt);if(b.pop)b.pop.t+=dt;updJump(b,dt);
-  if(MG.phase!=='play'||b.frozen||b.found||inGrace(b)){b.moving=false;return;}
+  if((MG.phase!=='play'&&MG.phase!=='count')||b.frozen||b.found||inGrace(b)){b.moving=false;return;}
   const tg=botTarget(b);b.target=tg;if(!tg){b.moving=false;return;}
   if(tg.chase&&dist(b,tg.chase)<TAG_R()*.85&&b.tagCd<=0){doTag(b);}
   if(tg.help&&dist(b,tg.help)<TAG_R()*.85&&b.tagCd<=0){doTag(b);}
   const dx=tg.x-b.x,dy=tg.y-b.y,d=Math.hypot(dx,dy);if(d<(tg.stay?8:30)&&!tg.chase){b.moving=false;return;}
-  const sp=(isChaser(b)?(MG.mode==='zombie'?118:178):168)*(S.speed/200);   // zombies shuffle a bit slower than humans
+  const sp=(isChaser(b)?(MG.mode==='zombie'?168*zombieK():178):168)*(S.speed/200);
   if(!tg.chase&&noProgress(b,tg.x,tg.y,dt)){b.plan=null;b.hideSpot=null;b.patrol=null;b.pgx=null;b.moving=false;return;}   // goal unreachable: pick another
   if(!steerMove(b,tg.x,tg.y,sp,dt)){b.stuck=(b.stuck||0)+dt;if(b.stuck>.5){b.plan=null;b.hideSpot=null;b.stuck=0;}b.moving=false;}else{b.stuck=0;b.moving=true;}
   b.t=(b.t||0)+dt;b.frame=frameAt(8,8,b.t,12*(sp/120));}
 function updateMG(dt){if(!MG.on)return;MG.dt=dt;
-  if(MG.online&&!MG.isHost){if(MG.phase==='count'){MG.t-=dt;if(MG.t>0)countMsg();}else if(MG.phase==='play'){MG.t=Math.max(0,MG.t-dt);if(MG.seekT>0)MG.seekT-=dt;}mgHudUpdate();return;}
-  if(MG.phase==='count'){MG.t-=dt;if(MG.t>0)countMsg();if(MG.t<=0){MG.phase='play';MG.t=GAME_T;if(MG.mode==='hide')MG.seekT=SEEK_T;msg('Start!',1000,MG.mode!=='hide'&&isChaser(P)?'Wait 3 seconds…':'');}mgHudUpdate();return;}
+  if(MG.online&&!MG.isHost){if(MG.phase==='count'){MG.t-=dt;if(MG.mode==='hide')MG.seekT=Math.max(0,MG.t);if(MG.t>0)countMsg();}else if(MG.phase==='play'){MG.t=Math.max(0,MG.t-dt);if(MG.seekT>0)MG.seekT-=dt;}mgHudUpdate();return;}
+  if(MG.phase==='count'){MG.t-=dt;if(MG.mode==='hide')MG.seekT=Math.max(0,MG.t);if(MG.t>0)countMsg();
+    MG.players.forEach(p=>{p.lastX=p._px;p.lastY=p._py;p._px=p.x;p._py=p.y;});
+    MG.players.forEach(p=>{if(p!==P&&!p.remote)updateBot(p,dt);});           // runners and hiders already move
+    if(MG.t<=0){MG.phase='play';MG.t=GAME_T;MG.seekT=0;msg(isChaser(P)?'Go! Catch them!':'Start!',1000);}mgHudUpdate();return;}
   if(MG.phase!=='play')return;
   MG.t-=dt;if(MG.seekT>0){MG.seekT-=dt;if(MG.seekT<=0)msg('Seekers are coming!',1200);}
   MG.players.forEach(p=>{p.lastX=p._px;p.lastY=p._py;p._px=p.x;p._py=p.y;});
@@ -1026,7 +1051,7 @@ function updateMG(dt){if(!MG.on)return;MG.dt=dt;
   if(MG.mode==='hide'&&MG.seekT<=0){for(const s of MG.players.filter(isChaser))for(const h of MG.players)if(h.role==='hider'&&!h.found&&inFlash(s,h)){h.found=true;h.moving=false;h.pop={txt:'Found!',t:0};s.pop={txt:'Got you!',t:0};checkEnd();}}
   if(MG.t<=0){MG.t=0;mgEnd('runner');}
   mgHudUpdate();}
-const playerLocked=()=>MG.on&&P.mg&&(MG.phase==='count'||inGrace(P)||P.frozen||P.found&&false||(MG.mode==='hide'&&P.role==='seeker'&&MG.seekT>0));
+const playerLocked=()=>MG.on&&P.mg&&(inGrace(P)||P.frozen||P.found&&false||(MG.mode==='hide'&&P.role==='seeker'&&MG.seekT>0));
 
 // ================= ONLINE: one shared world for everyone who has the game open =================
 // Uses the platform "room": each player shares one presence object (position, look, name, game state).
@@ -1121,7 +1146,7 @@ function netFollowHost(){if(!NET.j)return;const hp=NET.pres.get(NET.host);const 
   MG.players=actors;actors.forEach(p=>{const id=idOf(p);p.mg=true;p.role=(g.r||{})[id]||p.role;p.frozen=(g.fz||[]).includes(id);p.found=(g.fd||[]).includes(id);});
   if(P.frozen){P.moving=false;P.jt=null;P.z=0;}
   MG.seekerIsP=(MG.mode==='hide'&&P.role==='seeker');
-  if(g.ph==='play'&&MG.phase==='count')msg('Start!',1000,MG.mode!=='hide'&&isChaser(P)?'Wait 3 seconds…':'');
+  if(g.ph==='play'&&MG.phase==='count')msg(isChaser(P)?'Go! Catch them!':'Start!',1000);
   if(g.ph==='end'&&MG.phase!=='end'){MG.t=0;mgEnd(g.win||'runner');return;}
   if(MG.phase!=='end'){MG.phase=g.ph;MG.t=g.tl;MG.seekT=g.sk;}}
 
