@@ -104,11 +104,13 @@
   .hudOpen .onlinePill{display:none!important}
   .mgHud{position:absolute;right:12px;top:12px;z-index:3;background:rgba(255,250,240,.92);border-radius:14px;padding:4px 10px;color:#3b2a1a;box-shadow:0 3px 0 #e7d7b8;pointer-events:none;display:grid;grid-template-columns:auto auto;gap:0 10px;align-items:center;text-align:right}
   .inMG .onlinePill{display:none!important}
-  .mgMsg small{display:block;font-size:19px;margin-top:6px;text-shadow:0 2px 0 #3b2a1a,0 4px 10px rgba(0,0,0,.35)}.mgMsg small .ic{width:24px;height:24px}
+  .mgMsg small{display:block;font-size:18px;font-weight:700;margin-top:8px;color:#fffaf0;text-shadow:2px 0 0 #3b2a1a,-2px 0 0 #3b2a1a,0 2px 0 #3b2a1a,0 -2px 0 #3b2a1a,0 4px 0 #3b2a1a}.mgMsg small .ic{width:24px;height:24px}
   .mgMsg.big{font-size:96px;line-height:1}.mgMsg.pop{animation:mgPop .4s ease-out}
   @keyframes mgPop{0%{transform:translate(-50%,-50%) scale(1.9);opacity:0}60%{transform:translate(-50%,-50%) scale(.92);opacity:1}100%{transform:translate(-50%,-50%) scale(1)}}
   #mgTime{font-size:20px;font-weight:700;line-height:1.15;display:flex;align-items:center;gap:3px}#mgTime .ic{width:18px;height:18px}#mgRole{grid-column:1/3;font-size:11px;font-weight:700;opacity:.75}#mgInfo{display:flex;align-items:center;gap:3px;font-size:13px;font-weight:700;color:#7a5a3a}#mgInfo b{font-size:20px;color:#e8483f}#mgInfo:empty{display:none}#mgInfo .ic{width:20px;height:20px}
-  .mgMsg{position:absolute;left:50%;top:42%;transform:translate(-50%,-50%);z-index:4;font-size:42px;font-weight:700;color:#fff;text-shadow:0 3px 0 #e8483f,0 6px 14px rgba(0,0,0,.35);pointer-events:none;text-align:center;white-space:nowrap}
+  .mgMsg{position:absolute;left:50%;top:42%;transform:translate(-50%,-50%);z-index:4;font-family:'Mali',sans-serif;font-size:40px;font-weight:800;color:#fffaf0;pointer-events:none;text-align:center;white-space:nowrap;
+    text-shadow:3px 0 0 #3b2a1a,-3px 0 0 #3b2a1a,0 3px 0 #3b2a1a,0 -3px 0 #3b2a1a,2px 2px 0 #3b2a1a,-2px 2px 0 #3b2a1a,2px -2px 0 #3b2a1a,-2px -2px 0 #3b2a1a,0 6px 0 #3b2a1a,0 9px 14px rgba(0,0,0,.3)}
+  .mgMsg.big{color:#ffcc33}.mgMsg.run{color:#7ee06a;display:flex!important;flex-wrap:wrap;justify-content:center;align-items:center}.mgMsg.run small{flex-basis:100%}.mgMsg .runK{width:62px;height:90px;margin:-24px 6px -14px 0}
   .mgPanel{position:absolute;inset:0;z-index:6;background:rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center}
   .mgBox{width:min(440px,92%);max-height:calc(var(--ah) - 30px);overflow:auto;background:#fffaf0;border-radius:22px;padding:14px 16px;color:#3b2a1a;box-shadow:0 6px 0 #e7d7b8}
   .mgHead{display:flex;justify-content:space-between;align-items:center;font-size:18px;margin-bottom:8px}
@@ -587,7 +589,7 @@ document.addEventListener('focusout',()=>setTimeout(resize,350));addEventListene
 // screen (client) coords -> coords inside the (maybe rotated) game
 const toApp=(cx,cy)=>ROT?{x:cy,y:innerWidth-cx}:{x:cx,y:cy};
 // best effort: real landscape lock (works on Android in fullscreen); otherwise the sideways drawing above is used
-document.addEventListener('pointerdown',e=>{if(IS_TOUCH&&e.target.closest&&e.target.closest('.lgGo'))tryLandscape();},true);
+document.addEventListener('pointerdown',e=>{if(IS_TOUCH&&e.target.closest&&e.target.closest('.lgGo'))window.__landP=tryLandscape();},true);
 async function tryLandscape(){try{if(!document.fullscreenElement&&document.documentElement.requestFullscreen)await document.documentElement.requestFullscreen({navigationUI:'hide'});await screen.orientation.lock('landscape');}catch(e){}}
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 
@@ -952,12 +954,16 @@ function mgHudUpdate(){app.classList.toggle('inMG',MG.on);
   if(MG.mode==='hide'){const h=ps.filter(p=>p.role==='hider');info=MG.seekT>0?`${ic('flash','🔦')}<b>${Math.ceil(MG.seekT)}</b>s`:`${ic('hide','🙈')}<b>${h.filter(p=>!p.found).length}</b>/${h.length}`;}
   if(mgHudUpdate.i!==info){mgHudUpdate.i=info;$('mgInfo').innerHTML=info;}}
 function msg(t,ms,sub){const m=$('mgMsg');const key=t+'|'+(sub||'');if(msg._k!==key||m.style.display==='none'){msg._k=key;if(sub){m.innerHTML='';m.append(t);const sm=document.createElement('small');sm.innerHTML=sub;m.appendChild(sm);}else m.textContent=t;
-  m.classList.toggle('big',/^(3|2|1|Start!)$/.test(t));m.classList.remove('pop');void m.offsetWidth;m.classList.add('pop');}
+  m.classList.toggle('big',/^\d$|^Start!$|^Go!/.test(t));m.classList.toggle('run',/^Run!/.test(t));m.classList.remove('pop');void m.offsetWidth;m.classList.add('pop');}
   m.style.display='block';clearTimeout(msg._t);if(ms)msg._t=setTimeout(()=>{m.style.display='none';msg._k=null;},ms);}
 function countMsg(){const n=String(Math.ceil(MG.t));
   if(!P.mg)return;
   if(isChaser(P))msg(n,0,MG.mode==='hide'?'Eyes closed… seekers start soon':'Get ready to chase!');
-  else msg('Run! 🏃',0,`Chasers start in ${n}`);}
+  else{msg('Run!',0,`Chasers start in ${n}`);drawRunK();}}
+function drawRunK(){const m=$('mgMsg');let c=m.querySelector('.runK');
+  if(!c){c=document.createElement('canvas');c.className='runK';c.width=116;c.height=168;m.insertBefore(c,m.firstChild);}
+  const sh=sheet(charFor(P),'right');if(!sh.img)return;const x=c.getContext('2d'),f=Math.floor(performance.now()/90)%8;
+  x.clearRect(0,0,116,168);x.drawImage(sh.img,f*FRAME_W,0,FRAME_W,FRAME_H,0,0,116,168);}
 function checkEnd(){if(!MG.on||MG.phase!=='play')return;const ps=MG.players;let done=null;
   if(MG.mode==='freeze'&&!ps.some(p=>p.role==='run'&&!p.frozen))done='chaser';
   if(MG.mode==='zombie'&&!ps.some(p=>p.role==='human'))done='chaser';
@@ -1416,8 +1422,9 @@ function lgBuild(){const seg=(id,items,cur,fn,cls)=>{const b=$(id);b.innerHTML='
 function lgReady(){const btn=$('lgEnter'),btn2=$('lgEnter2'),btn3=$('lgEnter3');[btn,btn2,btn3].forEach(b=>{b.disabled=!ready;if(!ready&&!/%/.test(b.textContent))b.textContent='Loading…';});
   if(ready){btn.textContent='Let’s go!';btn2.textContent='Play';btn3.textContent='Play';}}
 function enterGame(p){store.set('sw_session',{on:true});LG.g=p.g;LG.h=p.h;LG.c=p.c;pick.g=p.g;pick.o='sport';pick.h[p.g]=p.h;pick.c=p.c;P.name=p.name;applyPick();variant(P.char);
-  loggedIn=true;window.__inGame=true;resize();document.getElementById('loading').classList.add('done');
-  hud.style.display='none';showBtn.style.display='block';app.classList.remove('hudOpen');}
+  hud.style.display='none';showBtn.style.display='block';app.classList.remove('hudOpen');
+  const go=()=>{loggedIn=true;window.__inGame=true;resize();requestAnimationFrame(()=>requestAnimationFrame(()=>document.getElementById('loading').classList.add('done')));};
+  if(window.__landP){const t0=performance.now();Promise.race([window.__landP,new Promise(r=>setTimeout(r,800))]).then(()=>setTimeout(go,Math.max(0,250-(performance.now()-t0))));window.__landP=null;}else go();}
 $('lgEnter').onclick=async()=>{const name=$('nameIn').value.trim(),a=$('pinA').value,err=$('lgErr');
   if(!name){err.textContent='Please type your nickname';return;}if(!/^\d{4}$/.test(a)){err.textContent='PIN must be 4 numbers';return;}
   const prof={name,g:LG.g,h:LG.h,c:LG.c,pin:await hashPin(a)};store.set('sw_profile',prof);enterGame(prof);};
