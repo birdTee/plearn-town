@@ -10,6 +10,8 @@
 <link rel="preload" as="image" href="logo.webp" fetchpriority="high">
 <link href="https://fonts.googleapis.com/css2?family=Mali:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
+  *{-webkit-tap-highlight-color:transparent}
+  button:focus{outline:none}
   html,body{-webkit-touch-callout:none;margin:0;height:100%;overflow:hidden;background:#1d2b1f;font-family:'Mali',system-ui,sans-serif;touch-action:none;user-select:none;-webkit-user-select:none}
   canvas{display:block;width:100%;height:100%}
   #app{position:fixed;left:0;top:0;width:100vw;height:100vh;overflow:hidden;--aw:100vw;--ah:100vh}
@@ -62,10 +64,10 @@
   @keyframes spPop{from{transform:scale(.6);opacity:0}to{transform:scale(1);opacity:1}}
   @keyframes spBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
   @keyframes lgIn{from{transform:translateY(10px);opacity:0}to{transform:none;opacity:1}}
-  @media (max-height:520px) and (orientation:landscape){
-    #loading.simple .login{flex-direction:row;justify-content:center;gap:28px;width:min(760px,94%)}
-    #loading.simple .lgLogo{width:min(38vw,300px);max-height:70vh}#loading.simple .login>.lgCard{width:auto;flex:0 1 380px}
-    #loading.booting .lgLogo{max-height:62vh}}
+  .land #loading.simple .login{flex-direction:row;justify-content:center;gap:28px;width:min(760px,94%)}
+  .land #loading.simple .lgLogo{width:min(calc(var(--aw)*.36),320px);max-height:calc(var(--ah)*.72)}.land #loading.simple .lgHead{flex:0 0 auto}.land #loading.simple .login>.lgCard{width:auto;flex:0 1 380px}
+  .land #loading.booting .lgLogo{max-height:calc(var(--ah)*.62)}
+  #app .lgLogo{max-height:calc(var(--ah)*.3)}#app .booting .lgLogo{max-height:calc(var(--ah)*.58)}
   .lgTitle{text-align:center;font-size:30px;font-weight:700;color:#fff;text-shadow:0 3px 0 #e8483f,0 5px 10px rgba(0,0,0,.25);margin:4px 0 10px}
   .lgCard{background:#fffaf0;border-radius:22px;padding:14px 16px;box-shadow:0 6px 0 #e7d7b8,0 10px 24px rgba(0,0,0,.2)}
   .lgRow{display:flex;gap:12px;align-items:center}.lgCol{flex:1;min-width:0}.lgRow2{display:flex;gap:8px}
@@ -326,7 +328,7 @@
 <script>
 // ---- UI icon set (ui_icons.webp, 18 cells in one row) — emoji are shown until it loads ----
 // bump ASSET_V whenever an icon/emote picture changes, so phones download the new one instead of a cached copy
-var ASSET_V='20261120k';
+var ASSET_V='20261120l';
 const IC_N=['logo','pad','freeze','hide','zombie','fire','flash','run','shirt','gear','globe','trophy','girl','boy','jump','tag','logout','hello'];
 const IC={},IC_C={};
 function icFrom(img,i,name){const n=img.height,c=document.createElement('canvas');c.width=c.height=n;c.getContext('2d').drawImage(img,i*n,0,n,n,0,0,n,n);IC_C[name]=c;IC[name]=c.toDataURL();}
@@ -624,11 +626,11 @@ const MAX_PIX=2.2e6;                                   // cap on canvas pixels: 
 function resize(){const ae=document.activeElement;
   if(ae&&(ae.tagName==='INPUT'||ae.tagName==='TEXTAREA')&&resize._w===innerWidth&&W)return;   // keyboard opened: keep the page as it is
   resize._w=innerWidth;dpr=Math.min(window.devicePixelRatio||1,2);
-  ROT = IS_TOUCH && innerHeight>innerWidth && !!window.__inGame;   // phone held upright: login stays upright, the game is drawn sideways
+  ROT = IS_TOUCH && innerHeight>innerWidth;   // phone held upright: the whole game (logo + login too) is drawn sideways
   W = ROT?innerHeight:innerWidth; H = ROT?innerWidth:innerHeight;
   app.classList.toggle('rot',ROT);app.style.width=W+'px';app.style.height=H+'px';app.style.setProperty('--aw',W+'px');app.style.setProperty('--ah',H+'px');
   Z=Math.min(W/VIEW_W,H/VIEW_HMIN);VW=W/Z;VH=H/Z;
-  app.classList.toggle('narrow',W<600);app.classList.toggle('short',H<560);
+  app.classList.toggle('narrow',W<600);app.classList.toggle('short',H<560);app.classList.toggle('land',W>H&&H<560);
   dpr=Math.min(dpr,Math.sqrt(MAX_PIX/(W*H)));
   cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr);ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='medium'}
 document.addEventListener('focusout',()=>setTimeout(resize,350));addEventListener('resize',resize);addEventListener('orientationchange',()=>setTimeout(resize,200));resize();
@@ -1736,6 +1738,22 @@ function lgBuild(){const seg=(id,items,cur,fn,cls)=>{const b=$(id);b.innerHTML='
   lgPreview($('lgPrev'),LG.g,LG.h,LG.c);lgReady();}
 function lgReady(){const btn=$('lgEnter'),btn2=$('lgEnter2'),btn3=$('lgEnter3');[btn,btn2,btn3].forEach(b=>{b.disabled=!ready;if(!ready&&!/%/.test(b.textContent))b.textContent='Loading…';});
   if(ready){btn.textContent='Let’s go!';btn2.textContent='Play';btn3.textContent='Play';}}
+// ---- Android can wipe canvas pictures while another app (e.g. a phone call) is in front.
+// A tiny test canvas tells us; then we reload quickly and drop the kid back exactly where they were.
+const SENT=document.createElement('canvas');SENT.width=SENT.height=2;{const g=SENT.getContext('2d');g.fillStyle='#f00';g.fillRect(0,0,2,2);}
+function picsLost(){try{return SENT.getContext('2d').getImageData(0,0,1,1).data[3]===0;}catch(e){return true;}}
+function saveResume(){try{sessionStorage.setItem('pt_resume',JSON.stringify({t:Date.now(),map:MAPID,x:P.x,y:P.y,dir:P.dir,
+  food:FOOD.map(f=>({x:f.x,y:f.y,kind:f.kind,left:f.left})),poop:POOP.map(q=>({x:q.x,y:q.y}))}));}catch(e){}}
+let resumeBusy=false;
+function checkPics(){if(resumeBusy||document.hidden||!loggedIn)return;if(picsLost()){resumeBusy=true;saveResume();location.reload();}}
+document.addEventListener('visibilitychange',()=>setTimeout(checkPics,200));addEventListener('pageshow',()=>setTimeout(checkPics,200));addEventListener('focus',()=>setTimeout(checkPics,200));
+SENT.addEventListener('contextrestored',()=>setTimeout(checkPics,50));setInterval(checkPics,2000);
+function tryResume(){let r=null;try{r=JSON.parse(sessionStorage.getItem('pt_resume'));sessionStorage.removeItem('pt_resume');}catch(e){}
+  const prof=store.get('sw_profile');if(!r||!prof||Date.now()-r.t>15*60e3)return false;
+  enterGame(prof);
+  if(r.map==='home'){MAPID='home';app.classList.add('atHome');PETS.forEach(p=>p.placed=false);}
+  P.x=r.x;P.y=r.y;P.dir=r.dir||'down';portalArmed=false;
+  (r.food||[]).forEach(f=>FOOD.push({...f,t0:performance.now()}));(r.poop||[]).forEach(q=>POOP.push({x:q.x,y:q.y,t0:performance.now()-1e4,from:1}));updPoopN();drawStrip();return true;}
 function enterGame(p){store.set('sw_session',{on:true});LG.g=p.g;LG.h=p.h;LG.c=p.c;pick.g=p.g;pick.o='sport';pick.h[p.g]=p.h;pick.c=p.c;P.name=p.name;applyPick();variant(P.char);
   hud.style.display='none';showBtn.style.display='block';app.classList.remove('hudOpen');
   const go=()=>{loggedIn=true;window.__inGame=true;resize();requestAnimationFrame(()=>requestAnimationFrame(()=>document.getElementById('loading').classList.add('done')));};
@@ -1759,7 +1777,7 @@ $('lgNew2').onclick=()=>{$('loading').classList.remove('simple');$('lgWelcome').
 $('logoutBtn').onclick=()=>{store.set('sw_session',{on:false});location.reload();};
 (function boot(){const t0=Date.now();let p=8;const tick=()=>{p=ready?100:Math.min(92,p+(92-p)*.06);const f=$('bootFill');if(f)f.style.width=p+'%';
   if(ready&&Date.now()-t0>1500){setTimeout(()=>$('loading').classList.remove('booting'),300);return;}setTimeout(tick,120);};tick();})();
-function onLoaded(){lgReady();lgBuild();const prof=store.get('sw_profile');if(prof){lgPreview($('lgPrev2'),prof.g,prof.h,prof.c);lgPreview($('lgPrev3'),prof.g,prof.h,prof.c);}}
+function onLoaded(){lgReady();lgBuild();if(tryResume())return;const prof=store.get('sw_profile');if(prof){lgPreview($('lgPrev2'),prof.g,prof.h,prof.c);lgPreview($('lgPrev3'),prof.g,prof.h,prof.c);}}
 
 loadAll();
 requestAnimationFrame(loop);
