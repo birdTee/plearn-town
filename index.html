@@ -130,8 +130,16 @@
   .hudOpen .foodPanel{display:none!important}
   .petLikes{display:flex;flex-direction:column;gap:3px;margin:6px 2px 2px;font:600 12px 'Mali',system-ui,sans-serif;color:#6b4a2b}.petLikes div{display:flex;align-items:center;gap:4px}.petLikes canvas{width:22px;height:22px}
   .petBtn{display:none}.atHome .petBtn{display:flex}
-  .atHome .petBtn{left:12px;right:auto}.atHome .petPanel{left:12px;right:auto}
-  .atHome:not(.inHouse) #showBtn{display:none!important}.atHome.inHouse .petBtn,.atHome.inHouse .petPanel{display:none!important}
+  #showBtn{display:none!important}.atHome.inHouse #showBtn{display:flex!important}.hudOpen #showBtn,.hudOpen #gearBtn{display:none!important}
+  .atHome.inHouse .petBtn,.atHome.inHouse .petPanel{display:none!important}
+  .gearBtn{position:absolute;left:12px;top:12px;z-index:3;width:42px;height:42px;border:0;border-radius:50%;background:rgba(20,24,32,.82);color:#fff;font-size:20px;display:flex;align-items:center;justify-content:center;padding:0;cursor:pointer}
+  .gearBtn .ic{width:24px;height:24px}
+  #onlinePill{left:62px;right:auto;top:20px}
+  .petChip{touch-action:none;position:relative}.petChip.on{background:#ffd84a!important;box-shadow:0 3px 0 #d9a91f!important}
+  .petChip.on::after{content:'✕';position:absolute;top:-6px;right:-6px;width:18px;height:18px;border-radius:9px;background:#e8483f;color:#fff;font:700 11px/18px system-ui;text-align:center}
+  .petGhost{position:absolute;z-index:50;pointer-events:none;width:72px;height:72px;margin:-60px 0 0 -36px;filter:drop-shadow(0 6px 6px rgba(0,0,0,.3));transition:opacity .2s}
+  .petHint{font:600 12px 'Mali',system-ui,sans-serif;color:#7a5a3a;margin:2px 2px 6px}
+  .dragging .petPanel{opacity:.15;pointer-events:none}
   .petPanel{position:absolute;right:12px;top:62px;z-index:6;max-height:calc(var(--ah) - 80px);overflow-y:auto;box-sizing:border-box;background:#fffaf0;border-radius:16px;padding:10px 12px;box-shadow:0 5px 0 #e7d7b8,0 10px 24px rgba(0,0,0,.25);color:#3b2a1a;width:280px}
   .petLbl{font-size:12px;font-weight:700;margin:6px 0 4px;color:#7a5a3a}.petRow{display:flex;gap:6px;flex-wrap:wrap}
   .petRow button{flex:1;border:2px solid #f0d9a8;background:#fff3d6;border-radius:12px;padding:7px 6px;font:inherit;font-size:13px;font-weight:700;color:#3b2a1a;cursor:pointer;white-space:nowrap}
@@ -321,7 +329,7 @@
   <button id="logoutBtn" class="logout"><i class="ic" data-ic="logout"></i> Log out</button>
   </div>
 </div>
-<button class="toggle" id="showBtn"><i class="ic" data-ic="shirt">👕</i> Dress up / <i class="ic" data-ic="gear">⚙️</i></button>
+<button class="mgBtn" id="showBtn"><i class="ic" data-ic="shirt">👕</i> Dress up</button><button class="gearBtn" id="gearBtn" aria-label="Settings"><i class="ic" data-ic="gear">⚙️</i></button>
 
 <div class="strip"><span id="stripLabel"></span><canvas id="stripC"></canvas></div>
 </div>
@@ -330,7 +338,7 @@
 <script>
 // ---- UI icon set (ui_icons.webp, 18 cells in one row) — emoji are shown until it loads ----
 // bump ASSET_V whenever an icon/emote picture changes, so phones download the new one instead of a cached copy
-var ASSET_V='20261120o';
+var ASSET_V='20261120p';
 const IC_N=['logo','pad','freeze','hide','zombie','fire','flash','run','shirt','gear','globe','trophy','girl','boy','jump','tag','logout','hello'];
 const IC={},IC_C={};
 function icFrom(img,i,name){const n=img.height,c=document.createElement('canvas');c.width=c.height=n;c.getContext('2d').drawImage(img,i*n,0,n,n,0,0,n,n);IC_C[name]=c;IC[name]=c.toDataURL();}
@@ -676,7 +684,8 @@ fps.oninput=()=>{S.fps=+fps.value;$('fpsv').textContent=S.fps+' fps'};
 spd.oninput=()=>{S.speed=+spd.value;$('spdv').textContent=S.speed};
 scl.oninput=()=>{S.scale=scl.value/10;$('sclv').textContent=S.scale.toFixed(1)+'×'};
 $('hideBtn').onclick=()=>{hud.style.display='none';showBtn.style.display='block';app.classList.remove('hudOpen')};
-showBtn.onclick=()=>{hud.style.display='block';showBtn.style.display='none';app.classList.add('hudOpen')};
+const openHud=tab=>{hud.style.display='block';app.classList.add('hudOpen');document.querySelector(`.tab[data-tab=${tab}]`).click();document.querySelector('.tab[data-tab=dress]').style.display=tab==='set'&&!app.classList.contains('inHouse')?'none':'';};
+showBtn.onclick=()=>openHud('dress');$('gearBtn').onclick=()=>openHud('set');
 $('npcToggle').onchange=e=>{S.npcs=e.target.checked};
 setTimeout(()=>{const fsOk=!!document.documentElement.requestFullscreen;$('fsRow').style.display=fsOk?'':'none';
   $('fsToggle').onchange=e=>{if(e.target.checked)tryLandscape();else if(document.fullscreenElement)document.exitFullscreen().catch(()=>{});};
@@ -1602,8 +1611,8 @@ function petImg(id){if(PETS_IMG[id]!==undefined)return PETS_IMG[id];PETS_IMG[id]
 Object.keys(PET_DEFS).forEach(petImg);   // load every pet picture at start, so choosing a pet shows it at once
 // slow walkers do everything slowly: animation speed and how long each action lasts follow walking speed
 const petTempo=p=>Math.min(1.2,Math.max(.3,(PET_INFO[p.id]?.speed||150)/150));
-const PET_MAX=3;   // up to 3 pets out in the yard at once
-const PETS_SEL=(()=>{let v=lsGet('sw_pets');try{v=JSON.parse(v);}catch(e){v=null;}if(!Array.isArray(v)){const o=lsGet('sw_pet');v=o&&o!=='null'?[o]:['calico_cat'];}return v.filter(id=>PET_DEFS[id]).slice(0,PET_MAX);})();
+const PET_MAX=99;  // no limit any more: pets are called by dragging them onto the lawn
+const PETS_SEL=(()=>{let v=lsGet('sw_pets');try{v=JSON.parse(v);}catch(e){v=null;}if(!Array.isArray(v)){const o=lsGet('sw_pet');v=o&&o!=='null'?[o]:['calico_cat'];}return [...new Set(v.filter(id=>PET_DEFS[id]))];})();
 const newPet=id=>({id,x:0,y:0,face:1,state:'stand',st:0,t:Math.random()*3,placed:false,wander:null,wantT:Math.random()*2,plan:'idle',side:0,stuck:0});
 const PETS=PETS_SEL.map(newPet);
 function savePets(){lsSet('sw_pets',JSON.stringify(PETS.map(p=>p.id)));}
@@ -1638,7 +1647,10 @@ function drawMood(k,x,y,sz,a){if(MOOD_IMG.complete&&MOOD_IMG.naturalWidth){const
   else if(k==='yuck'){ctx.strokeStyle='#4caf50';ctx.lineWidth=L*1.5;ctx.beginPath();ctx.moveTo(-r*.5,r*.15);for(let i=0;i<=8;i++)ctx.lineTo(-r*.5+i*r*.125,r*.15+(i%2?-1:1)*r*.13);ctx.stroke();
     ctx.fillStyle='#4caf50';ctx.beginPath();ctx.arc(-r*.28,-r*.3,r*.09,0,7);ctx.arc(r*.28,-r*.3,r*.09,0,7);ctx.fill();}
   ctx.restore();}
-function togglePet(id){const i=PETS.findIndex(p=>p.id===id);if(i>=0)PETS.splice(i,1);else{if(PETS.length>=PET_MAX)PETS.shift();PETS.push(newPet(id));}savePets();}
+function togglePet(id){const i=PETS.findIndex(p=>p.id===id);if(i>=0)PETS.splice(i,1);else PETS.push(newPet(id));savePets();}
+function callPetAt(id,x,y){let p=PETS.find(q=>q.id===id);if(!p){p=newPet(id);PETS.push(p);savePets();}
+  p.x=x;p.y=y;p.placed=true;p.state='stand';p.st=0;p.wander=null;p.plan='idle';p.wantT=1.5+Math.random()*2;p.face=x<P.x?1:-1;p.goFood=null;mood(p,'happy',1.8);sfxPop(P);}
+function sendPetHome(id){const i=PETS.findIndex(p=>p.id===id);if(i<0)return;PETS.splice(i,1);savePets();sfxPop(P);}
 const FOOD=[];   // food dropped on the ground: {x,y,left,kind}
 // ---- poop: pets poop a while after eating (and now and then); sweep it up with the broom ----
 const POOP=[];const CLEAN_IMG=new Image();CLEAN_IMG.src='clean.webp?v='+ASSET_V;   // 0 poop, 1 broom, 2 dustpan, 3 sparkle
@@ -1782,11 +1794,23 @@ function drawPet(p){const def=PET_DEFS[p.id],H=petH(p),t=p.t,s=p.state;
   if(s==='special'&&def.special==='sleep'){ctx.save();ctx.font='700 13px Mali, sans-serif';ctx.fillStyle='#5a7bd8';ctx.strokeStyle='#fff';ctx.lineWidth=3;
     for(let i=0;i<3;i++){const u=(t*.6+i/3)%1;ctx.globalAlpha=1-u;const zx=p.x+H*.25+u*14,zy=p.y-H-4-u*26;ctx.strokeText('z',zx,zy);ctx.fillText('z',zx,zy);}ctx.restore();}}
 // pet panel (only at home)
+// drag a pet chip onto the lawn: a picture of the pet follows your finger; let go on the grass and the pet appears there
+function petStill(id,px){const c=document.createElement('canvas');c.width=c.height=px*2;const im=petImg(id),d=PET_DEFS[id];if(im){const cw=im.width/4,ch=im.height/4;c.getContext('2d').drawImage(im,d.still[1]*cw,d.still[0]*ch,cw,ch,0,0,px*2,px*2);}return c;}
+function petDragSetup(b,id){let st=null,gh=null;
+  b.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();st={x:e.clientX,y:e.clientY,id:e.pointerId,moved:false};b.setPointerCapture(e.pointerId);});
+  b.addEventListener('pointermove',e=>{if(!st||e.pointerId!==st.id)return;if(!st.moved&&Math.hypot(e.clientX-st.x,e.clientY-st.y)>8){st.moved=true;gh=petStill(id,36);gh.className='petGhost';app.appendChild(gh);app.classList.add('dragging');}
+    if(gh){const a=toApp(e.clientX,e.clientY);gh.style.left=a.x+'px';gh.style.top=a.y+'px';const w=dropSpot(e);gh.style.opacity=w?1:.45;}});
+  const end=e=>{if(!st||e.pointerId!==st.id)return;const moved=st.moved;st=null;app.classList.remove('dragging');if(gh){gh.remove();gh=null;}
+    if(!moved){if(PETS.some(p=>p.id===id))sendPetHome(id);else say(P,'Drag me onto the lawn!');buildPetPanel();return;}
+    const w=dropSpot(e);if(w){callPetAt(id,w.x,w.y);buildPetPanel();}else say(P,'Put pets on the lawn');};
+  b.addEventListener('pointerup',end);b.addEventListener('pointercancel',e=>{if(st&&e.pointerId===st.id){st=null;app.classList.remove('dragging');if(gh){gh.remove();gh=null;}}});}
+function dropSpot(e){if(MAPID!=='home')return null;const a=toApp(e.clientX,e.clientY),x=a.x/Z+cam.x,y=a.y/Z+cam.y;
+  if(y<PET_MINY()+8||x>PET_MAXX()||x<40*HK||y>HOME.RH+1400*HK||homeHit(x,y,12,6))return null;return {x,y};}
 function buildPetPanel(){const box=$('petPanel');box.innerHTML='';
   const head=(title)=>{const h=document.createElement('div');h.className='petLbl';h.textContent=title;box.appendChild(h);const row=document.createElement('div');row.className='petRow';box.appendChild(row);return row;};
   const btn=(row,label,on,fn)=>{const b=document.createElement('button');b.textContent=label;if(on)b.classList.add('on');b.onclick=e=>{e.stopPropagation();fn();buildPetPanel();};row.appendChild(b);};
-  const r1=head(`Pets in the yard (${PETS.length}/${PET_MAX})`);
-  [['calico_cat','🐱 Cat'],['corgi','🐶 Corgi'],['sloth','🦥 Sloth'],['turtle','🐢 Turtle'],['capybara','🦫 Capybara'],['hamster','🐹 Hamster'],['holland_lop','🐰 Bunny'],['baby_penguin','🐧 Penguin'],['shiba','🐕 Shiba'],['otter','🦦 Otter'],['red_panda','🦊 Red Panda'],['budgie','🐦 Budgie'],['orange_cat','🐈 Orange Cat'],['guinea_pig','🐹 Guinea Pig'],['hedgehog','🦔 Hedgehog'],['koala','🐨 Koala'],['fennec_fox','🦊 Fennec'],['baby_panda','🐼 Panda']].forEach(([id,l])=>btn(r1,l,PETS.some(p=>p.id===id),()=>togglePet(id)));
+  const r1=head(`Pets in the yard: ${PETS.length}`);const hint=document.createElement('div');hint.className='petHint';hint.textContent='Drag a pet onto the lawn to call it. Tap ✕ to send it home.';r1.before(hint);
+  [['calico_cat','🐱 Cat'],['corgi','🐶 Corgi'],['sloth','🦥 Sloth'],['turtle','🐢 Turtle'],['capybara','🦫 Capybara'],['hamster','🐹 Hamster'],['holland_lop','🐰 Bunny'],['baby_penguin','🐧 Penguin'],['shiba','🐕 Shiba'],['otter','🦦 Otter'],['red_panda','🦊 Red Panda'],['budgie','🐦 Budgie'],['orange_cat','🐈 Orange Cat'],['guinea_pig','🐹 Guinea Pig'],['hedgehog','🦔 Hedgehog'],['koala','🐨 Koala'],['fennec_fox','🦊 Fennec'],['baby_panda','🐼 Panda']].forEach(([id,l])=>{const b=document.createElement('button');b.className='petChip'+(PETS.some(p=>p.id===id)?' on':'');b.textContent=l;petDragSetup(b,id);r1.appendChild(b);});
   const r2=head('Do (nearest pet)');
   [['love','❤️ Pet it'],['special','💤 Own action']].forEach(([v,l])=>btn(r2,l,false,()=>petAction(v)));
   if(PETS.length){const L=document.createElement('div');L.className='petLikes';PETS.forEach(p=>{const d=document.createElement('div');const hg=Math.round(hungerOf(p.id));d.append((PET_DEFS[p.id]?.name||p.id)+' likes ');likedFoods(p.id).forEach(f=>d.appendChild(iconCanvas(f.id,22)));const t=document.createElement('span');t.style.cssText='margin-left:auto;font-weight:700;color:'+(hg>66?'#d0342c':hg>33?'#c98a00':'#3a9a3a');t.textContent=hg>66?'Hungry':hg>33?'A bit hungry':'Full';d.appendChild(t);L.appendChild(d);});box.appendChild(L);}
