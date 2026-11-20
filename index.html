@@ -132,7 +132,7 @@
   .petBtn{display:none}.atHome .petBtn{display:flex}
   .atHome .petBtn{left:12px;right:auto}.atHome .petPanel{left:12px;right:auto}
   .atHome:not(.inHouse) #showBtn{display:none!important}.atHome.inHouse .petBtn,.atHome.inHouse .petPanel{display:none!important}
-  .petPanel{position:absolute;right:12px;top:62px;z-index:6;background:#fffaf0;border-radius:16px;padding:10px 12px;box-shadow:0 5px 0 #e7d7b8,0 10px 24px rgba(0,0,0,.25);color:#3b2a1a;width:280px}
+  .petPanel{position:absolute;right:12px;top:62px;z-index:6;max-height:calc(var(--ah) - 80px);overflow-y:auto;box-sizing:border-box;background:#fffaf0;border-radius:16px;padding:10px 12px;box-shadow:0 5px 0 #e7d7b8,0 10px 24px rgba(0,0,0,.25);color:#3b2a1a;width:280px}
   .petLbl{font-size:12px;font-weight:700;margin:6px 0 4px;color:#7a5a3a}.petRow{display:flex;gap:6px;flex-wrap:wrap}
   .petRow button{flex:1;border:2px solid #f0d9a8;background:#fff3d6;border-radius:12px;padding:7px 6px;font:inherit;font-size:13px;font-weight:700;color:#3b2a1a;cursor:pointer;white-space:nowrap}
   .petRow button.on{background:#ffcc33;border-color:#e0a91c}.petX{position:absolute;right:-10px;top:-10px}.petStat{margin-top:8px;font-size:12px;color:#7a5a3a}.petStat b{color:#e8a33f;letter-spacing:1px}
@@ -1583,9 +1583,12 @@ const PET_DEFS={   // pets that have their sprite sheet in the game now
   hamster:{name:'Hamster',h:66,special:'cheeks',feel:7,still:[2,3]},
   holland_lop:{name:'Bunny',h:92,special:'hop',feel:2,still:[2,3]},
   baby_penguin:{name:'Penguin',h:96,special:'flap',feel:10,still:[2,3]},
-  shiba:{name:'Shiba',h:100,special:'proud',feel:7,still:[2,3]}};
+  shiba:{name:'Shiba',h:100,special:'proud',feel:7,still:[2,3]},
+  otter:{name:'Otter',h:104,special:'float',feel:3,still:[2,3]},
+  red_panda:{name:'Red Panda',h:108,special:'standup',feel:7,still:[2,3]},
+  budgie:{name:'Budgie',h:74,special:'flap',feel:10,still:[2,3]}};
 // where the mouth is when eating (m) and where the bottom is (b), as a share of the picture height, measured on each sheet
-const PET_GEO={"calico_cat": {"m": 0.472, "b": 0.45}, "sloth": {"m": 0.357, "b": 0.36}, "corgi": {"m": 0.45, "b": 0.43}, "turtle": {"m": 0.44, "b": 0.465}, "capybara": {"m": 0.468, "b": 0.455}, "hamster": {"m": 0.415, "b": 0.375}, "holland_lop": {"m": 0.455, "b": 0.45}, "baby_penguin": {"m": 0.357, "b": 0.355}, "shiba": {"m": 0.383, "b": 0.425}};
+const PET_GEO={"calico_cat": {"m": 0.472, "b": 0.45}, "sloth": {"m": 0.357, "b": 0.36}, "corgi": {"m": 0.45, "b": 0.43}, "turtle": {"m": 0.44, "b": 0.465}, "capybara": {"m": 0.468, "b": 0.455}, "hamster": {"m": 0.415, "b": 0.375}, "holland_lop": {"m": 0.455, "b": 0.45}, "baby_penguin": {"m": 0.357, "b": 0.355}, "shiba": {"m": 0.383, "b": 0.425}, "otter": {"m": 0.448, "b": 0.44}, "red_panda": {"m": 0.463, "b": 0.45}, "budgie": {"m": 0.43, "b": 0.44}};
 const petCellH=p=>petH(p)/0.85*0.98;
 const PETS_IMG={};
 function petImg(id){if(PETS_IMG[id]!==undefined)return PETS_IMG[id];PETS_IMG[id]=null;
@@ -1734,7 +1737,7 @@ function buildPetPanel(){const box=$('petPanel');box.innerHTML='';
   const head=(title)=>{const h=document.createElement('div');h.className='petLbl';h.textContent=title;box.appendChild(h);const row=document.createElement('div');row.className='petRow';box.appendChild(row);return row;};
   const btn=(row,label,on,fn)=>{const b=document.createElement('button');b.textContent=label;if(on)b.classList.add('on');b.onclick=e=>{e.stopPropagation();fn();buildPetPanel();};row.appendChild(b);};
   const r1=head(`Pets in the yard (${PETS.length}/${PET_MAX})`);
-  [['calico_cat','🐱 Cat'],['corgi','🐶 Corgi'],['sloth','🦥 Sloth'],['turtle','🐢 Turtle'],['capybara','🦫 Capybara'],['hamster','🐹 Hamster'],['holland_lop','🐰 Bunny'],['baby_penguin','🐧 Penguin'],['shiba','🐕 Shiba']].forEach(([id,l])=>btn(r1,l,PETS.some(p=>p.id===id),()=>togglePet(id)));
+  [['calico_cat','🐱 Cat'],['corgi','🐶 Corgi'],['sloth','🦥 Sloth'],['turtle','🐢 Turtle'],['capybara','🦫 Capybara'],['hamster','🐹 Hamster'],['holland_lop','🐰 Bunny'],['baby_penguin','🐧 Penguin'],['shiba','🐕 Shiba'],['otter','🦦 Otter'],['red_panda','🦊 Red Panda'],['budgie','🐦 Budgie']].forEach(([id,l])=>btn(r1,l,PETS.some(p=>p.id===id),()=>togglePet(id)));
   const r2=head('Do (nearest pet)');
   [['love','❤️ Pet it'],['special','💤 Own action']].forEach(([v,l])=>btn(r2,l,false,()=>petAction(v)));
   if(PETS.length){const L=document.createElement('div');L.className='petLikes';PETS.forEach(p=>{const d=document.createElement('div');d.append((PET_DEFS[p.id]?.name||p.id)+' likes ');likedFoods(p.id).forEach(f=>d.appendChild(iconCanvas(f.id,22)));L.appendChild(d);});box.appendChild(L);}
