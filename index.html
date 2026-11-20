@@ -347,7 +347,7 @@
 <script>
 // ---- UI icon set (ui_icons.webp, 18 cells in one row) — emoji are shown until it loads ----
 // bump ASSET_V whenever an icon/emote picture changes, so phones download the new one instead of a cached copy
-var ASSET_V='20261120s';
+var ASSET_V='20261120t';
 const IC_N=['logo','pad','freeze','hide','zombie','fire','flash','run','shirt','gear','globe','trophy','girl','boy','jump','tag','logout','hello'];
 const IC={},IC_C={};
 function icFrom(img,i,name){const n=img.height,c=document.createElement('canvas');c.width=c.height=n;c.getContext('2d').drawImage(img,i*n,0,n,n,0,0,n,n);IC_C[name]=c;IC[name]=c.toDataURL();}
@@ -1623,9 +1623,16 @@ const PET_DEFS={   // pets that have their sprite sheet in the game now
   thai_pup:{name:'Thai Dog',h:104,special:'scratch',feel:7,still:[2,3]},
   pomeranian:{name:'Pomeranian',h:92,special:'spin',feel:7,still:[2,3]},
   chihuahua:{name:'Chihuahua',h:86,special:'bark',feel:1,still:[2,3]},
-  husky:{name:'Husky',h:132,special:'howl',feel:7,still:[2,3]}};
+  husky:{name:'Husky',h:132,special:'howl',feel:7,still:[2,3]},
+  scottish_fold:{name:'Scottish Fold',h:96,special:'loaf',feel:2,still:[2,3]},
+  persian:{name:'Persian Cat',h:100,special:'groom',feel:2,still:[2,3]},
+  bearded_dragon:{name:'Bearded Dragon',h:96,special:'beard',feel:1,still:[2,3]},
+  chameleon:{name:'Chameleon',h:80,special:'eyes',feel:6,still:[2,3]},
+  leopard_gecko:{name:'Leopard Gecko',h:80,special:'lick',feel:7,still:[2,3]},
+  axolotl:{name:'Axolotl',h:80,special:'wiggle',feel:7,still:[2,3]},
+  sugar_glider:{name:'Sugar Glider',h:74,special:'glide',feel:7,still:[2,3]}};
 // where the mouth is when eating (m) and where the bottom is (b), as a share of the picture height, measured on each sheet
-const PET_GEO={"calico_cat": {"m": 0.472, "b": 0.45}, "sloth": {"m": 0.357, "b": 0.36}, "corgi": {"m": 0.45, "b": 0.43}, "turtle": {"m": 0.44, "b": 0.465}, "capybara": {"m": 0.468, "b": 0.455}, "hamster": {"m": 0.415, "b": 0.375}, "holland_lop": {"m": 0.455, "b": 0.45}, "baby_penguin": {"m": 0.357, "b": 0.355}, "shiba": {"m": 0.383, "b": 0.425}, "otter": {"m": 0.448, "b": 0.44}, "red_panda": {"m": 0.463, "b": 0.45}, "orange_cat": {"m": 0.425, "b": 0.485}, "guinea_pig": {"m": 0.458, "b": 0.46}, "hedgehog": {"m": 0.458, "b": 0.455}, "koala": {"m": 0.405, "b": 0.43}, "fennec_fox": {"m": 0.44, "b": 0.45}, "baby_panda": {"m": 0.412, "b": 0.4}, "golden_pup": {"m": 0.463, "b": 0.435}, "squirrel": {"m": 0.445, "b": 0.46}, "alpaca": {"m": 0.415, "b": 0.385}, "meerkat": {"m": 0.438, "b": 0.445}, "chinchilla": {"m": 0.448, "b": 0.455}, "arctic_fox": {"m": 0.432, "b": 0.45}, "tabby_cat": {"m": 0.445, "b": 0.445}, "black_cat": {"m": 0.458, "b": 0.455}, "white_cat": {"m": 0.417, "b": 0.47}, "thai_pup": {"m": 0.425, "b": 0.38}, "pomeranian": {"m": 0.422, "b": 0.465}, "chihuahua": {"m": 0.378, "b": 0.345}, "husky": {"m": 0.367, "b": 0.43}};
+const PET_GEO={"calico_cat": {"m": 0.472, "b": 0.448}, "sloth": {"m": 0.362, "b": 0.363}, "corgi": {"m": 0.452, "b": 0.426}, "turtle": {"m": 0.446, "b": 0.47}, "capybara": {"m": 0.475, "b": 0.462}, "hamster": {"m": 0.421, "b": 0.379}, "holland_lop": {"m": 0.46, "b": 0.455}, "baby_penguin": {"m": 0.365, "b": 0.36}, "shiba": {"m": 0.385, "b": 0.423}, "otter": {"m": 0.453, "b": 0.447}, "red_panda": {"m": 0.468, "b": 0.452}, "orange_cat": {"m": 0.43, "b": 0.489}, "guinea_pig": {"m": 0.462, "b": 0.465}, "hedgehog": {"m": 0.462, "b": 0.46}, "koala": {"m": 0.41, "b": 0.433}, "fennec_fox": {"m": 0.45, "b": 0.456}, "baby_panda": {"m": 0.416, "b": 0.407}, "golden_pup": {"m": 0.466, "b": 0.435}, "squirrel": {"m": 0.45, "b": 0.465}, "alpaca": {"m": 0.424, "b": 0.386}, "meerkat": {"m": 0.444, "b": 0.444}, "chinchilla": {"m": 0.451, "b": 0.455}, "arctic_fox": {"m": 0.442, "b": 0.459}, "tabby_cat": {"m": 0.444, "b": 0.444}, "black_cat": {"m": 0.464, "b": 0.462}, "white_cat": {"m": 0.424, "b": 0.478}, "thai_pup": {"m": 0.434, "b": 0.382}, "pomeranian": {"m": 0.43, "b": 0.47}, "chihuahua": {"m": 0.384, "b": 0.341}, "husky": {"m": 0.371, "b": 0.426}, "scottish_fold": {"m": 0.441, "b": 0.474}, "persian": {"m": 0.474, "b": 0.467}, "bearded_dragon": {"m": 0.439, "b": 0.466}, "chameleon": {"m": 0.43, "b": 0.445}, "leopard_gecko": {"m": 0.459, "b": 0.472}, "axolotl": {"m": 0.465, "b": 0.47}, "sugar_glider": {"m": 0.453, "b": 0.453}};
 const petCellH=p=>petH(p)/0.85*0.98;
 const PETS_IMG={};
 function petImg(id){if(PETS_IMG[id]!==undefined)return PETS_IMG[id];PETS_IMG[id]=null;
@@ -1642,7 +1649,7 @@ function savePets(){lsSet('sw_pets',JSON.stringify(PETS.map(p=>p.id)));}
 // small animals with a fast heartbeat (hamster, budgie) get hungry quickly but eat little; slow animals (sloth, turtle) hardly get hungry;
 // big grazers (capybara) and busy hunters (otter) eat a lot. rate = points per minute of play, meal = portions to go from starving to full.
 const PET_APPETITE={hamster:[22,1],budgie:[24,1],guinea_pig:[18,2],holland_lop:[16,2],calico_cat:[11,2],orange_cat:[11,2],corgi:[13,3],shiba:[12,3],
-  golden_pup:[13,4],otter:[20,3],baby_penguin:[15,2],capybara:[14,4],red_panda:[10,3],baby_panda:[12,4],koala:[5,2],sloth:[3,2],turtle:[4,1],hedgehog:[14,2],fennec_fox:[13,2],squirrel:[20,1],tabby_cat:[11,2],black_cat:[11,2],white_cat:[10,2],thai_pup:[13,3],pomeranian:[14,2],chihuahua:[16,1],husky:[15,4],alpaca:[9,3],meerkat:[16,2],chinchilla:[14,1],arctic_fox:[13,2]};
+  golden_pup:[13,4],otter:[20,3],baby_penguin:[15,2],capybara:[14,4],red_panda:[10,3],baby_panda:[12,4],koala:[5,2],sloth:[3,2],turtle:[4,1],hedgehog:[14,2],fennec_fox:[13,2],squirrel:[20,1],scottish_fold:[10,2],persian:[9,2],bearded_dragon:[8,2],chameleon:[7,1],leopard_gecko:[6,1],axolotl:[9,1],sugar_glider:[18,1],tabby_cat:[11,2],black_cat:[11,2],white_cat:[10,2],thai_pup:[13,3],pomeranian:[14,2],chihuahua:[16,1],husky:[15,4],alpaca:[9,3],meerkat:[16,2],chinchilla:[14,1],arctic_fox:[13,2]};
 const appetite=id=>PET_APPETITE[id]||[12,2];
 const HUNGER=(()=>{let v={};try{v=JSON.parse(localStorage.getItem('sw_hunger'))||{};}catch(e){}const now=Date.now();
   for(const k in v){const mins=Math.min(60,(now-(v[k].t||now))/60000);v[k].h=Math.min(100,(v[k].h||0)+appetite(k)[0]*mins*.4);}return v;})();   // time away counts a little
