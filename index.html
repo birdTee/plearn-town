@@ -137,6 +137,15 @@
   #onlinePill{left:62px;right:auto;top:20px}
   .petChip{touch-action:none;position:relative}.petChip.on{background:#ffd84a!important;box-shadow:0 3px 0 #d9a91f!important}
   .petChip.on::after{content:'✕';position:absolute;top:-6px;right:-6px;width:18px;height:18px;border-radius:9px;background:#e8483f;color:#fff;font:700 11px/18px system-ui;text-align:center}
+  #petPanel.petPanel{width:auto;max-width:calc(var(--aw) - 24px);max-height:none;overflow:visible;padding:8px 10px 10px}
+  .petTop{display:flex;align-items:baseline;gap:8px;margin:0 40px 6px 2px;font:700 14px 'Mali',system-ui,sans-serif;color:#3b2a1a}.petTop span{font-size:12px;font-weight:600;color:#7a5a3a}
+  .petGrid{display:grid;grid-template-columns:repeat(10,40px);gap:4px}
+  .narrow .petGrid{grid-template-columns:repeat(8,38px)}.narrow .petTile{width:38px;height:38px}
+  .petTile{position:relative;width:40px;height:40px;border-radius:10px;background:#fff3d6;border:2px solid #f0d9a8;box-sizing:border-box;touch-action:none;cursor:grab;display:flex;align-items:center;justify-content:center}
+  .petTile canvas{width:100%;height:100%;pointer-events:none}.petTile.on{background:#ffd84a;border-color:#e0a91c}.petTile.sel{outline:2px solid #e8483f;outline-offset:1px}
+  .petOut{position:absolute;top:-7px;right:-7px;width:18px;height:18px;border:0;border-radius:9px;background:#e8483f;color:#fff;font:700 10px/18px system-ui;padding:0;cursor:pointer}
+  .petInfo{display:flex;align-items:center;gap:3px;min-height:22px;margin:7px 2px 4px;font:600 12px 'Mali',system-ui,sans-serif;color:#6b4a2b}.petInfo canvas{width:20px;height:20px}
+  .petDo{display:flex;gap:6px}.petDo button{flex:1;border:2px solid #f0d9a8;border-radius:12px;background:#fff3d6;font:700 13px 'Mali',system-ui,sans-serif;color:#3b2a1a;padding:6px 8px;cursor:pointer}
   .petGhost{position:absolute;z-index:50;pointer-events:none;width:72px;height:72px;margin:-60px 0 0 -36px;filter:drop-shadow(0 6px 6px rgba(0,0,0,.3));transition:opacity .2s}
   .petHint{font:600 12px 'Mali',system-ui,sans-serif;color:#7a5a3a;margin:2px 2px 6px}
   .dragging .petPanel{opacity:.15;pointer-events:none}
@@ -338,7 +347,7 @@
 <script>
 // ---- UI icon set (ui_icons.webp, 18 cells in one row) — emoji are shown until it loads ----
 // bump ASSET_V whenever an icon/emote picture changes, so phones download the new one instead of a cached copy
-var ASSET_V='20261120r';
+var ASSET_V='20261120s';
 const IC_N=['logo','pad','freeze','hide','zombie','fire','flash','run','shirt','gear','globe','trophy','girl','boy','jump','tag','logout','hello'];
 const IC={},IC_C={};
 function icFrom(img,i,name){const n=img.height,c=document.createElement('canvas');c.width=c.height=n;c.getContext('2d').drawImage(img,i*n,0,n,n,0,0,n,n);IC_C[name]=c;IC[name]=c.toDataURL();}
@@ -1585,36 +1594,36 @@ const PET_INFO={   // all 38 pets – stats ready for later
   red_panda:{tame:.6,speed:120},sloth:{tame:.7,speed:28},otter:{tame:.75,speed:160},koala:{tame:.55,speed:35},baby_panda:{tame:.7,speed:70},arctic_fox:{tame:.5,speed:190},baby_penguin:{tame:.8,speed:60}};
 const PET_DEFS={   // pets that have their sprite sheet in the game now
   calico_cat:{name:'Calico Cat',h:100,special:'groom',feel:2,still:[2,3]},     // still pose = eat row, last frame (standing, head up)
-  sloth:{name:'Sloth',h:110,special:'sleep',feel:3,still:[3,0]},
+  sloth:{name:'Sloth',h:112,special:'sleep',feel:3,still:[3,0]},
   corgi:{name:'Corgi',h:100,special:'zoomies',feel:7,still:[2,3]},
   turtle:{name:'Turtle',h:66,special:'hide',feel:3,still:[2,3]},
-  capybara:{name:'Capybara',h:107,special:'relax',feel:3,still:[2,3]},
+  capybara:{name:'Capybara',h:116,special:'relax',feel:3,still:[2,3]},
   hamster:{name:'Hamster',h:66,special:'cheeks',feel:7,still:[2,3]},
   holland_lop:{name:'Bunny',h:92,special:'hop',feel:2,still:[2,3]},
   baby_penguin:{name:'Penguin',h:96,special:'flap',feel:10,still:[2,3]},
   shiba:{name:'Shiba',h:100,special:'proud',feel:7,still:[2,3]},
-  otter:{name:'Otter',h:104,special:'float',feel:3,still:[2,3]},
-  red_panda:{name:'Red Panda',h:108,special:'standup',feel:7,still:[2,3]},
+  otter:{name:'Otter',h:106,special:'float',feel:3,still:[2,3]},
+  red_panda:{name:'Red Panda',h:112,special:'standup',feel:7,still:[2,3]},
   budgie:{name:'Budgie',h:74,special:'flap',feel:10,still:[2,3],fly:{row:1,frames:[1,2,3,2],alt:34,speed:2.4}},
   orange_cat:{name:'Orange Cat',h:100,special:'stretch',feel:2,still:[2,3]},
   guinea_pig:{name:'Guinea Pig',h:72,special:'popcorn',feel:7,still:[2,3]},
   hedgehog:{name:'Hedgehog',h:68,special:'curl',feel:3,still:[2,3]},
-  koala:{name:'Koala',h:100,special:'sleep',feel:3,still:[2,3]},
+  koala:{name:'Koala',h:108,special:'sleep',feel:3,still:[2,3]},
   fennec_fox:{name:'Fennec Fox',h:96,special:'pounce',feel:7,still:[2,3]},
-  baby_panda:{name:'Baby Panda',h:100,special:'roll',feel:2,still:[2,3]},
-  golden_pup:{name:'Golden Puppy',h:104,special:'playbow',feel:7,still:[2,3]},
+  baby_panda:{name:'Baby Panda',h:120,special:'roll',feel:2,still:[2,3]},
+  golden_pup:{name:'Golden Puppy',h:120,special:'playbow',feel:7,still:[2,3]},
   squirrel:{name:'Squirrel',h:80,special:'nibble',feel:7,still:[2,3]},
-  alpaca:{name:'Alpaca',h:130,special:'prance',feel:2,still:[2,3]},
+  alpaca:{name:'Alpaca',h:172,special:'prance',feel:2,still:[2,3]},
   meerkat:{name:'Meerkat',h:92,special:'lookout',feel:1,still:[2,3]},
   chinchilla:{name:'Chinchilla',h:76,special:'spin',feel:7,still:[2,3]},
-  arctic_fox:{name:'Arctic Fox',h:100,special:'pounce',feel:7,still:[2,3]},
+  arctic_fox:{name:'Arctic Fox',h:106,special:'pounce',feel:7,still:[2,3]},
   tabby_cat:{name:'Tabby Cat',h:100,special:'tailchase',feel:2,still:[2,3]},
   black_cat:{name:'Black Cat',h:100,special:'arch',feel:2,still:[2,3]},
   white_cat:{name:'White Cat',h:100,special:'knead',feel:2,still:[2,3]},
   thai_pup:{name:'Thai Dog',h:104,special:'scratch',feel:7,still:[2,3]},
   pomeranian:{name:'Pomeranian',h:92,special:'spin',feel:7,still:[2,3]},
   chihuahua:{name:'Chihuahua',h:86,special:'bark',feel:1,still:[2,3]},
-  husky:{name:'Husky',h:118,special:'howl',feel:7,still:[2,3]}};
+  husky:{name:'Husky',h:132,special:'howl',feel:7,still:[2,3]}};
 // where the mouth is when eating (m) and where the bottom is (b), as a share of the picture height, measured on each sheet
 const PET_GEO={"calico_cat": {"m": 0.472, "b": 0.45}, "sloth": {"m": 0.357, "b": 0.36}, "corgi": {"m": 0.45, "b": 0.43}, "turtle": {"m": 0.44, "b": 0.465}, "capybara": {"m": 0.468, "b": 0.455}, "hamster": {"m": 0.415, "b": 0.375}, "holland_lop": {"m": 0.455, "b": 0.45}, "baby_penguin": {"m": 0.357, "b": 0.355}, "shiba": {"m": 0.383, "b": 0.425}, "otter": {"m": 0.448, "b": 0.44}, "red_panda": {"m": 0.463, "b": 0.45}, "orange_cat": {"m": 0.425, "b": 0.485}, "guinea_pig": {"m": 0.458, "b": 0.46}, "hedgehog": {"m": 0.458, "b": 0.455}, "koala": {"m": 0.405, "b": 0.43}, "fennec_fox": {"m": 0.44, "b": 0.45}, "baby_panda": {"m": 0.412, "b": 0.4}, "golden_pup": {"m": 0.463, "b": 0.435}, "squirrel": {"m": 0.445, "b": 0.46}, "alpaca": {"m": 0.415, "b": 0.385}, "meerkat": {"m": 0.438, "b": 0.445}, "chinchilla": {"m": 0.448, "b": 0.455}, "arctic_fox": {"m": 0.432, "b": 0.45}, "tabby_cat": {"m": 0.445, "b": 0.445}, "black_cat": {"m": 0.458, "b": 0.455}, "white_cat": {"m": 0.417, "b": 0.47}, "thai_pup": {"m": 0.425, "b": 0.38}, "pomeranian": {"m": 0.422, "b": 0.465}, "chihuahua": {"m": 0.378, "b": 0.345}, "husky": {"m": 0.367, "b": 0.43}};
 const petCellH=p=>petH(p)/0.85*0.98;
@@ -1808,25 +1817,36 @@ function drawPet(p){const def=PET_DEFS[p.id],H=petH(p),t=p.t,s=p.state;
     for(let i=0;i<3;i++){const u=(t*.6+i/3)%1;ctx.globalAlpha=1-u;const zx=p.x+H*.25+u*14,zy=p.y-H-4-u*26;ctx.strokeText('z',zx,zy);ctx.fillText('z',zx,zy);}ctx.restore();}}
 // pet panel (only at home)
 // drag a pet chip onto the lawn: a picture of the pet follows your finger; let go on the grass and the pet appears there
-function petStill(id,px){const c=document.createElement('canvas');c.width=c.height=px*2;const im=petImg(id),d=PET_DEFS[id];if(im){const cw=im.width/4,ch=im.height/4;c.getContext('2d').drawImage(im,d.still[1]*cw,d.still[0]*ch,cw,ch,0,0,px*2,px*2);}return c;}
+const STILL_BOX={};
+function petStill(id,px){const c=document.createElement('canvas');c.width=c.height=px*2;const im=petImg(id),d=PET_DEFS[id];if(!im)return c;const cw=im.width/4,ch=im.height/4,sx=d.still[1]*cw,sy=d.still[0]*ch;
+  let bb=STILL_BOX[id];if(!bb){const t=document.createElement('canvas');t.width=cw;t.height=ch;const g=t.getContext('2d');g.drawImage(im,sx,sy,cw,ch,0,0,cw,ch);const a=g.getImageData(0,0,cw,ch).data;let x0=cw,y0=ch,x1=0,y1=0;
+    for(let y=0;y<ch;y+=2)for(let x=0;x<cw;x+=2)if(a[(y*cw+x)*4+3]>60){if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y;}bb=STILL_BOX[id]=x1>x0?[x0,y0,x1-x0+2,y1-y0+2]:[0,0,cw,ch];}
+  const k=px*2*.92/Math.max(bb[2],bb[3]),w=bb[2]*k,h=bb[3]*k;c.getContext('2d').drawImage(im,sx+bb[0],sy+bb[1],bb[2],bb[3],(px*2-w)/2,(px*2-h)/2,w,h);return c;}
 function petDragSetup(b,id){let st=null,gh=null;
   b.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();st={x:e.clientX,y:e.clientY,id:e.pointerId,moved:false};b.setPointerCapture(e.pointerId);});
   b.addEventListener('pointermove',e=>{if(!st||e.pointerId!==st.id)return;if(!st.moved&&Math.hypot(e.clientX-st.x,e.clientY-st.y)>8){st.moved=true;gh=petStill(id,36);gh.className='petGhost';app.appendChild(gh);app.classList.add('dragging');}
     if(gh){const a=toApp(e.clientX,e.clientY);gh.style.left=a.x+'px';gh.style.top=a.y+'px';const w=dropSpot(e);gh.style.opacity=w?1:.45;}});
   const end=e=>{if(!st||e.pointerId!==st.id)return;const moved=st.moved;st=null;app.classList.remove('dragging');if(gh){gh.remove();gh=null;}
-    if(!moved){if(PETS.some(p=>p.id===id))sendPetHome(id);else say(P,'Drag me onto the lawn!');buildPetPanel();return;}
+    if(!moved){PET_INFO_ID=id;buildPetPanel();return;}
     const w=dropSpot(e);if(w){callPetAt(id,w.x,w.y);buildPetPanel();}else say(P,'Put pets on the lawn');};
   b.addEventListener('pointerup',end);b.addEventListener('pointercancel',e=>{if(st&&e.pointerId===st.id){st=null;app.classList.remove('dragging');if(gh){gh.remove();gh=null;}}});}
 function dropSpot(e){if(MAPID!=='home')return null;const a=toApp(e.clientX,e.clientY),x=a.x/Z+cam.x,y=a.y/Z+cam.y;
   if(y<PET_MINY()+8||x>PET_MAXX()||x<40*HK||y>HOME.RH+1400*HK||homeHit(x,y,12,6))return null;return {x,y};}
+let PET_INFO_ID=null;
 function buildPetPanel(){const box=$('petPanel');box.innerHTML='';
-  const head=(title)=>{const h=document.createElement('div');h.className='petLbl';h.textContent=title;box.appendChild(h);const row=document.createElement('div');row.className='petRow';box.appendChild(row);return row;};
-  const btn=(row,label,on,fn)=>{const b=document.createElement('button');b.textContent=label;if(on)b.classList.add('on');b.onclick=e=>{e.stopPropagation();fn();buildPetPanel();};row.appendChild(b);};
-  const r1=head(`Pets in the yard: ${PETS.length}`);const hint=document.createElement('div');hint.className='petHint';hint.textContent='Drag a pet onto the lawn to call it. Tap ✕ to send it home.';r1.before(hint);
-  [['calico_cat','🐱 Cat'],['corgi','🐶 Corgi'],['sloth','🦥 Sloth'],['turtle','🐢 Turtle'],['capybara','🦫 Capybara'],['hamster','🐹 Hamster'],['holland_lop','🐰 Bunny'],['baby_penguin','🐧 Penguin'],['shiba','🐕 Shiba'],['otter','🦦 Otter'],['red_panda','🦊 Red Panda'],['budgie','🐦 Budgie'],['orange_cat','🐈 Orange Cat'],['guinea_pig','🐹 Guinea Pig'],['hedgehog','🦔 Hedgehog'],['koala','🐨 Koala'],['fennec_fox','🦊 Fennec'],['baby_panda','🐼 Panda'],['golden_pup','🐶 Golden'],['squirrel','🐿️ Squirrel'],['alpaca','🦙 Alpaca'],['meerkat','🦦 Meerkat'],['chinchilla','🐭 Chinchilla'],['arctic_fox','🦊 Arctic Fox'],['tabby_cat','🐱 Tabby'],['black_cat','🐈‍⬛ Black Cat'],['white_cat','🤍 White Cat'],['thai_pup','🐕 Thai Dog'],['pomeranian','🐶 Pom'],['chihuahua','🐕 Chihuahua'],['husky','🐺 Husky']].forEach(([id,l])=>{const b=document.createElement('button');b.className='petChip'+(PETS.some(p=>p.id===id)?' on':'');b.textContent=l;petDragSetup(b,id);r1.appendChild(b);});
-  const r2=head('Do (nearest pet)');
-  [['love','❤️ Pet it'],['special','💤 Own action']].forEach(([v,l])=>btn(r2,l,false,()=>petAction(v)));
-  if(PETS.length){const L=document.createElement('div');L.className='petLikes';PETS.forEach(p=>{const d=document.createElement('div');const hg=Math.round(hungerOf(p.id));d.append((PET_DEFS[p.id]?.name||p.id)+' likes ');likedFoods(p.id).forEach(f=>d.appendChild(iconCanvas(f.id,22)));const t=document.createElement('span');t.style.cssText='margin-left:auto;font-weight:700;color:'+(hg>66?'#d0342c':hg>33?'#c98a00':'#3a9a3a');t.textContent=hg>66?'Hungry':hg>33?'A bit hungry':'Full';d.appendChild(t);L.appendChild(d);});box.appendChild(L);}
+  const top=document.createElement('div');top.className='petTop';top.innerHTML=`<b>Pets</b><span>Drag onto the lawn · ${PETS.length} out</span>`;box.appendChild(top);
+  const grid=document.createElement('div');grid.className='petGrid';box.appendChild(grid);
+  Object.keys(PET_DEFS).forEach(id=>{const t=document.createElement('div');const out=PETS.some(p=>p.id===id);t.className='petTile'+(out?' on':'')+(PET_INFO_ID===id?' sel':'');t.title=PET_DEFS[id].name;
+    t.appendChild(petStill(id,22));petDragSetup(t,id);
+    if(out){const x=document.createElement('button');x.className='petOut';x.textContent='✕';x.setAttribute('aria-label','Send home');
+      x.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();sendPetHome(id);if(PET_INFO_ID===id)PET_INFO_ID=null;buildPetPanel();});t.appendChild(x);}
+    grid.appendChild(t);});
+  const info=document.createElement('div');info.className='petInfo';box.appendChild(info);
+  if(PET_INFO_ID){const id=PET_INFO_ID,hg=Math.round(hungerOf(id));info.append(PET_DEFS[id].name+' likes ');likedFoods(id).forEach(f=>info.appendChild(iconCanvas(f.id,20)));
+    const t=document.createElement('span');t.style.cssText='margin-left:6px;font-weight:700;color:'+(hg>66?'#d0342c':hg>33?'#c98a00':'#3a9a3a');t.textContent=hg>66?'Hungry':hg>33?'A bit hungry':'Full';info.appendChild(t);}
+  else info.textContent='Tap a pet to see what it likes to eat.';
+  const row=document.createElement('div');row.className='petDo';box.appendChild(row);
+  [['love','❤️ Pet it'],['special','💤 Own action']].forEach(([v,l])=>{const b=document.createElement('button');b.textContent=l;b.onclick=e=>{e.stopPropagation();petAction(v);};row.appendChild(b);});
   const x=document.createElement('button');x.className='hideX petX';x.innerHTML='<i class="ic" data-ic="close">✕</i>';x.onclick=e=>{e.stopPropagation();box.style.display='none';};box.prepend(x);applyIcons(box);}
 {const c=$('btnClean').querySelector('canvas'),g=c.getContext('2d'),p=()=>{g.clearRect(0,0,72,72);cleanIcon(g,1,36,36,70,0);};p();CLEAN_IMG.addEventListener('load',p);}
 $('btnClean').addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();foodPanel.style.display='none';startClean();});
