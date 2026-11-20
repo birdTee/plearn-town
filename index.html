@@ -319,7 +319,7 @@
 <script>
 // ---- UI icon set (ui_icons.webp, 18 cells in one row) — emoji are shown until it loads ----
 // bump ASSET_V whenever an icon/emote picture changes, so phones download the new one instead of a cached copy
-var ASSET_V='20261120e';
+var ASSET_V='20261120f';
 const IC_N=['logo','pad','freeze','hide','zombie','fire','flash','run','shirt','gear','globe','trophy','girl','boy','jump','tag','logout','hello'];
 const IC={},IC_C={};
 function icFrom(img,i,name){const n=img.height,c=document.createElement('canvas');c.width=c.height=n;c.getContext('2d').drawImage(img,i*n,0,n,n,0,0,n,n);IC_C[name]=c;IC[name]=c.toDataURL();}
@@ -718,11 +718,16 @@ const FOOT_RX=36, FOOT_RY=19.2;                         // per person, × S.scal
 // ===== HOME map: left = front yard (pets later), right = inside the house. Walk off the bottom of the road to go home. =====
 let MAPID='school';
 // the two home pictures are drawn smaller (K) so the furniture matches the size of the kids
-const HK=0.62;
-const HOME={W:2048*HK,H:1736*HK,RH:200*HK,minY:22*HK,
+const HK=0.44;   // pictures drawn small (half the area of before) so the yard feels cosy and the pictures stay sharp
+const RK=0.62;   // the road keeps its size
+const HOME={W:2048*HK,H:200*RK+1536*HK,RH:200*RK,minY:22*RK,
   // walls, fences & furniture where feet can't go (x,y,w,h in home-world px, measured on home_yard / home_house pictures)
-  rects:[[0,200,435,165],[60,340,330,95],[600,200,424,165],[680,340,320,95],[0,200,45,1536],[0,1620,1024,116],[25,490,165,170],[50,1340,230,240],[240,1510,120,80],[750,1390,274,240],[1024,200,1024,195],[1999,200,49,1536],[1024,1648,1024,88],[1024,200,45,645],[1024,1010,45,726]].map(r=>({x:r[0]*HK,y:r[1]*HK,w:r[2]*HK,h:r[3]*HK})),
-  spawn:{x:517*HK,y:120*HK},imgs:{}};
+  rects:[[0,200,435,165],[60,340,330,95],[600,200,424,165],[680,340,320,95],[0,200,45,1536],[0,1620,1024,116],[25,490,165,170],[50,1340,230,240],[240,1510,120,80],[750,1390,274,240],[1024,200,1024,195],[1999,200,49,1536],[1024,1648,1024,88],[1024,200,45,645],[1024,1010,45,726]].map(r=>({x:r[0]*HK,y:200*RK+(r[1]-200)*HK,w:r[2]*HK,h:r[3]*HK})),
+  spawn:{x:517*HK,y:120*RK},imgs:{}};
+// things you can walk behind (cut from the pictures): drawn again on top, sorted with the kids by the line where they touch the ground
+const HOME_PROPS=[["bushL", 15, 280, 185, 182, 445], ["dogh", 40, 1125, 328, 285, 1380], ["bushR", 740, 1170, 284, 300, 1440], ["gate", 380, 0, 320, 180, 165], ["wallD", 1024, 785, 80, 751, 812]];
+let HPROPS=null;function homeProps(){if(!HPROPS){HPROPS=HOME_PROPS.map(([n,x,y,w,h,b])=>{const im=new Image();im.src=`hp_${n}.webp?v=${ASSET_V}`;return {im,x:x*HK,y:HOME.RH+y*HK,w:w*HK,h:h*HK,base:HOME.RH+b*HK};});}return HPROPS.filter(o=>o.im.complete&&o.im.naturalWidth);}
+setTimeout(()=>{try{homeProps();homeImgs();}catch(e){}},1500);   // fetch the home pictures early so the yard appears at once
 let portalArmed=false;   // after arriving you must step away from the edge once before a portal works again
 const mapW=()=>MAPID==='home'?HOME.W:WORLD_W, mapH=()=>MAPID==='home'?HOME.H:WORLD_H, mapMinY=()=>MAPID==='home'?HOME.minY:MIN_Y;
 const sameMap=a=>a===P||(MAPID==='school'&&(a.mp||'school')==='school');   // every kid's home is private
@@ -732,7 +737,7 @@ function homeImgs(){const hi=dpr*Z/HK>1.1,k=hi?'h':'s';if(!HOME.imgs[k]){HOME.im
   for(const n of ['yard','house']){const im=new Image();im.onload=()=>{HOME.imgs[k][n]=im;};im.src=`home_${n}${hi?'':'_s'}.webp?v=${ASSET_V}`;}}
   const I=HOME.imgs[k];return (I.yard&&I.house)?I:(HOME.imgs.h&&HOME.imgs.h.yard&&HOME.imgs.h.house?HOME.imgs.h:(HOME.imgs.s&&HOME.imgs.s.yard&&HOME.imgs.s.house?HOME.imgs.s:I));}
 let HOME_ROAD=null;
-function homeRoad(){if(HOME_ROAD)return HOME_ROAD;const k=2,W0=2048,R0=200,c=document.createElement('canvas');c.width=W0*k;c.height=R0*k;const g=c.getContext('2d');g.scale(k,k);
+function homeRoad(){if(HOME_ROAD)return HOME_ROAD;const k=2,W0=Math.ceil(HOME.W/RK),R0=200,c=document.createElement('canvas');c.width=W0*k;c.height=R0*k;const g=c.getContext('2d');g.scale(k,k);
   g.fillStyle='#8cc65a';g.fillRect(0,0,W0,R0);                                  // grass verge
   g.fillStyle='#c9c9c4';g.fillRect(0,18,W0,14);g.fillStyle='#b5b5b0';g.fillRect(0,30,W0,3);   // far curb
   g.fillStyle='#8f9294';g.fillRect(0,33,W0,104);                                      // road
@@ -743,7 +748,7 @@ function homeRoad(){if(HOME_ROAD)return HOME_ROAD;const k=2,W0=2048,R0=200,c=doc
   HOME_ROAD=c;return c;}
 function leaveHomeNow(){if(MAPID!=='home')return;MAPID='school';P.x=WORLD_W/2;P.y=WORLD_H-TILE*1.3;app.classList.remove('atHome');}
 function goMap(id){if(mapBusy||MAPID===id)return;mapBusy=true;const f=$('fade');f.classList.add('on');
-  setTimeout(()=>{if(id==='home'){MAPID='home';P.x=HOME.spawn.x;P.y=HOME.spawn.y;P.dir='down';FOOD.length=0;PET.placed=false;}
+  setTimeout(()=>{if(id==='home'){MAPID='home';P.x=HOME.spawn.x;P.y=HOME.spawn.y;P.dir='down';FOOD.length=0;PETS.forEach(p=>p.placed=false);}
     else{MAPID='school';P.x=WORLD_W/2;P.y=WORLD_H-TILE*1.3;P.dir='up';}
     portalArmed=false;P.target=null;P.moving=false;P.frame=0;app.classList.toggle('atHome',MAPID==='home');NET.sendT=0;drawStrip();
     setTimeout(()=>{f.classList.remove('on');mapBusy=false;},120);},280);}
@@ -851,14 +856,15 @@ function loop(now){const dt=Math.min(.05,(now-last)/1000);last=now;
     P.t+=dt;const prev=P.frame;P.frame=frameAt(S.frames,sheet(P.char,P.dir).A,P.t,S.fps);if(prev!==P.frame)drawStrip();
   }else if(wasMoving){P.t=0;P.frame=0;drawStrip();}
   if(ready&&npcsOn())NPCS.forEach(n=>updateNPC(n,dt));
-  updateMG(dt);netTick(dt);updatePet(dt);
+  updateMG(dt);netTick(dt);updatePets(dt);
   const MWd=mapW(),MHd=mapH();cam.x=clamp(P.x-VW/2,0,Math.max(0,MWd-VW)); if(MWd<VW)cam.x=(MWd-VW)/2; cam.y=clamp(P.y-VH*0.6,0,Math.max(0,MHd-VH));
   if(MHd<VH)cam.y=(MHd-VH)/2;
   ctx.setTransform(dpr*Z,0,0,dpr*Z,0,0);
-  ctx.fillStyle='#1d2b1f';ctx.fillRect(0,0,VW,VH);
+  ctx.fillStyle=MAPID==='home'?'#8cc65a':'#1d2b1f';ctx.fillRect(0,0,VW,VH);
   const SN=Z*dpr;cam.x=Math.round(cam.x*SN)/SN;cam.y=Math.round(cam.y*SN)/SN;
   ctx.save();ctx.translate(-cam.x,-cam.y);
-  if(MAPID==='home'){drawVis(homeRoad(),2/HK,0,0,HOME.W,HOME.RH);const I=homeImgs();if(I.yard){drawVis(I.yard,I.yard.width/(1024*HK),0,HOME.RH,1024*HK,1536*HK);}if(I.house){drawVis(I.house,I.house.width/(1024*HK),1024*HK,HOME.RH,1024*HK,1536*HK);}}
+  if(MAPID==='home'){for(let i=-2;i<=2;i++)drawVis(homeRoad(),2/RK,i*HOME.W,0,HOME.W,HOME.RH);   // the road runs on past both sides of the screen
+    const I=homeImgs();if(I.yard){drawVis(I.yard,I.yard.width/(1024*HK),0,HOME.RH,1024*HK,1536*HK);}if(I.house){drawVis(I.house,I.house.width/(1024*HK),1024*HK,HOME.RH,1024*HK,1536*HK);}}
   else{drawVis(map,MAPS,0,0,WORLD_W,WORLD_H);
   drawSchool(dt);
   rooms.forEach(r=>drawSign(r[0],r[1],r[2]));drawHomeSign();}
@@ -866,7 +872,7 @@ function loop(now){const dt=Math.min(.05,(now-last)/1000);last=now;
   const items=[];if(MAPID==='school'){trees.forEach(t=>items.push({y:t[1],d:()=>drawTree(t[0],t[1])}));bushes.forEach(b=>items.push({y:b.y,d:()=>drawBush(b)}));
   NPCS.forEach(n=>{if(npcsOn()||n.mg)items.push({y:n.y,d:()=>drawActor(n,false)});});}
   REMOTE.forEach(a=>{if(sameMap(a))items.push({y:a.y,d:()=>drawActor(a,false)});});
-  if(MAPID==='home'){drawFood();if(PET.id)items.push({y:PET.y,d:drawPet});}
+  if(MAPID==='home'){drawFood();petsHere().forEach(p=>items.push({y:p.y,d:()=>drawPet(p)}));homeProps().forEach(o=>items.push({y:o.base,d:()=>drawVis(o.im,o.im.width/o.w,o.x,o.y,o.w,o.h)}));}
   items.push({y:P.y,d:()=>drawActor(P,true)});
   items.sort((a,b)=>a.y-b.y).forEach(i=>i.d());
   ctx.restore();
@@ -1393,7 +1399,7 @@ function sndInit(){if(SND.ac){if(SND.ac.state==='suspended')SND.ac.resume().catc
   const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;const ac=SND.ac=new AC();
   SND.master=ac.createGain();SND.master.gain.value=.9;
   const comp=ac.createDynamicsCompressor();comp.threshold.value=-14;comp.ratio.value=4;SND.master.connect(comp);comp.connect(ac.destination);
-  SND.mus=ac.createGain();SND.mus.gain.value=SND.music?.22:0;SND.mus.connect(SND.master);
+  SND.mus=ac.createGain();SND.mus.gain.value=SND.music?.38:0;SND.mus.connect(SND.master);
   SND.sfx=ac.createGain();SND.sfx.gain.value=SND.sounds?.55:0;SND.sfx.connect(SND.master);
   SND.noise=ac.createBuffer(1,ac.sampleRate*.5,ac.sampleRate);const d=SND.noise.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;
   SND.next=ac.currentTime+.1;SND.timer=setInterval(musicTick,25);}
@@ -1434,8 +1440,11 @@ function sfxAt(a,fn){if(!SND.ac||!SND.sounds)return;let vol=1,pan=0;
   fn(ac.currentTime+.01,out);}
 function sfxEmote(a,i){if(EMO_SFX[i])sfxAt(a,EMO_SFX[i]);}
 function sfxDoor(){sfxAt(P,(t,d)=>{   // creak open + soft thud shut
-  tone({type:'sawtooth',f:180,to:260,slide:.25,len:.28,v:.06,t,dest:d,lp:900,q:3,vib:18,vibD:.04});
-  tone({type:'sine',f:120,to:60,slide:.1,len:.16,v:.35,t:t+.42,dest:d});noise({t:t+.42,len:.07,v:.08,ff:900,ft:'lowpass',dest:d});});}
+  noise({t,len:.03,v:.35,ff:2500,dest:d});tone({type:'square',f:1400,len:.03,v:.12,t,dest:d,lp:3000});            // latch click
+  tone({type:'sawtooth',f:330,to:560,slide:.35,len:.4,v:.16,t:t+.04,dest:d,lp:1800,q:5,vib:23,vibD:.05});            // creeeak (phone speakers can play this)
+  tone({type:'sawtooth',f:520,to:410,slide:.2,len:.22,v:.1,t:t+.36,dest:d,lp:1600,q:5,vib:30,vibD:.04});
+  tone({type:'triangle',f:240,to:150,slide:.08,len:.14,v:.42,t:t+.62,dest:d});noise({t:t+.62,len:.06,v:.3,ff:1600,ft:'lowpass',dest:d});   // clack shut
+  noise({t:t+.66,len:.025,v:.25,ff:3000,dest:d});});}
 function sfxPop(a){sfxAt(a,(t,d)=>tone({type:'sine',m:84,to:mtof(91),len:.08,v:.16,t,dest:d}));}
 function sfxJingle(win){sfxAt(P,(t,d)=>{const n=win?[72,76,79,84,79,84]:[72,71,70,67];const l=win?.11:.2;
   n.forEach((m,i)=>tone({type:win?'square':'triangle',m,len:i===n.length-1?.6:l*1.2,v:.14,t:t+i*l,dest:d,lp:3000}));});}
@@ -1465,7 +1474,7 @@ const TRACKS={
 const SONG_STEPS=16*16;
 function musicTick(){const ac=SND.ac;if(!ac||ac.state!=='running')return;
   const want=(MG.on&&(MG.phase==='count'||MG.phase==='play'))?'game':'calm';
-  if(want!==SND.track){SND.track=want;SND.step=0;const g=SND.mus.gain,t=ac.currentTime;g.cancelScheduledValues(t);g.setValueAtTime(0,t);g.linearRampToValueAtTime(SND.music?.22:0,t+.5);SND.next=Math.max(SND.next,t+.05);
+  if(want!==SND.track){SND.track=want;SND.step=0;const g=SND.mus.gain,t=ac.currentTime;g.cancelScheduledValues(t);g.setValueAtTime(0,t);g.linearRampToValueAtTime(SND.music?.38:0,t+.5);SND.next=Math.max(SND.next,t+.05);
     if(want==='game')SND.crash=true;}
   const T=TRACKS[SND.track];SND.fast=SND.track==='game'&&MG.phase==='play'&&MG.t<10;
   const sp16=60/(T.bpm*(SND.fast?1.12:1))/4;                 // seconds per 16th note
@@ -1503,7 +1512,7 @@ function playStep(T,s,t,sp){const d=SND.mus,bar=Math.floor(s/16),q=s%16,ch=CHORD
     if((bar===7||bar===15)&&q>=8)snare(t,d,.08+(q-8)*.025);
     if(q===0&&(bar===0||bar===8)||SND.crash){SND.crash=false;noise({t,len:1.1,v:.09,ff:5000,dest:d});}
   }}
-function setMusic(on){SND.music=on;lsSet('sw_music',on);if(SND.ac)SND.mus.gain.setTargetAtTime(on?.22:0,SND.ac.currentTime,.1);}
+function setMusic(on){SND.music=on;lsSet('sw_music',on);if(SND.ac)SND.mus.gain.setTargetAtTime(on?.38:0,SND.ac.currentTime,.1);}
 function setSounds(on){SND.sounds=on;lsSet('sw_sounds',on);if(SND.ac)SND.sfx.gain.value=on?.55:0;}
 
 // ================= PETS (test in Home) =================
@@ -1528,77 +1537,89 @@ function petImg(id){if(PETS_IMG[id]!==undefined)return PETS_IMG[id];PETS_IMG[id]
   const im=new Image();im.onload=()=>{PETS_IMG[id]=im;};im.onerror=()=>{PETS_IMG[id]=false;};im.src=`pets/${id}_sheet.webp?v=${ASSET_V}`;return null;}
 Object.keys(PET_DEFS).forEach(petImg);   // load every pet picture at start, so choosing a pet shows it at once
 // slow walkers do everything slowly: animation speed and how long each action lasts follow walking speed
-const petTempo=()=>Math.min(1.2,Math.max(.3,(PET_INFO[PET.id]?.speed||150)/150));
-const PET={id:lsGet('sw_pet')||'calico_cat',x:0,y:0,face:1,state:'stand',st:0,t:0,placed:false,wander:null,wantT:0};
+const petTempo=p=>Math.min(1.2,Math.max(.3,(PET_INFO[p.id]?.speed||150)/150));
+const PET_MAX=3;   // up to 3 pets out in the yard at once
+const PETS_SEL=(()=>{let v=lsGet('sw_pets');try{v=JSON.parse(v);}catch(e){v=null;}if(!Array.isArray(v)){const o=lsGet('sw_pet');v=o&&o!=='null'?[o]:['calico_cat'];}return v.filter(id=>PET_DEFS[id]).slice(0,PET_MAX);})();
+const newPet=id=>({id,x:0,y:0,face:1,state:'stand',st:0,t:Math.random()*3,placed:false,wander:null,wantT:Math.random()*2,plan:'idle',side:0,stuck:0});
+const PETS=PETS_SEL.map(newPet);
+function savePets(){lsSet('sw_pets',JSON.stringify(PETS.map(p=>p.id)));}
+function togglePet(id){const i=PETS.findIndex(p=>p.id===id);if(i>=0)PETS.splice(i,1);else{if(PETS.length>=PET_MAX)PETS.shift();PETS.push(newPet(id));}savePets();}
 const FOOD=[];   // food dropped on the ground: {x,y,left}
 const PET_SCALE=()=>0.48*S.scale/0.7;                  // pets drawn a little bigger than true scale so kids can see them clearly
-const petH=()=>PET_DEFS[PET.id].h*PET_SCALE();
-const petFoot=()=>{const H=petH();return {rx:H*.42,ry:H*.14};};   // the pet's own "block" on the ground
+const petH=p=>PET_DEFS[p.id].h*PET_SCALE();
+const petFoot=p=>{const H=petH(p);return {rx:H*.42,ry:H*.14};};   // the pet's own "block" on the ground
 // pets live inside the fence: never on the road in front of the house
-const PET_MINY=()=>HOME.RH+175*HK;
+const PET_MINY=()=>HOME.RH+250*HK;
 const PET_MAXX=()=>(1024-40)*HK;   // and never inside the house
 const inYard=()=>P.y>PET_MINY()+20&&P.x<PET_MAXX();
-function petHere(){return MAPID==='home'&&PET.id&&PET_DEFS[PET.id]&&PET.placed;}
-// does a body at (x,y) with half-size rx,ry bump into the pet?
-function hitPet(x,y,rx,ry,ox,oy){if(!petHere())return false;const f=petFoot();const v=overlap(x,y,rx,ry,PET,f.rx,f.ry);return v<1&&v<overlap(ox,oy,rx,ry,PET,f.rx,f.ry);}
-function petAction(a){if(!PET.id)return;PET.state=a;PET.st=0;if(a==='love'){PET.emo={i:PET_DEFS[PET.id].feel,t0:performance.now()};sfxEmote(P,PET.emo.i);}}
+const petsHere=()=>MAPID==='home'?PETS.filter(p=>p.placed&&PET_DEFS[p.id]):[];
+// does a body at (x,y) with half-size rx,ry bump into a pet?
+function hitPet(x,y,rx,ry,ox,oy){for(const p of petsHere()){const f=petFoot(p);const v=overlap(x,y,rx,ry,p,f.rx,f.ry);if(v<1&&v<overlap(ox,oy,rx,ry,p,f.rx,f.ry))return true;}return false;}
+function nearestPet(){return petsHere().sort((a,b)=>dist(a,P)-dist(b,P))[0];}
+function petAction(a,p){p=p||nearestPet();if(!p)return;p.state=a;p.st=0;if(a==='love'){p.emo={i:PET_DEFS[p.id].feel,t0:performance.now()};sfxEmote(P,p.emo.i);}}
 function dropFood(){if(MAPID!=='home')return;const dx=P.dir&&P.dir.includes('left')?-1:P.dir==='right'||P.dir==='dr'||P.dir==='ur'?1:0,dy=P.dir==='down'||P.dir==='dl'||P.dir==='dr'?1:P.dir==='up'||P.dir==='ul'||P.dir==='ur'?-1:0;
   let x=P.x+dx*50,y=P.y+dy*34+(dx||dy?0:30);if(homeHit(x,y,10,5)){x=P.x;y=P.y+30;}
   FOOD.push({x,y,left:1,t0:performance.now()});if(FOOD.length>5)FOOD.shift();sfxPop(P);}
-function petMoveTo(tx,ty,sp,dt){const d=Math.hypot(tx-PET.x,ty-PET.y);if(d<1)return true;const st=Math.min(sp*dt,d),nx=PET.x+(tx-PET.x)/d*st,ny=PET.y+(ty-PET.y)/d*st;
-  if(Math.abs(tx-PET.x)>2)PET.face=tx>PET.x?1:-1;const f=petFoot();
-  const ok=(x,y)=>y>=PET_MINY()&&x<=PET_MAXX()&&!homeHit(x,y,f.rx*.7,f.ry*.7)&&!(overlap(x,y,f.rx,f.ry,P,FOOT_RX*S.scale,FOOT_RY*S.scale)<1&&overlap(x,y,f.rx,f.ry,P,FOOT_RX*S.scale,FOOT_RY*S.scale)<overlap(PET.x,PET.y,f.rx,f.ry,P,FOOT_RX*S.scale,FOOT_RY*S.scale));
-  if(ok(nx,ny)){PET.x=nx;PET.y=ny;PET.side=0;return false;}if(ok(nx,PET.y)){PET.x=nx;return false;}if(ok(PET.x,ny)){PET.y=ny;return false;}
-  // blocked (by you or furniture): walk round it to one side, keep that side for a while
-  const ux=(tx-PET.x)/d,uy=(ty-PET.y)/d;if(!PET.side)PET.side=Math.random()<.5?1:-1;
-  for(const sd of [PET.side,-PET.side]){const px=PET.x-uy*sd*st,py=PET.y+ux*sd*st;if(ok(px,py)){PET.x=px;PET.y=py;PET.side=sd;return false;}}
-  PET.stuck=(PET.stuck||0)+dt;return false;}
-function updatePet(dt){if(MAPID!=='home'||!PET.id||!PET_DEFS[PET.id]){PET.placed=false;return;}
-  const info=PET_INFO[PET.id],sp=info.speed*(S.speed/200);
-  if(!PET.placed){if(inYard()){PET.x=P.x-70;PET.y=P.y+20;}else{PET.x=(430+80)*HK;PET.y=PET_MINY()+120*HK;}PET.placed=true;PET.state='stand';PET.wander=null;}
-  PET.t+=dt;PET.st+=dt;
+const randYard=()=>({x:60*HK+Math.random()*(PET_MAXX()-90*HK),y:PET_MINY()+40*HK+Math.random()*(HOME.RH+1400*HK-PET_MINY()-40*HK)});
+function petMoveTo(p,tx,ty,sp,dt){const d=Math.hypot(tx-p.x,ty-p.y);if(d<1)return true;const st=Math.min(sp*dt,d),nx=p.x+(tx-p.x)/d*st,ny=p.y+(ty-p.y)/d*st;
+  if(Math.abs(tx-p.x)>2)p.face=tx>p.x?1:-1;const f=petFoot(p),prx=FOOT_RX*S.scale,pry=FOOT_RY*S.scale;
+  const bump=(x,y,o,orx,ory)=>{const v=overlap(x,y,f.rx,f.ry,o,orx,ory);return v<1&&v<overlap(p.x,p.y,f.rx,f.ry,o,orx,ory);};
+  const ok=(x,y)=>y>=PET_MINY()&&x<=PET_MAXX()&&!homeHit(x,y,f.rx*.7,f.ry*.7)&&!bump(x,y,P,prx,pry)&&!PETS.some(o=>o!==p&&o.placed&&bump(x,y,o,petFoot(o).rx*.8,petFoot(o).ry*.8));
+  if(ok(nx,ny)){p.x=nx;p.y=ny;p.side=0;return false;}if(ok(nx,p.y)){p.x=nx;return false;}if(ok(p.x,ny)){p.y=ny;return false;}
+  // blocked (by you, another pet or a bush): walk round it to one side, keep that side for a while
+  const ux=(tx-p.x)/d,uy=(ty-p.y)/d;if(!p.side)p.side=Math.random()<.5?1:-1;
+  for(const sd of [p.side,-p.side]){const px=p.x-uy*sd*st,py=p.y+ux*sd*st;if(ok(px,py)){p.x=px;p.y=py;p.side=sd;return false;}}
+  p.stuck=(p.stuck||0)+dt;return false;}
+function placePets(){const list=PETS.filter(p=>PET_DEFS[p.id]);list.forEach((p,i)=>{if(p.placed)return;
+  if(inYard()){p.x=clamp(P.x-70+i*55,60*HK,PET_MAXX());p.y=P.y+20+i*18;}else{p.x=(330+i*110)*HK;p.y=PET_MINY()+(120+i*60)*HK;}
+  if(homeHit(p.x,p.y,10,5)){const r=randYard();p.x=r.x;p.y=r.y;}
+  p.placed=true;p.state='stand';p.st=0;p.wander=null;p.plan='idle';p.wantT=.5+Math.random()*2;});}
+// each pet has its own day: sometimes it comes to you, but mostly it strolls, sniffs about, sits still or does its own thing
+function petPlan(p){const info=PET_INFO[p.id],k=petTempo(p),r=Math.random(),pFollow=(info.tame*.6+.1)*.5;   // 50% less keen to come to you than before
+  if(r<pFollow&&inYard()){p.plan='follow';p.wantT=(3+Math.random()*4);}
+  else if(r<pFollow+.35){p.plan='stroll';p.wander=randYard();p.wantT=(5+Math.random()*5)/k;}
+  else if(r<pFollow+.5){p.plan='special';p.state='special';p.st=0;p.wantT=(4+Math.random()*3)/Math.sqrt(k);}
+  else{p.plan='idle';p.wander=null;p.wantT=(2.5+Math.random()*4)/Math.sqrt(k);}}
+function updatePets(dt){if(MAPID!=='home'){PETS.forEach(p=>p.placed=false);return;}placePets();PETS.forEach(p=>{if(PET_DEFS[p.id])updatePet(p,dt);});}
+function updatePet(p,dt){const info=PET_INFO[p.id],k=petTempo(p),sp=info.speed*(S.speed/200);
+  p.t+=dt;p.st+=dt;
   // eating / showing love: stay put until done
-  if(PET.state==='eat'){if(PET.food&&FOOD.includes(PET.food)){PET.food.left-=dt*petTempo()/4;if(PET.food.left<=0){FOOD.splice(FOOD.indexOf(PET.food),1);PET.food=null;petAction('love');}}else if(PET.st>3/petTempo())PET.state='stand';return;}
-  if(PET.state==='love'&&PET.st<2.2/Math.sqrt(petTempo()))return;
+  if(p.state==='eat'){if(p.food&&FOOD.includes(p.food)){p.food.left-=dt*k/4;if(p.food.left<=0){FOOD.splice(FOOD.indexOf(p.food),1);p.food=null;petAction('love',p);}}else if(p.st>3/k){p.state='stand';p.st=0;}return;}
+  if(p.state==='love'&&p.st<2.2/Math.sqrt(k))return;
   // 1) food on the ground it can smell? go and eat it (fast pets get there first)
-  const food=FOOD.filter(f=>dist(f,PET)<600).sort((a,b)=>dist(a,PET)-dist(b,PET))[0];
-  if(food){const f=petFoot(),tx=food.x-PET.face*f.rx*.9,ty=food.y;
-    if(Math.hypot(food.x-PET.x,food.y-PET.y)<f.rx*1.3){PET.face=food.x>PET.x?1:-1;PET.state='eat';PET.st=0;PET.food=food;return;}
-    petMoveTo(tx,ty,sp,dt);PET.state='walk';return;}
-  // 2) follow the owner – how close and how often depends on tameness
-  const followD=40+(1-info.tame)*120,d=dist(PET,P);
-  PET.wantT-=dt;if(PET.wantT<=0){PET.wantT=2+Math.random()*3;PET.follow=Math.random()<info.tame+.15;
-    if(!PET.follow){PET.wander={x:clamp(PET.x+(Math.random()-.5)*360,60,PET_MAXX()-20),y:clamp(PET.y+(Math.random()-.5)*260,PET_MINY()+20,HOME.H-60)};}else PET.wander=null;}
-  if(d>500&&inYard()){PET.x=P.x-70;PET.y=P.y+20;}                      // far behind (e.g. you went inside): catch up
-  if(!inYard()){PET.follow=false;}                                      // you are out on the road: wait in the yard
-  if(PET.follow&&d>followD){const ux=(P.x-PET.x)/d,uy=(P.y-PET.y)/d;petMoveTo(P.x-ux*followD*.8,P.y-uy*followD*.6,sp*(d>followD*2.5?1.15:1),dt);if(PET.state!=='walk'){PET.state='walk';PET.st=0;}return;}
-  if(!PET.follow&&PET.wander&&PET.stuck<1){if(petMoveTo(PET.wander.x,PET.wander.y,sp*.6,dt)){PET.wander=null;}else{if(PET.state!=='walk'){PET.state='walk';PET.st=0;}return;}}
-  PET.stuck=0;
-  if(PET.state==='walk'||PET.state==='love'){PET.state='stand';PET.st=0;}
-  else if(PET.state==='stand'&&PET.st>3){PET.state='special';PET.st=0;}
-  else if(PET.state==='special'&&PET.st>6/Math.sqrt(petTempo())){PET.state='stand';PET.st=0;}}
+  const food=FOOD.filter(f=>dist(f,p)<600&&!PETS.some(o=>o!==p&&o.food===f&&o.state==='eat')).sort((a,b)=>dist(a,p)-dist(b,p))[0];
+  if(food){const f=petFoot(p),tx=food.x-p.face*f.rx*.9,ty=food.y;
+    if(Math.hypot(food.x-p.x,food.y-p.y)<f.rx*1.3){p.face=food.x>p.x?1:-1;p.state='eat';p.st=0;p.food=food;return;}
+    petMoveTo(p,tx,ty,sp,dt);if(p.state!=='walk'){p.state='walk';p.st=0;}return;}
+  if(p.state==='love'){p.state='stand';p.st=0;}
+  p.wantT-=dt;if(p.wantT<=0){if(p.state==='special'){p.state='stand';p.st=0;}petPlan(p);}
+  const d=dist(p,P),followD=50+(1-info.tame)*120;
+  if(p.plan==='follow'){if(!inYard()){p.plan='idle';}
+    else if(d>followD){const ux=(P.x-p.x)/d,uy=(P.y-p.y)/d;petMoveTo(p,P.x-ux*followD*.8,P.y-uy*followD*.6,sp,dt);if(p.state!=='walk'){p.state='walk';p.st=0;}return;}}
+  if(p.plan==='stroll'&&p.wander){if(petMoveTo(p,p.wander.x,p.wander.y,sp*.55,dt)||p.stuck>1){p.wander=null;p.stuck=0;p.plan='idle';p.wantT=Math.min(p.wantT,(2+Math.random()*3)/Math.sqrt(k));}else{if(p.state!=='walk'){p.state='walk';p.st=0;}return;}}
+  if(p.state==='walk'){p.state='stand';p.st=0;}}
 function drawFood(){if(MAPID!=='home')return;for(const f of FOOD){const k=.5+.5*f.left;ctx.save();ctx.fillStyle='rgba(0,0,0,.15)';ctx.beginPath();ctx.ellipse(f.x,f.y+2,14*k,5*k,0,0,7);ctx.fill();
   const bits=[[-7,0],[0,-3],[7,0],[-3,3],[4,3],[0,1]];ctx.strokeStyle='#3b2a1a';ctx.lineWidth=1.5;
   bits.slice(0,Math.max(1,Math.ceil(bits.length*f.left))).forEach(([dx,dy],i)=>{ctx.fillStyle=i%2?'#c98a4b':'#e0a35f';ctx.beginPath();ctx.ellipse(f.x+dx*k,f.y-3+dy*k,4,3,0,0,7);ctx.fill();ctx.stroke();});ctx.restore();}}
-function drawPet(){if(!petHere())return;const def=PET_DEFS[PET.id],H=petH(),t=PET.t,s=PET.state;
-  ctx.save();ctx.fillStyle='rgba(0,0,0,.16)';ctx.beginPath();ctx.ellipse(PET.x,PET.y,H*.38,H*.11,0,0,7);ctx.fill();ctx.restore();
-  const sheet=petImg(PET.id);
+function drawPet(p){const def=PET_DEFS[p.id],H=petH(p),t=p.t,s=p.state;
+  ctx.save();ctx.fillStyle='rgba(0,0,0,.16)';ctx.beginPath();ctx.ellipse(p.x,p.y,H*.38,H*.11,0,0,7);ctx.fill();ctx.restore();
+  const sheet=petImg(p.id);
   if(sheet){const n=4,cw=sheet.width/n,chh=sheet.height/4;let row,f;
     if(s==='stand'){[row,f]=def.still;}
-    else{row={walk:0,special:1,eat:2,love:3}[s];const k=petTempo(),fps={walk:Math.max(1.6,9*k),special:Math.max(1.4,5*k),eat:Math.max(1.6,6*k),love:Math.max(1.8,6*k)}[s];f=Math.floor(t*fps)%n;}
+    else{row={walk:0,special:1,eat:2,love:3}[s];const k=petTempo(p),fps={walk:Math.max(1.6,9*k),special:Math.max(1.4,5*k),eat:Math.max(1.6,6*k),love:Math.max(1.8,6*k)}[s];f=Math.floor(t*fps)%n;}
     const ch2=H/0.85*(chh-4)/chh,w=ch2*cw/chh;
-    ctx.save();ctx.translate(PET.x,PET.y+H*0.02);ctx.scale(PET.face,1);ctx.drawImage(sheet,f*cw,row*chh,cw,chh,-w/2,-ch2,w,ch2);ctx.restore();}
-  if(PET.emo){const u=(performance.now()-PET.emo.t0)/1000;if(u>2.5)PET.emo=null;else drawEmoteIcon(PET.emo.i,PET.x+H*.35,PET.y-H-12-Math.sin(u*6)*2,Math.min(1,u*5)*34);}
+    ctx.save();ctx.translate(p.x,p.y+H*0.02);ctx.scale(p.face,1);ctx.drawImage(sheet,f*cw,row*chh,cw,chh,-w/2,-ch2,w,ch2);ctx.restore();}
+  if(p.emo){const u=(performance.now()-p.emo.t0)/1000;if(u>2.5)p.emo=null;else drawEmoteIcon(p.emo.i,p.x+H*.35,p.y-H-12-Math.sin(u*6)*2,Math.min(1,u*5)*34);}
   if(s==='special'&&def.special==='sleep'){ctx.save();ctx.font='700 13px Mali, sans-serif';ctx.fillStyle='#5a7bd8';ctx.strokeStyle='#fff';ctx.lineWidth=3;
-    for(let i=0;i<3;i++){const u=(t*.6+i/3)%1;ctx.globalAlpha=1-u;const zx=PET.x+H*.25+u*14,zy=PET.y-H-4-u*26;ctx.strokeText('z',zx,zy);ctx.fillText('z',zx,zy);}ctx.restore();}}
+    for(let i=0;i<3;i++){const u=(t*.6+i/3)%1;ctx.globalAlpha=1-u;const zx=p.x+H*.25+u*14,zy=p.y-H-4-u*26;ctx.strokeText('z',zx,zy);ctx.fillText('z',zx,zy);}ctx.restore();}}
 // pet panel (only at home)
 function buildPetPanel(){const box=$('petPanel');box.innerHTML='';
-  const sec=(title,opts,cur,on)=>{const h=document.createElement('div');h.className='petLbl';h.textContent=title;box.appendChild(h);const row=document.createElement('div');row.className='petRow';
-    opts.forEach(([v,l])=>{const b=document.createElement('button');b.textContent=l;if(v===cur)b.classList.add('on');b.onclick=e=>{e.stopPropagation();on(v);buildPetPanel();};row.appendChild(b);});box.appendChild(row);};
-  sec('Pet',[['calico_cat','🐱 Cat'],['corgi','🐶 Corgi'],['sloth','🦥 Sloth'],['turtle','🐢 Turtle'],[null,'None']],PET.id,v=>{PET.id=v;PET.placed=false;lsSet('sw_pet',v);});
-  sec('Do',[['food','🍖 Drop food'],['love','❤️ Pet it'],['special','💤 Own action']],null,v=>{if(v==='food')dropFood();else petAction(v);});
-  if(PET.id&&PET_INFO[PET.id]){const i=PET_INFO[PET.id],p=document.createElement('div');p.className='petStat';
-    p.innerHTML=`Tame <b>${'★'.repeat(Math.round(i.tame*5))}${'☆'.repeat(5-Math.round(i.tame*5))}</b> &nbsp; Speed <b>${'★'.repeat(Math.max(1,Math.round(i.speed/42)))}${'☆'.repeat(5-Math.max(1,Math.round(i.speed/42)))}</b>`;box.appendChild(p);}
+  const head=(title)=>{const h=document.createElement('div');h.className='petLbl';h.textContent=title;box.appendChild(h);const row=document.createElement('div');row.className='petRow';box.appendChild(row);return row;};
+  const btn=(row,label,on,fn)=>{const b=document.createElement('button');b.textContent=label;if(on)b.classList.add('on');b.onclick=e=>{e.stopPropagation();fn();buildPetPanel();};row.appendChild(b);};
+  const r1=head(`Pets in the yard (${PETS.length}/${PET_MAX})`);
+  [['calico_cat','🐱 Cat'],['corgi','🐶 Corgi'],['sloth','🦥 Sloth'],['turtle','🐢 Turtle']].forEach(([id,l])=>btn(r1,l,PETS.some(p=>p.id===id),()=>togglePet(id)));
+  const r2=head('Do (nearest pet)');
+  [['food','🍖 Drop food'],['love','❤️ Pet it'],['special','💤 Own action']].forEach(([v,l])=>btn(r2,l,false,()=>{if(v==='food')dropFood();else petAction(v);}));
   const x=document.createElement('button');x.className='hideX petX';x.innerHTML='<i class="ic" data-ic="close">✕</i>';x.onclick=e=>{e.stopPropagation();box.style.display='none';};box.appendChild(x);applyIcons(box);}
 
 // ---------- buttons / keys ----------
