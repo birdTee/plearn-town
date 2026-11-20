@@ -294,7 +294,7 @@
 <script>
 // ---- UI icon set (ui_icons.webp, 18 cells in one row) — emoji are shown until it loads ----
 // bump ASSET_V whenever an icon/emote picture changes, so phones download the new one instead of a cached copy
-var ASSET_V='20261120d';
+var ASSET_V='20261120e';
 const IC_N=['logo','pad','freeze','hide','zombie','fire','flash','run','shirt','gear','globe','trophy','girl','boy','jump','tag','logout','hello'];
 const IC={},IC_C={};
 function icFrom(img,i,name){const n=img.height,c=document.createElement('canvas');c.width=c.height=n;c.getContext('2d').drawImage(img,i*n,0,n,n,0,0,n,n);IC_C[name]=c;IC[name]=c.toDataURL();}
@@ -1497,10 +1497,13 @@ const PET_DEFS={   // pets that have their sprite sheet in the game now
   calico_cat:{name:'Calico Cat',h:100,special:'groom',feel:2,still:[2,3]},     // still pose = eat row, last frame (standing, head up)
   sloth:{name:'Sloth',h:110,special:'sleep',feel:3,still:[3,0]},
   corgi:{name:'Corgi',h:100,special:'zoomies',feel:7,still:[2,3]},
-  turtle:{name:'Turtle',h:55,special:'hide',feel:3,still:[2,3]}};
+  turtle:{name:'Turtle',h:66,special:'hide',feel:3,still:[2,3]}};
 const PETS_IMG={};
 function petImg(id){if(PETS_IMG[id]!==undefined)return PETS_IMG[id];PETS_IMG[id]=null;
   const im=new Image();im.onload=()=>{PETS_IMG[id]=im;};im.onerror=()=>{PETS_IMG[id]=false;};im.src=`pets/${id}_sheet.webp?v=${ASSET_V}`;return null;}
+Object.keys(PET_DEFS).forEach(petImg);   // load every pet picture at start, so choosing a pet shows it at once
+// slow walkers do everything slowly: animation speed and how long each action lasts follow walking speed
+const petTempo=()=>Math.min(1.2,Math.max(.3,(PET_INFO[PET.id]?.speed||150)/150));
 const PET={id:lsGet('sw_pet')||'calico_cat',x:0,y:0,face:1,state:'stand',st:0,t:0,placed:false,wander:null,wantT:0};
 const FOOD=[];   // food dropped on the ground: {x,y,left}
 const PET_SCALE=()=>0.48*S.scale/0.7;                  // pets drawn a little bigger than true scale so kids can see them clearly
@@ -1530,8 +1533,8 @@ function updatePet(dt){if(MAPID!=='home'||!PET.id||!PET_DEFS[PET.id]){PET.placed
   if(!PET.placed){if(inYard()){PET.x=P.x-70;PET.y=P.y+20;}else{PET.x=(430+80)*HK;PET.y=PET_MINY()+120*HK;}PET.placed=true;PET.state='stand';PET.wander=null;}
   PET.t+=dt;PET.st+=dt;
   // eating / showing love: stay put until done
-  if(PET.state==='eat'){if(PET.food&&FOOD.includes(PET.food)){PET.food.left-=dt/4;if(PET.food.left<=0){FOOD.splice(FOOD.indexOf(PET.food),1);PET.food=null;petAction('love');}}else if(PET.st>3)PET.state='stand';return;}
-  if(PET.state==='love'&&PET.st<2.2)return;
+  if(PET.state==='eat'){if(PET.food&&FOOD.includes(PET.food)){PET.food.left-=dt*petTempo()/4;if(PET.food.left<=0){FOOD.splice(FOOD.indexOf(PET.food),1);PET.food=null;petAction('love');}}else if(PET.st>3/petTempo())PET.state='stand';return;}
+  if(PET.state==='love'&&PET.st<2.2/Math.sqrt(petTempo()))return;
   // 1) food on the ground it can smell? go and eat it (fast pets get there first)
   const food=FOOD.filter(f=>dist(f,PET)<600).sort((a,b)=>dist(a,PET)-dist(b,PET))[0];
   if(food){const f=petFoot(),tx=food.x-PET.face*f.rx*.9,ty=food.y;
@@ -1548,7 +1551,7 @@ function updatePet(dt){if(MAPID!=='home'||!PET.id||!PET_DEFS[PET.id]){PET.placed
   PET.stuck=0;
   if(PET.state==='walk'||PET.state==='love'){PET.state='stand';PET.st=0;}
   else if(PET.state==='stand'&&PET.st>3){PET.state='special';PET.st=0;}
-  else if(PET.state==='special'&&PET.st>6){PET.state='stand';PET.st=0;}}
+  else if(PET.state==='special'&&PET.st>6/Math.sqrt(petTempo())){PET.state='stand';PET.st=0;}}
 function drawFood(){if(MAPID!=='home')return;for(const f of FOOD){const k=.5+.5*f.left;ctx.save();ctx.fillStyle='rgba(0,0,0,.15)';ctx.beginPath();ctx.ellipse(f.x,f.y+2,14*k,5*k,0,0,7);ctx.fill();
   const bits=[[-7,0],[0,-3],[7,0],[-3,3],[4,3],[0,1]];ctx.strokeStyle='#3b2a1a';ctx.lineWidth=1.5;
   bits.slice(0,Math.max(1,Math.ceil(bits.length*f.left))).forEach(([dx,dy],i)=>{ctx.fillStyle=i%2?'#c98a4b':'#e0a35f';ctx.beginPath();ctx.ellipse(f.x+dx*k,f.y-3+dy*k,4,3,0,0,7);ctx.fill();ctx.stroke();});ctx.restore();}}
@@ -1557,7 +1560,7 @@ function drawPet(){if(!petHere())return;const def=PET_DEFS[PET.id],H=petH(),t=PE
   const sheet=petImg(PET.id);
   if(sheet){const n=4,cw=sheet.width/n,chh=sheet.height/4;let row,f;
     if(s==='stand'){[row,f]=def.still;}
-    else{row={walk:0,special:1,eat:2,love:3}[s];const fps={walk:Math.max(4,9*PET_INFO[PET.id].speed/150),special:4,eat:6,love:6}[s];f=Math.floor(t*fps)%n;}
+    else{row={walk:0,special:1,eat:2,love:3}[s];const k=petTempo(),fps={walk:Math.max(1.6,9*k),special:Math.max(1.4,5*k),eat:Math.max(1.6,6*k),love:Math.max(1.8,6*k)}[s];f=Math.floor(t*fps)%n;}
     const ch2=H/0.85*(chh-4)/chh,w=ch2*cw/chh;
     ctx.save();ctx.translate(PET.x,PET.y+H*0.02);ctx.scale(PET.face,1);ctx.drawImage(sheet,f*cw,row*chh,cw,chh,-w/2,-ch2,w,ch2);ctx.restore();}
   if(PET.emo){const u=(performance.now()-PET.emo.t0)/1000;if(u>2.5)PET.emo=null;else drawEmoteIcon(PET.emo.i,PET.x+H*.35,PET.y-H-12-Math.sin(u*6)*2,Math.min(1,u*5)*34);}
