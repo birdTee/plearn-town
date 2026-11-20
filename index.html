@@ -319,7 +319,7 @@
 <script>
 // ---- UI icon set (ui_icons.webp, 18 cells in one row) — emoji are shown until it loads ----
 // bump ASSET_V whenever an icon/emote picture changes, so phones download the new one instead of a cached copy
-var ASSET_V='20261120f';
+var ASSET_V='20261120g';
 const IC_N=['logo','pad','freeze','hide','zombie','fire','flash','run','shirt','gear','globe','trophy','girl','boy','jump','tag','logout','hello'];
 const IC={},IC_C={};
 function icFrom(img,i,name){const n=img.height,c=document.createElement('canvas');c.width=c.height=n;c.getContext('2d').drawImage(img,i*n,0,n,n,0,0,n,n);IC_C[name]=c;IC[name]=c.toDataURL();}
@@ -722,11 +722,18 @@ const HK=0.44;   // pictures drawn small (half the area of before) so the yard f
 const RK=0.62;   // the road keeps its size
 const HOME={W:2048*HK,H:200*RK+1536*HK,RH:200*RK,minY:22*RK,
   // walls, fences & furniture where feet can't go (x,y,w,h in home-world px, measured on home_yard / home_house pictures)
-  rects:[[0,200,435,165],[60,340,330,95],[600,200,424,165],[680,340,320,95],[0,200,45,1536],[0,1620,1024,116],[25,490,165,170],[50,1340,230,240],[240,1510,120,80],[750,1390,274,240],[1024,200,1024,195],[1999,200,49,1536],[1024,1648,1024,88],[1024,200,45,645],[1024,1010,45,726]].map(r=>({x:r[0]*HK,y:200*RK+(r[1]-200)*HK,w:r[2]*HK,h:r[3]*HK})),
+  rects:[[0,200,435,165],[60,340,330,95],[600,200,424,165],[680,340,320,95],[0,200,45,1536],[0,1620,1024,116],[45,625,150,32],[60,1525,215,58],[240,1515,120,70],[740,1598,284,40],[1024,200,1024,195],[1999,200,49,1536],[1024,1648,1024,88],[1024,200,45,615],[1024,1035,45,701]].map(r=>({x:r[0]*HK,y:200*RK+(r[1]-200)*HK,w:r[2]*HK,h:r[3]*HK})),
   spawn:{x:517*HK,y:120*RK},imgs:{}};
 // things you can walk behind (cut from the pictures): drawn again on top, sorted with the kids by the line where they touch the ground
-const HOME_PROPS=[["bushL", 15, 280, 185, 182, 445], ["dogh", 40, 1125, 328, 285, 1380], ["bushR", 740, 1170, 284, 300, 1440], ["gate", 380, 0, 320, 180, 165], ["wallD", 1024, 785, 80, 751, 812]];
-let HPROPS=null;function homeProps(){if(!HPROPS){HPROPS=HOME_PROPS.map(([n,x,y,w,h,b])=>{const im=new Image();im.src=`hp_${n}.webp?v=${ASSET_V}`;return {im,x:x*HK,y:HOME.RH+y*HK,w:w*HK,h:h*HK,base:HOME.RH+b*HK};});}return HPROPS.filter(o=>o.im.complete&&o.im.naturalWidth);}
+const HOME_PROPS=[["bushL", 40, 280, 165, 182, 445], ["dogh", 40, 1125, 328, 285, 1380], ["bushR", 715, 1165, 309, 305, 1440], ["gate", 380, 0, 320, 180, 165], ["wallD", 1024, 785, 80, 751, 812]];
+// a bush rustles while someone moves through / behind it
+function drawProp(o,dt){if(!o.sway){drawVis(o.im,o.im.width/o.w,o.x,o.y,o.w,o.h);return;}
+  const who=[P,...petsHere()].some(a=>a.x>o.x+o.w*.1&&a.x<o.x+o.w*.9&&a.y>o.y+o.h*.2&&a.y<o.base+6&&(a===P?P.moving:a.state==='walk'));
+  o.wob=who?Math.min(1,o.wob+dt*4):Math.max(0,o.wob-dt*1.5);o.ph+=dt*11;
+  if(o.wob<=0.01){drawVis(o.im,o.im.width/o.w,o.x,o.y,o.w,o.h);return;}
+  const sk=Math.sin(o.ph)*.07*o.wob,sq=1+Math.sin(o.ph*2)*.015*o.wob,cx=o.x+o.w/2;
+  ctx.save();ctx.translate(cx,o.base);ctx.transform(1,0,sk,sq,0,0);ctx.drawImage(o.im,-o.w/2,o.y-o.base,o.w,o.h);ctx.restore();}
+let HPROPS=null;function homeProps(){if(!HPROPS){HPROPS=HOME_PROPS.map(([n,x,y,w,h,b])=>{const im=new Image();im.src=`hp_${n}.webp?v=${ASSET_V}`;return {n,im,x:x*HK,y:HOME.RH+y*HK,w:w*HK,h:h*HK,base:HOME.RH+b*HK,sway:n.startsWith('bush'),wob:0,ph:0};});}return HPROPS.filter(o=>o.im.complete&&o.im.naturalWidth);}
 setTimeout(()=>{try{homeProps();homeImgs();}catch(e){}},1500);   // fetch the home pictures early so the yard appears at once
 let portalArmed=false;   // after arriving you must step away from the edge once before a portal works again
 const mapW=()=>MAPID==='home'?HOME.W:WORLD_W, mapH=()=>MAPID==='home'?HOME.H:WORLD_H, mapMinY=()=>MAPID==='home'?HOME.minY:MIN_Y;
@@ -848,6 +855,7 @@ function loop(now){const dt=Math.min(.05,(now-last)/1000);last=now;
   if(P.moving){vx/=len;vy/=len;
     const nd=DIRS[((Math.round(Math.atan2(vy,vx)/(Math.PI/4))%8)+8)%8];if(nd!==P.dir){P.dir=nd;drawStrip();}
     if(MG.on&&MG.mode==='zombie'&&P.role==='zombie')spdK*=zombieK();
+    if(MAPID==='home'){const wx=1024*HK+12,dy0=HOME.RH+725*HK;if(Math.abs(vx)>Math.abs(vy)&&Math.abs(P.x-wx)<55&&Math.abs(P.y-dy0)<70)P.y+=(dy0-P.y)*Math.min(1,dt*7);}
     const moved=tryMove(P,clamp(P.x+vx*S.speed*spdK*dt,TILE,mapW()-TILE),clamp(P.y+vy*S.speed*spdK*dt,mapMinY(),mapH()-(MAPID==='home'?30:TILE*.6)));
     checkPortals(vy);
     if(!moved){P.moving=false;P.stuck=(P.stuck||0)+dt;if(P.target&&!hold&&P.stuck>.3){P.target=null;}}else P.stuck=0;
@@ -872,7 +880,7 @@ function loop(now){const dt=Math.min(.05,(now-last)/1000);last=now;
   const items=[];if(MAPID==='school'){trees.forEach(t=>items.push({y:t[1],d:()=>drawTree(t[0],t[1])}));bushes.forEach(b=>items.push({y:b.y,d:()=>drawBush(b)}));
   NPCS.forEach(n=>{if(npcsOn()||n.mg)items.push({y:n.y,d:()=>drawActor(n,false)});});}
   REMOTE.forEach(a=>{if(sameMap(a))items.push({y:a.y,d:()=>drawActor(a,false)});});
-  if(MAPID==='home'){drawFood();petsHere().forEach(p=>items.push({y:p.y,d:()=>drawPet(p)}));homeProps().forEach(o=>items.push({y:o.base,d:()=>drawVis(o.im,o.im.width/o.w,o.x,o.y,o.w,o.h)}));}
+  if(MAPID==='home'){drawFood();petsHere().forEach(p=>items.push({y:p.y,d:()=>drawPet(p)}));homeProps().forEach(o=>items.push({y:o.base,d:()=>drawProp(o,dt)}));}
   items.push({y:P.y,d:()=>drawActor(P,true)});
   items.sort((a,b)=>a.y-b.y).forEach(i=>i.d());
   ctx.restore();
