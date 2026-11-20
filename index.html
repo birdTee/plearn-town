@@ -125,7 +125,7 @@
   #btnFood,#btnClean{display:none}.atHome #btnFood,.atHome #btnClean{display:flex}.atHome #btnChat{display:none!important}
   #btnClean b{position:absolute;top:-4px;right:-4px;min-width:18px;height:18px;border-radius:9px;background:#e8483f;color:#fff;font:700 11px/18px 'Mali',system-ui,sans-serif;box-shadow:0 1px 3px rgba(0,0,0,.3)}#btnClean b:empty{display:none}#app:not(.atHome) .foodPanel{display:none!important}
   .foodPanel{position:absolute;right:16px;bottom:196px;z-index:5;background:#fffaf0;border-radius:18px;padding:8px;display:flex;gap:6px;box-shadow:0 5px 0 #e7d7b8,0 10px 24px rgba(0,0,0,.25)}
-  .foodPanel button{width:60px;height:66px;border:0;border-radius:12px;background:#fff3d6;cursor:pointer;padding:2px 0 0;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:'Mali',system-ui,sans-serif;font-size:11px;color:#6b4a2b;font-weight:700}
+  .foodPanel{display:grid!important;grid-template-columns:repeat(4,60px)}.foodPanel[style*='none']{display:none!important}.foodPanel button{width:60px;height:66px;border:0;border-radius:12px;background:#fff3d6;cursor:pointer;padding:2px 0 0;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:'Mali',system-ui,sans-serif;font-size:11px;color:#6b4a2b;font-weight:700}
   .foodPanel button:active{background:#ffe08a}.foodPanel canvas{width:40px;height:40px}
   .foodPanel.off button{opacity:.45}.foodPanel .fpTip{display:none}.foodPanel.off .fpTip{display:block;position:absolute;left:0;right:0;top:-30px;text-align:center;font:700 12px 'Mali',system-ui,sans-serif;color:#fff;text-shadow:0 1px 3px #000}
   .hudOpen .foodPanel{display:none!important}
@@ -348,7 +348,7 @@
 <script>
 // ---- UI icon set (ui_icons.webp, 18 cells in one row) — emoji are shown until it loads ----
 // bump ASSET_V whenever an icon/emote picture changes, so phones download the new one instead of a cached copy
-var ASSET_V='20261120t';
+var ASSET_V='20261120u';
 const IC_N=['logo','pad','freeze','hide','zombie','fire','flash','run','shirt','gear','globe','trophy','girl','boy','jump','tag','logout','hello'];
 const IC={},IC_C={};
 function icFrom(img,i,name){const n=img.height,c=document.createElement('canvas');c.width=c.height=n;c.getContext('2d').drawImage(img,i*n,0,n,n,0,0,n,n);IC_C[name]=c;IC[name]=c.toDataURL();}
@@ -1653,7 +1653,7 @@ const PET_INFO={   // all 38 pets – stats ready for later
   hamster:{tame:.4,speed:90},guinea_pig:{tame:.5,speed:80},squirrel:{tame:.35,speed:200},budgie:{tame:.6,speed:165},turtle:{tame:.5,speed:30},
   capybara:{tame:.8,speed:90},alpaca:{tame:.6,speed:120},fennec_fox:{tame:.45,speed:210},bearded_dragon:{tame:.6,speed:60},chameleon:{tame:.3,speed:25},
   hedgehog:{tame:.4,speed:70},axolotl:{tame:.5,speed:40},meerkat:{tame:.55,speed:170},sugar_glider:{tame:.6,speed:160},leopard_gecko:{tame:.5,speed:60},chinchilla:{tame:.45,speed:130},
-  red_panda:{tame:.6,speed:120},sloth:{tame:.7,speed:28},otter:{tame:.75,speed:160},koala:{tame:.55,speed:35},baby_panda:{tame:.7,speed:70},arctic_fox:{tame:.5,speed:190},baby_penguin:{tame:.8,speed:60}};
+  red_panda:{tame:.6,speed:120},sloth:{tame:.7,speed:28},macaw:{tame:.65,speed:150},cockatoo:{tame:.75,speed:140},french_bulldog:{tame:.85,speed:120},mini_pig:{tame:.75,speed:90},sheep:{tame:.6,speed:95},otter:{tame:.75,speed:160},koala:{tame:.55,speed:35},baby_panda:{tame:.7,speed:70},arctic_fox:{tame:.5,speed:190},baby_penguin:{tame:.8,speed:60}};
 const PET_DEFS={   // pets that have their sprite sheet in the game now
   calico_cat:{name:'Calico Cat',h:100,special:'groom',feel:2,still:[2,3]},     // still pose = eat row, last frame (standing, head up)
   sloth:{name:'Sloth',h:112,special:'sleep',feel:3,still:[3,0]},
@@ -1692,13 +1692,19 @@ const PET_DEFS={   // pets that have their sprite sheet in the game now
   chameleon:{name:'Chameleon',h:80,special:'eyes',feel:6,still:[2,3]},
   leopard_gecko:{name:'Leopard Gecko',h:80,special:'lick',feel:7,still:[2,3]},
   axolotl:{name:'Axolotl',h:80,special:'wiggle',feel:7,still:[2,3]},
-  sugar_glider:{name:'Sugar Glider',h:74,special:'glide',feel:7,still:[2,3]}};
+  sugar_glider:{name:'Sugar Glider',h:74,special:'glide',feel:7,still:[2,3]},
+  macaw:{soon:1,name:'Macaw',h:150,special:'flap',feel:10,still:[2,3],fly:{row:1,frames:[1,2,3,2],alt:40,speed:2.0}},
+  cockatoo:{soon:1,name:'Cockatoo',h:124,special:'crest',feel:10,still:[2,3],fly:{row:1,frames:[1,2,3,2],alt:38,speed:2.2}},
+  french_bulldog:{soon:1,name:'French Bulldog',h:96,special:'snort',feel:7,still:[2,3]},
+  mini_pig:{soon:1,name:'Mini Pig',h:104,special:'dig',feel:7,still:[2,3]},
+  sheep:{soon:1,name:'Sheep',h:138,special:'baa',feel:2,still:[2,3]}};
+const petReady=id=>!!PETS_IMG[id];   // new pets appear once their sprite sheet has been added
 // where the mouth is when eating (m) and where the bottom is (b), as a share of the picture height, measured on each sheet
 const PET_GEO={"calico_cat": {"m": 0.472, "b": 0.448}, "sloth": {"m": 0.362, "b": 0.363}, "corgi": {"m": 0.452, "b": 0.426}, "turtle": {"m": 0.446, "b": 0.47}, "capybara": {"m": 0.475, "b": 0.462}, "hamster": {"m": 0.421, "b": 0.379}, "holland_lop": {"m": 0.46, "b": 0.455}, "baby_penguin": {"m": 0.365, "b": 0.36}, "shiba": {"m": 0.385, "b": 0.423}, "otter": {"m": 0.453, "b": 0.447}, "red_panda": {"m": 0.468, "b": 0.452}, "orange_cat": {"m": 0.43, "b": 0.489}, "guinea_pig": {"m": 0.462, "b": 0.465}, "hedgehog": {"m": 0.462, "b": 0.46}, "koala": {"m": 0.41, "b": 0.433}, "fennec_fox": {"m": 0.45, "b": 0.456}, "baby_panda": {"m": 0.416, "b": 0.407}, "golden_pup": {"m": 0.466, "b": 0.435}, "squirrel": {"m": 0.45, "b": 0.465}, "alpaca": {"m": 0.424, "b": 0.386}, "meerkat": {"m": 0.444, "b": 0.444}, "chinchilla": {"m": 0.451, "b": 0.455}, "arctic_fox": {"m": 0.442, "b": 0.459}, "tabby_cat": {"m": 0.444, "b": 0.444}, "black_cat": {"m": 0.464, "b": 0.462}, "white_cat": {"m": 0.424, "b": 0.478}, "thai_pup": {"m": 0.434, "b": 0.382}, "pomeranian": {"m": 0.43, "b": 0.47}, "chihuahua": {"m": 0.384, "b": 0.341}, "husky": {"m": 0.371, "b": 0.426}, "scottish_fold": {"m": 0.441, "b": 0.474}, "persian": {"m": 0.474, "b": 0.467}, "bearded_dragon": {"m": 0.439, "b": 0.466}, "chameleon": {"m": 0.43, "b": 0.445}, "leopard_gecko": {"m": 0.459, "b": 0.472}, "axolotl": {"m": 0.465, "b": 0.47}, "sugar_glider": {"m": 0.453, "b": 0.453}};
 const petCellH=p=>petH(p)/0.85*0.98;
 const PETS_IMG={};
 function petImg(id){if(PETS_IMG[id]!==undefined)return PETS_IMG[id];PETS_IMG[id]=null;
-  loadImg(`pets/${id}_sheet.webp?v=${ASSET_V}`).then(im=>{PETS_IMG[id]=im||undefined;});return null;}
+  loadImg(`pets/${id}_sheet.webp?v=${ASSET_V}`,PET_DEFS[id].soon?1:4).then(im=>{PETS_IMG[id]=im||undefined;});return null;}
 Object.keys(PET_DEFS).forEach(petImg);   // load every pet picture at start, so choosing a pet shows it at once
 // slow walkers do everything slowly: animation speed and how long each action lasts follow walking speed
 const petTempo=p=>Math.min(1.2,Math.max(.3,(PET_INFO[p.id]?.speed||150)/150));
@@ -1767,16 +1773,19 @@ function drawPoops(push){for(const q of POOP){const k=S.scale/0.7;push(q.y,()=>{
       const sw=Math.sin(t*16)*.45;cleanIcon(ctx,1,q.x-10*k+Math.sin(t*16)*8*k,q.y-22*k,44*k,sw-.3);}   // broom sweeping to and fro
     if(t>.8){const u=(t-.8)/.45;ctx.save();ctx.globalAlpha=Math.max(0,1-u);cleanIcon(ctx,3,q.x,q.y-14*k-u*12,(26+u*14)*k);ctx.restore();}});}}
 // 5 kinds of food – every animal only eats the kinds it likes
-const FOODS=[{id:'kibble',n:'Kibble',e:'🟤'},{id:'fish',n:'Fish',e:'🐟'},{id:'leaves',n:'Leaves',e:'🍃'},{id:'fruit',n:'Fruit',e:'🍎'},{id:'seeds',n:'Seeds',e:'🌻'}];
-const FOOD_FANS={
-  kibble:'orange_cat tabby_cat black_cat calico_cat white_cat scottish_fold persian thai_pup pomeranian chihuahua corgi golden_pup shiba husky fennec_fox arctic_fox meerkat hedgehog leopard_gecko chameleon',
+const FOODS=[{id:'kibble',n:'Kibble',e:'🟤'},{id:'fish',n:'Fish',e:'🐟'},{id:'leaves',n:'Leaves',e:'🍃'},{id:'fruit',n:'Fruit',e:'🍎'},{id:'seeds',n:'Seeds',e:'🌻'},{id:'bugs',n:'Bugs',e:'🐛'},{id:'carrot',n:'Carrot',e:'🥕'},{id:'hay',n:'Hay',e:'🌾'}];
+const FOOD_FANS={   // what each pet likes, close to what the real animal eats
+  kibble:'orange_cat tabby_cat black_cat calico_cat white_cat scottish_fold persian thai_pup pomeranian chihuahua corgi golden_pup shiba husky french_bulldog fennec_fox arctic_fox hedgehog',
   fish:'orange_cat tabby_cat black_cat calico_cat white_cat scottish_fold persian otter baby_penguin axolotl arctic_fox',
-  leaves:'holland_lop guinea_pig turtle capybara alpaca bearded_dragon chinchilla red_panda sloth koala baby_panda',
-  fruit:'hamster squirrel budgie turtle sugar_glider bearded_dragon red_panda sloth capybara hedgehog',
-  seeds:'hamster guinea_pig squirrel budgie chinchilla sugar_glider meerkat'};
+  leaves:'holland_lop guinea_pig alpaca turtle capybara bearded_dragon red_panda sloth koala baby_panda mini_pig sheep',
+  fruit:'hamster squirrel budgie macaw cockatoo turtle sugar_glider bearded_dragon red_panda sloth capybara mini_pig',
+  seeds:'hamster guinea_pig squirrel budgie macaw cockatoo chinchilla sugar_glider',
+  bugs:'chameleon leopard_gecko bearded_dragon hedgehog meerkat sugar_glider axolotl fennec_fox',
+  carrot:'holland_lop guinea_pig turtle capybara alpaca mini_pig sheep',
+  hay:'holland_lop guinea_pig chinchilla alpaca capybara sheep'};
 const likes=(id,kind)=>FOOD_FANS[kind].split(' ').includes(id);
 const likedFoods=id=>FOODS.filter(f=>likes(id,f.id));
-const FOOD_BOT=[0.312, 0.305, 0.422, 0.438, 0.312];   // icon bottom below its centre (share of icon size)
+const FOOD_BOT=[0.312, 0.305, 0.422, 0.438, 0.312, 0.406, 0.43, 0.398];   // icon bottom below its centre (share of icon size)
 const FOOD_IMG=new Image();FOOD_IMG.src='food.webp?v='+ASSET_V;
 function drawFoodIcon(g,kind,x,y,sz){const i=FOODS.findIndex(f=>f.id===kind);
   if(FOOD_IMG.complete&&FOOD_IMG.naturalWidth){const c=FOOD_IMG.height;g.drawImage(FOOD_IMG,i*c,0,c,c,x-sz/2,y-sz/2,sz,sz);}
@@ -1905,7 +1914,7 @@ let PET_INFO_ID=null;
 function buildPetPanel(){const box=$('petPanel');box.innerHTML='';
   const top=document.createElement('div');top.className='petTop';top.innerHTML=`<b>Pets</b><span>Drag onto the lawn · ${PETS.length} out</span>`;box.appendChild(top);
   const grid=document.createElement('div');grid.className='petGrid';box.appendChild(grid);
-  Object.keys(PET_DEFS).forEach(id=>{const t=document.createElement('div');const out=PETS.some(p=>p.id===id);t.className='petTile'+(out?' on':'')+(PET_INFO_ID===id?' sel':'');t.title=PET_DEFS[id].name;
+  Object.keys(PET_DEFS).filter(id=>petReady(id)||PETS.some(p=>p.id===id)).forEach(id=>{const t=document.createElement('div');const out=PETS.some(p=>p.id===id);t.className='petTile'+(out?' on':'')+(PET_INFO_ID===id?' sel':'');t.title=PET_DEFS[id].name;
     t.appendChild(petStill(id,22));petDragSetup(t,id);
     if(out){const x=document.createElement('button');x.className='petOut';x.textContent='✕';x.setAttribute('aria-label','Send home');
       x.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();sendPetHome(id);if(PET_INFO_ID===id)PET_INFO_ID=null;buildPetPanel();});t.appendChild(x);}
