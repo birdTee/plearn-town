@@ -2011,7 +2011,15 @@ function lgReady(){const btn=$('lgEnter'),btn2=$('lgEnter2'),btn3=$('lgEnter3');
 // ---- Android can wipe canvas pictures while another app (e.g. a phone call) is in front.
 // A tiny test canvas tells us; then we reload quickly and drop the kid back exactly where they were.
 const SENT=document.createElement('canvas');SENT.width=SENT.height=2;{const g=SENT.getContext('2d');g.fillStyle='#f00';g.fillRect(0,0,2,2);}
-function picsLost(){try{return SENT.getContext('2d').getImageData(0,0,1,1).data[3]===0;}catch(e){return true;}}
+// a 2x2 canvas is too small for the phone to wipe, so also watch real pictures: the kid's sprite sheet and the ground
+const PROBE=new WeakMap();
+function probeOf(c){if(!c||!c.width)return null;if(PROBE.has(c))return PROBE.get(c);let pt=null;
+  try{const g=c.getContext('2d');for(const [x,y] of [[.5,.62],[.5,.5],[.5,.75],[.45,.4],[.55,.85],[.5,.3]]){const px=Math.floor(Math.min(c.width,FRAME_W)*x),py=Math.floor(c.height*y);if(g.getImageData(px,py,1,1).data[3]>200){pt=[px,py];break;}}}catch(e){}
+  PROBE.set(c,pt);return pt;}
+function canvasWiped(c){if(!c)return false;try{const g=c.getContext('2d');if(g.isContextLost&&g.isContextLost())return true;const pt=probeOf(c);return !!pt&&g.getImageData(pt[0],pt[1],1,1).data[3]===0;}catch(e){return false;}}
+function picsLost(){try{if(SENT.getContext('2d').getImageData(0,0,1,1).data[3]===0)return true;}catch(e){return true;}
+  if(!ready)return false;const look=P.char&&P.char.split(':')[0],b=BASE[look],v=BANK[P.char];
+  return canvasWiped(b&&b.idle)||canvasWiped(v&&v.idle)||canvasWiped(map);}
 function saveResume(){try{sessionStorage.setItem('pt_resume',JSON.stringify({t:Date.now(),map:MAPID,x:P.x,y:P.y,dir:P.dir,
   food:FOOD.map(f=>({x:f.x,y:f.y,kind:f.kind,left:f.left})),poop:POOP.map(q=>({x:q.x,y:q.y}))}));}catch(e){}}
 let resumeBusy=false;
@@ -2022,6 +2030,7 @@ function tryResume(){let r=null;try{r=JSON.parse(sessionStorage.getItem('pt_resu
   const prof=store.get('sw_profile');if(!r||!prof||Date.now()-r.t>15*60e3)return false;
   enterGame(prof);
   if(r.map==='home'){MAPID='home';app.classList.add('atHome');PETS.forEach(p=>p.placed=false);}
+  else{MAPID='school';app.classList.remove('atHome');}
   P.x=r.x;P.y=r.y;P.dir=r.dir||'down';portalArmed=false;
   (r.food||[]).forEach(f=>FOOD.push({...f,t0:performance.now()}));(r.poop||[]).forEach(q=>POOP.push({x:q.x,y:q.y,t0:performance.now()-1e4,from:1}));updPoopN();drawStrip();return true;}
 function enterGame(p){store.set('sw_session',{on:true});LG.g=p.g;LG.h=p.h;LG.c=p.c;pick.g=p.g;pick.o='sport';pick.h[p.g]=p.h;pick.c=p.c;P.name=p.name;applyPick();variant(P.char);
