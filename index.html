@@ -47,6 +47,25 @@
   #lgNewCard .lgGo{margin-top:8px;padding:10px;font-size:17px}
   #lgNewCard .lgErr{min-height:0;margin-top:4px}
   .ldBar,#ldPct{display:none!important}
+  #loading,#loading:not(.simple){align-items:center;background:radial-gradient(circle at 50% 30%,#fffbe8 0,#d9f1ff 45%,#8fd3f4 100%)}
+  #loading .login,#loading:not(.simple) .login,.simple .login{margin:auto;display:flex;flex-direction:column;align-items:center;gap:14px;padding:14px 0}
+  #loading .login>.lgCard{width:100%;box-sizing:border-box;animation:lgIn .35s ease both}
+  .lgHead{display:flex;flex-direction:column;align-items:center;gap:16px}
+  .lgLogo{display:block;width:min(64vw,300px);max-height:30vh;object-fit:contain;filter:drop-shadow(0 6px 14px rgba(30,80,130,.22));transition:width .45s ease,max-height .45s ease}
+  .booting .lgLogo{width:min(78vw,520px);max-height:58vh;animation:spPop .7s cubic-bezier(.3,1.6,.5,1) both,spBob 2.4s ease-in-out .7s infinite}
+  .bootBar{display:none;width:min(46vw,240px);height:12px;border-radius:8px;background:rgba(255,255,255,.75);box-shadow:inset 0 0 0 2px #fff,0 2px 6px rgba(30,80,130,.18);overflow:hidden}
+  .booting .bootBar{display:block}#bootFill{display:block;height:100%;width:8%;border-radius:8px;background:linear-gradient(90deg,#ffcf1f,#ff9f1c);transition:width .3s ease}
+  .booting .lgCard{display:none!important}
+  #loading:not(.simple):not(.booting) .lgHead{display:none}          /* new character form: no logo, more room */
+  .lgCard{border:2px solid #fff}
+  .lgWel .lgHello b{color:#1f4f8f}
+  @keyframes spPop{from{transform:scale(.6);opacity:0}to{transform:scale(1);opacity:1}}
+  @keyframes spBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+  @keyframes lgIn{from{transform:translateY(10px);opacity:0}to{transform:none;opacity:1}}
+  @media (max-height:520px) and (orientation:landscape){
+    #loading.simple .login{flex-direction:row;justify-content:center;gap:28px;width:min(760px,94%)}
+    #loading.simple .lgLogo{width:min(38vw,300px);max-height:70vh}#loading.simple .login>.lgCard{width:auto;flex:0 1 380px}
+    #loading.booting .lgLogo{max-height:62vh}}
   .lgTitle{text-align:center;font-size:30px;font-weight:700;color:#fff;text-shadow:0 3px 0 #e8483f,0 5px 10px rgba(0,0,0,.25);margin:4px 0 10px}
   .lgCard{background:#fffaf0;border-radius:22px;padding:14px 16px;box-shadow:0 6px 0 #e7d7b8,0 10px 24px rgba(0,0,0,.2)}
   .lgRow{display:flex;gap:12px;align-items:center}.lgCol{flex:1;min-width:0}.lgRow2{display:flex;gap:8px}
@@ -195,32 +214,11 @@
 </style>
 </head>
 <body>
-<div id="splash"><div class="spIn"><img id="spLogo" src="logo.webp" alt="Plearn Town"><div class="spBar"><i id="spFill"></i></div></div></div>
-<style>
-  #splash{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;
-    background:radial-gradient(circle at 50% 42%,#fffbe8 0,#d9f1ff 45%,#8fd3f4 100%);transition:opacity .5s ease}
-  #splash.out{opacity:0;pointer-events:none}
-  #splash .spIn{display:flex;flex-direction:column;align-items:center;gap:min(4vh,28px);width:100%}
-  #spLogo{width:min(78vw,96vh,620px);height:auto;max-height:72vh;object-fit:contain;
-    filter:drop-shadow(0 8px 18px rgba(30,80,130,.25));animation:spPop .7s cubic-bezier(.3,1.6,.5,1) both,spBob 2.4s ease-in-out .7s infinite}
-  .spBar{width:min(46vw,260px);height:12px;border-radius:8px;background:rgba(255,255,255,.75);box-shadow:inset 0 0 0 2px #fff,0 2px 6px rgba(30,80,130,.18);overflow:hidden}
-  #spFill{display:block;height:100%;width:8%;border-radius:8px;background:linear-gradient(90deg,#ffcf1f,#ff9f1c);transition:width .3s ease}
-  @keyframes spPop{from{transform:scale(.6);opacity:0}to{transform:scale(1);opacity:1}}
-  @keyframes spBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
-</style>
-<script>
-(function(){const t0=Date.now();let p=8;
-  const tick=()=>{const done=window.ready===true||(typeof ready!=='undefined'&&ready);
-    p=done?100:Math.min(92,p+(92-p)*.06);const f=document.getElementById('spFill');if(f)f.style.width=p+'%';
-    if(done&&Date.now()-t0>2200){setTimeout(()=>{const s=document.getElementById('splash');s.classList.add('out');setTimeout(()=>s.remove(),600);},350);return;}
-    setTimeout(tick,120);};
-  setTimeout(tick,120);})();
-</script>
 <div id="app">
 <canvas id="c"></canvas>
 <div id="joy" aria-label="Move joystick"><div id="knob"></div></div>
-<div id="loading"><div class="login">
-  <div class="lgTitle"><i class="ic" data-ic="logo">🏰</i> Plearn Town</div>
+<div id="loading" class="booting"><div class="login">
+  <div class="lgHead"><img class="lgLogo" src="logo.webp" alt="Plearn Town"><div class="bootBar"><i id="bootFill"></i></div></div>
   <div id="lgWelcome" class="lgCard lgSmall lgWel" style="display:none">
     <canvas id="lgPrev3" width="170" height="200"></canvas>
     <div class="lgWelR">
@@ -1699,6 +1697,8 @@ $('lgNew').onclick=()=>{$('loading').classList.remove('simple');$('lgBack').styl
 $('lgEnter3').onclick=()=>{const prof=store.get('sw_profile');if(prof)enterGame(prof);};
 $('lgNew2').onclick=()=>{$('loading').classList.remove('simple');$('lgWelcome').style.display='none';$('lgNewCard').style.display='block';lgBuild();};
 $('logoutBtn').onclick=()=>{store.set('sw_session',{on:false});location.reload();};
+(function boot(){const t0=Date.now();let p=8;const tick=()=>{p=ready?100:Math.min(92,p+(92-p)*.06);const f=$('bootFill');if(f)f.style.width=p+'%';
+  if(ready&&Date.now()-t0>1500){setTimeout(()=>$('loading').classList.remove('booting'),300);return;}setTimeout(tick,120);};tick();})();
 function onLoaded(){lgReady();lgBuild();const prof=store.get('sw_profile');if(prof){lgPreview($('lgPrev2'),prof.g,prof.h,prof.c);lgPreview($('lgPrev3'),prof.g,prof.h,prof.c);}}
 
 loadAll();
