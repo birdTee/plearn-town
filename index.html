@@ -99,7 +99,14 @@
   .chatPanel.upright{position:fixed;left:8px;right:8px;top:8px;bottom:auto;transform:none;width:auto;min-width:0;z-index:50}
   .actB.tag.bite{background:#6fbf4a;box-shadow:0 5px 0 #3f8a2a}
   #fade{position:absolute;inset:0;background:#fffaf0;opacity:0;pointer-events:none;transition:opacity .28s;z-index:40}#fade.on{opacity:1}
-  .atHome #mgBtn,.atHome #btnTag{display:none!important}
+  .atHome #mgBtn,.atHome #btnTag,.atHome #btnEmo{display:none!important}
+  #btnFood{display:none}.atHome #btnFood{display:flex}#app:not(.atHome) .foodPanel{display:none!important}
+  .foodPanel{position:absolute;right:16px;bottom:196px;z-index:5;background:#fffaf0;border-radius:18px;padding:8px;display:flex;gap:6px;box-shadow:0 5px 0 #e7d7b8,0 10px 24px rgba(0,0,0,.25)}
+  .foodPanel button{width:60px;height:66px;border:0;border-radius:12px;background:#fff3d6;cursor:pointer;padding:2px 0 0;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:'Mali',system-ui,sans-serif;font-size:11px;color:#6b4a2b;font-weight:700}
+  .foodPanel button:active{background:#ffe08a}.foodPanel canvas{width:40px;height:40px}
+  .foodPanel.off button{opacity:.45}.foodPanel .fpTip{display:none}.foodPanel.off .fpTip{display:block;position:absolute;left:0;right:0;top:-30px;text-align:center;font:700 12px 'Mali',system-ui,sans-serif;color:#fff;text-shadow:0 1px 3px #000}
+  .hudOpen .foodPanel{display:none!important}
+  .petLikes{display:flex;flex-direction:column;gap:3px;margin:6px 2px 2px;font:600 12px 'Mali',system-ui,sans-serif;color:#6b4a2b}.petLikes div{display:flex;align-items:center;gap:4px}.petLikes canvas{width:22px;height:22px}
   .petBtn{display:none}.atHome .petBtn{display:flex}
   .petPanel{position:absolute;right:12px;top:62px;z-index:6;background:#fffaf0;border-radius:16px;padding:10px 12px;box-shadow:0 5px 0 #e7d7b8,0 10px 24px rgba(0,0,0,.25);color:#3b2a1a;width:280px}
   .petLbl{font-size:12px;font-weight:700;margin:6px 0 4px;color:#7a5a3a}.petRow{display:flex;gap:6px;flex-wrap:wrap}
@@ -254,8 +261,9 @@
 <div id="fade"></div>
 <button id="petBtn" class="mgBtn petBtn">🐾 Pet</button>
 <div id="petPanel" class="petPanel" style="display:none"></div>
-<div id="chatBtns"><button id="btnEmo" class="smB" aria-label="Emotes">😊<small>H L 1-0</small></button><button id="btnChat" class="smB" aria-label="Chat">💬<small>Enter</small></button></div>
+<div id="chatBtns"><button id="btnEmo" class="smB" aria-label="Emotes">😊<small>H L 1-0</small></button><button id="btnFood" class="smB" aria-label="Pet food"><canvas width="72" height="72" style="width:38px;height:38px"></canvas></button><button id="btnChat" class="smB" aria-label="Chat">💬<small>Enter</small></button></div>
 <div id="emoPanel" class="emoPanel" style="display:none"></div>
+<div id="foodPanel" class="foodPanel" style="display:none"><div class="fpTip">Feed your pets in the front yard</div></div>
 <div id="chatPanel" class="chatPanel" style="display:none"><div class="quick" id="quick"></div>
   <div class="chatRow"><input id="chatIn" maxlength="60" placeholder="Type in English…" autocomplete="off" enterkeyhint="send"><button id="chatSend" aria-label="Send">Send</button><button id="chatX" aria-label="Close">✕</button></div>
   <div class="chatNote">Only friends near you can see your message <i class="ic" data-ic="look">👀</i> Be kind!</div></div>
@@ -319,7 +327,7 @@
 <script>
 // ---- UI icon set (ui_icons.webp, 18 cells in one row) — emoji are shown until it loads ----
 // bump ASSET_V whenever an icon/emote picture changes, so phones download the new one instead of a cached copy
-var ASSET_V='20261120g';
+var ASSET_V='20261120h';
 const IC_N=['logo','pad','freeze','hide','zombie','fire','flash','run','shirt','gear','globe','trophy','girl','boy','jump','tag','logout','hello'];
 const IC={},IC_C={};
 function icFrom(img,i,name){const n=img.height,c=document.createElement('canvas');c.width=c.height=n;c.getContext('2d').drawImage(img,i*n,0,n,n,0,0,n,n);IC_C[name]=c;IC[name]=c.toDataURL();}
@@ -722,10 +730,10 @@ const HK=0.44;   // pictures drawn small (half the area of before) so the yard f
 const RK=0.62;   // the road keeps its size
 const HOME={W:2048*HK,H:200*RK+1536*HK,RH:200*RK,minY:22*RK,
   // walls, fences & furniture where feet can't go (x,y,w,h in home-world px, measured on home_yard / home_house pictures)
-  rects:[[0,200,435,165],[60,340,330,95],[600,200,424,165],[680,340,320,95],[0,200,45,1536],[0,1620,1024,116],[45,625,150,32],[60,1525,215,58],[240,1515,120,70],[740,1598,284,40],[1024,200,1024,195],[1999,200,49,1536],[1024,1648,1024,88],[1024,200,45,615],[1024,1035,45,701]].map(r=>({x:r[0]*HK,y:200*RK+(r[1]-200)*HK,w:r[2]*HK,h:r[3]*HK})),
+  rects:[[0,200,435,165],[60,340,330,95],[600,200,424,165],[680,340,320,95],[0,200,45,1536],[0,1620,1024,116],[155,625,150,32],[60,1525,215,58],[240,1515,120,70],[740,1598,284,40],[1024,200,1024,195],[1999,200,49,1536],[1024,1648,1024,88],[1024,200,45,615],[1024,1035,45,701]].map(r=>({x:r[0]*HK,y:200*RK+(r[1]-200)*HK,w:r[2]*HK,h:r[3]*HK})),
   spawn:{x:517*HK,y:120*RK},imgs:{}};
 // things you can walk behind (cut from the pictures): drawn again on top, sorted with the kids by the line where they touch the ground
-const HOME_PROPS=[["bushL", 40, 280, 165, 182, 445], ["dogh", 40, 1125, 328, 285, 1380], ["bushR", 715, 1165, 309, 305, 1440], ["gate", 380, 0, 320, 180, 165], ["wallD", 1024, 785, 80, 751, 812]];
+const HOME_PROPS=[["bushL", 150, 280, 165, 182, 445], ["dogh", 40, 1125, 328, 285, 1380], ["bushR", 715, 1165, 309, 305, 1440], ["gate", 380, 0, 320, 180, 165], ["wallD", 1024, 785, 80, 751, 812]];
 // a bush rustles while someone moves through / behind it
 function drawProp(o,dt){if(!o.sway){drawVis(o.im,o.im.width/o.w,o.x,o.y,o.w,o.h);return;}
   const who=[P,...petsHere()].some(a=>a.x>o.x+o.w*.1&&a.x<o.x+o.w*.9&&a.y>o.y+o.h*.2&&a.y<o.base+6&&(a===P?P.moving:a.state==='walk'));
@@ -1552,7 +1560,22 @@ const newPet=id=>({id,x:0,y:0,face:1,state:'stand',st:0,t:Math.random()*3,placed
 const PETS=PETS_SEL.map(newPet);
 function savePets(){lsSet('sw_pets',JSON.stringify(PETS.map(p=>p.id)));}
 function togglePet(id){const i=PETS.findIndex(p=>p.id===id);if(i>=0)PETS.splice(i,1);else{if(PETS.length>=PET_MAX)PETS.shift();PETS.push(newPet(id));}savePets();}
-const FOOD=[];   // food dropped on the ground: {x,y,left}
+const FOOD=[];   // food dropped on the ground: {x,y,left,kind}
+// 5 kinds of food – every animal only eats the kinds it likes
+const FOODS=[{id:'kibble',n:'Kibble',e:'🟤'},{id:'fish',n:'Fish',e:'🐟'},{id:'leaves',n:'Leaves',e:'🍃'},{id:'fruit',n:'Fruit',e:'🍎'},{id:'seeds',n:'Seeds',e:'🌻'}];
+const FOOD_FANS={
+  kibble:'orange_cat tabby_cat black_cat calico_cat white_cat scottish_fold persian thai_pup pomeranian chihuahua corgi golden_pup shiba husky fennec_fox arctic_fox meerkat hedgehog leopard_gecko chameleon',
+  fish:'orange_cat tabby_cat black_cat calico_cat white_cat scottish_fold persian otter baby_penguin axolotl arctic_fox',
+  leaves:'holland_lop guinea_pig turtle capybara alpaca bearded_dragon chinchilla red_panda sloth koala baby_panda',
+  fruit:'hamster squirrel budgie turtle sugar_glider bearded_dragon red_panda sloth capybara hedgehog',
+  seeds:'hamster guinea_pig squirrel budgie chinchilla sugar_glider meerkat'};
+const likes=(id,kind)=>FOOD_FANS[kind].split(' ').includes(id);
+const likedFoods=id=>FOODS.filter(f=>likes(id,f.id));
+const FOOD_IMG=new Image();FOOD_IMG.src='food.webp?v='+ASSET_V;
+function drawFoodIcon(g,kind,x,y,sz){const i=FOODS.findIndex(f=>f.id===kind);
+  if(FOOD_IMG.complete&&FOOD_IMG.naturalWidth){const c=FOOD_IMG.height;g.drawImage(FOOD_IMG,i*c,0,c,c,x-sz/2,y-sz/2,sz,sz);}
+  else{g.save();g.font=`${sz*.8}px sans-serif`;g.textAlign='center';g.textBaseline='middle';g.fillText(FOODS[i].e,x,y);g.restore();}}
+function iconCanvas(kind,px){const c=document.createElement('canvas');c.width=c.height=px*2;const paint=()=>{const g=c.getContext('2d');g.clearRect(0,0,c.width,c.height);drawFoodIcon(g,kind,px,px,px*2);};paint();if(!FOOD_IMG.complete)FOOD_IMG.addEventListener('load',paint);return c;}
 const PET_SCALE=()=>0.48*S.scale/0.7;                  // pets drawn a little bigger than true scale so kids can see them clearly
 const petH=p=>PET_DEFS[p.id].h*PET_SCALE();
 const petFoot=p=>{const H=petH(p);return {rx:H*.42,ry:H*.14};};   // the pet's own "block" on the ground
@@ -1565,9 +1588,9 @@ const petsHere=()=>MAPID==='home'?PETS.filter(p=>p.placed&&PET_DEFS[p.id]):[];
 function hitPet(x,y,rx,ry,ox,oy){for(const p of petsHere()){const f=petFoot(p);const v=overlap(x,y,rx,ry,p,f.rx,f.ry);if(v<1&&v<overlap(ox,oy,rx,ry,p,f.rx,f.ry))return true;}return false;}
 function nearestPet(){return petsHere().sort((a,b)=>dist(a,P)-dist(b,P))[0];}
 function petAction(a,p){p=p||nearestPet();if(!p)return;p.state=a;p.st=0;if(a==='love'){p.emo={i:PET_DEFS[p.id].feel,t0:performance.now()};sfxEmote(P,p.emo.i);}}
-function dropFood(){if(MAPID!=='home')return;const dx=P.dir&&P.dir.includes('left')?-1:P.dir==='right'||P.dir==='dr'||P.dir==='ur'?1:0,dy=P.dir==='down'||P.dir==='dl'||P.dir==='dr'?1:P.dir==='up'||P.dir==='ul'||P.dir==='ur'?-1:0;
+function dropFood(kind){if(MAPID!=='home'||!inYard())return false;kind=kind||'kibble';const dx=P.dir&&P.dir.includes('left')?-1:P.dir==='right'||P.dir==='dr'||P.dir==='ur'?1:0,dy=P.dir==='down'||P.dir==='dl'||P.dir==='dr'?1:P.dir==='up'||P.dir==='ul'||P.dir==='ur'?-1:0;
   let x=P.x+dx*50,y=P.y+dy*34+(dx||dy?0:30);if(homeHit(x,y,10,5)){x=P.x;y=P.y+30;}
-  FOOD.push({x,y,left:1,t0:performance.now()});if(FOOD.length>5)FOOD.shift();sfxPop(P);}
+  FOOD.push({x,y,left:1,kind,t0:performance.now()});if(FOOD.length>6)FOOD.shift();sfxPop(P);return true;}
 const randYard=()=>({x:60*HK+Math.random()*(PET_MAXX()-90*HK),y:PET_MINY()+40*HK+Math.random()*(HOME.RH+1400*HK-PET_MINY()-40*HK)});
 function petMoveTo(p,tx,ty,sp,dt){const d=Math.hypot(tx-p.x,ty-p.y);if(d<1)return true;const st=Math.min(sp*dt,d),nx=p.x+(tx-p.x)/d*st,ny=p.y+(ty-p.y)/d*st;
   if(Math.abs(tx-p.x)>2)p.face=tx>p.x?1:-1;const f=petFoot(p),prx=FOOT_RX*S.scale,pry=FOOT_RY*S.scale;
@@ -1595,7 +1618,7 @@ function updatePet(p,dt){const info=PET_INFO[p.id],k=petTempo(p),sp=info.speed*(
   if(p.state==='eat'){if(p.food&&FOOD.includes(p.food)){p.food.left-=dt*k/4;if(p.food.left<=0){FOOD.splice(FOOD.indexOf(p.food),1);p.food=null;petAction('love',p);}}else if(p.st>3/k){p.state='stand';p.st=0;}return;}
   if(p.state==='love'&&p.st<2.2/Math.sqrt(k))return;
   // 1) food on the ground it can smell? go and eat it (fast pets get there first)
-  const food=FOOD.filter(f=>dist(f,p)<600&&!PETS.some(o=>o!==p&&o.food===f&&o.state==='eat')).sort((a,b)=>dist(a,p)-dist(b,p))[0];
+  const food=FOOD.filter(f=>likes(p.id,f.kind)&&dist(f,p)<600&&!PETS.some(o=>o!==p&&o.food===f&&o.state==='eat')).sort((a,b)=>dist(a,p)-dist(b,p))[0];
   if(food){const f=petFoot(p),tx=food.x-p.face*f.rx*.9,ty=food.y;
     if(Math.hypot(food.x-p.x,food.y-p.y)<f.rx*1.3){p.face=food.x>p.x?1:-1;p.state='eat';p.st=0;p.food=food;return;}
     petMoveTo(p,tx,ty,sp,dt);if(p.state!=='walk'){p.state='walk';p.st=0;}return;}
@@ -1606,9 +1629,8 @@ function updatePet(p,dt){const info=PET_INFO[p.id],k=petTempo(p),sp=info.speed*(
     else if(d>followD){const ux=(P.x-p.x)/d,uy=(P.y-p.y)/d;petMoveTo(p,P.x-ux*followD*.8,P.y-uy*followD*.6,sp,dt);if(p.state!=='walk'){p.state='walk';p.st=0;}return;}}
   if(p.plan==='stroll'&&p.wander){if(petMoveTo(p,p.wander.x,p.wander.y,sp*.55,dt)||p.stuck>1){p.wander=null;p.stuck=0;p.plan='idle';p.wantT=Math.min(p.wantT,(2+Math.random()*3)/Math.sqrt(k));}else{if(p.state!=='walk'){p.state='walk';p.st=0;}return;}}
   if(p.state==='walk'){p.state='stand';p.st=0;}}
-function drawFood(){if(MAPID!=='home')return;for(const f of FOOD){const k=.5+.5*f.left;ctx.save();ctx.fillStyle='rgba(0,0,0,.15)';ctx.beginPath();ctx.ellipse(f.x,f.y+2,14*k,5*k,0,0,7);ctx.fill();
-  const bits=[[-7,0],[0,-3],[7,0],[-3,3],[4,3],[0,1]];ctx.strokeStyle='#3b2a1a';ctx.lineWidth=1.5;
-  bits.slice(0,Math.max(1,Math.ceil(bits.length*f.left))).forEach(([dx,dy],i)=>{ctx.fillStyle=i%2?'#c98a4b':'#e0a35f';ctx.beginPath();ctx.ellipse(f.x+dx*k,f.y-3+dy*k,4,3,0,0,7);ctx.fill();ctx.stroke();});ctx.restore();}}
+function drawFood(){if(MAPID!=='home')return;for(const f of FOOD){const k=.45+.55*f.left,sz=30*k*S.scale/0.7;ctx.save();ctx.fillStyle='rgba(0,0,0,.15)';ctx.beginPath();ctx.ellipse(f.x,f.y+1,sz*.45,sz*.16,0,0,7);ctx.fill();ctx.restore();
+  drawFoodIcon(ctx,f.kind||'kibble',f.x,f.y-sz*.4,sz);}}
 function drawPet(p){const def=PET_DEFS[p.id],H=petH(p),t=p.t,s=p.state;
   ctx.save();ctx.fillStyle='rgba(0,0,0,.16)';ctx.beginPath();ctx.ellipse(p.x,p.y,H*.38,H*.11,0,0,7);ctx.fill();ctx.restore();
   const sheet=petImg(p.id);
@@ -1627,8 +1649,15 @@ function buildPetPanel(){const box=$('petPanel');box.innerHTML='';
   const r1=head(`Pets in the yard (${PETS.length}/${PET_MAX})`);
   [['calico_cat','🐱 Cat'],['corgi','🐶 Corgi'],['sloth','🦥 Sloth'],['turtle','🐢 Turtle']].forEach(([id,l])=>btn(r1,l,PETS.some(p=>p.id===id),()=>togglePet(id)));
   const r2=head('Do (nearest pet)');
-  [['food','🍖 Drop food'],['love','❤️ Pet it'],['special','💤 Own action']].forEach(([v,l])=>btn(r2,l,false,()=>{if(v==='food')dropFood();else petAction(v);}));
+  [['love','❤️ Pet it'],['special','💤 Own action']].forEach(([v,l])=>btn(r2,l,false,()=>petAction(v)));
+  if(PETS.length){const L=document.createElement('div');L.className='petLikes';PETS.forEach(p=>{const d=document.createElement('div');d.append((PET_DEFS[p.id]?.name||p.id)+' likes ');likedFoods(p.id).forEach(f=>d.appendChild(iconCanvas(f.id,22)));L.appendChild(d);});box.appendChild(L);}
   const x=document.createElement('button');x.className='hideX petX';x.innerHTML='<i class="ic" data-ic="close">✕</i>';x.onclick=e=>{e.stopPropagation();box.style.display='none';};box.appendChild(x);applyIcons(box);}
+const foodPanel=$('foodPanel');
+function buildFoodPanel(){foodPanel.querySelectorAll('button').forEach(b=>b.remove());FOODS.forEach(f=>{const b=document.createElement('button');b.setAttribute('aria-label',f.n);b.appendChild(iconCanvas(f.id,40));b.append(f.n);
+  b.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();if(dropFood(f.id))foodPanel.style.display='none';});foodPanel.appendChild(b);});}
+buildFoodPanel();{const c=$('btnFood').querySelector('canvas'),g=c.getContext('2d'),p=()=>{g.clearRect(0,0,72,72);drawFoodIcon(g,'kibble',36,36,68);};p();FOOD_IMG.addEventListener('load',p);}
+setInterval(()=>{if(foodPanel.style.display!=='none')foodPanel.classList.toggle('off',!inYard());},250);
+$('btnFood').addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();closeChat();foodPanel.classList.toggle('off',!inYard());foodPanel.style.display=foodPanel.style.display==='none'?'flex':'none';});
 
 // ---------- buttons / keys ----------
 function pressJump(){if(playerLocked())return;startJump(P);}
