@@ -90,7 +90,7 @@
   .actB small{font-size:10px;opacity:.8;font-weight:500}.touch .actB small{display:none}
   .actB.jump{width:92px;height:92px;background:#3fa9f5;font-size:17px}.actB.tag{width:74px;height:74px;background:#e8483f;font-size:16px;margin-bottom:34px}
   .actB:active{transform:translateY(3px);box-shadow:0 2px 0 rgba(0,0,0,.25)}
-  .actB.tag.frz{background:#14a6c9}.actB.tag.stink{background:#8a9a2a}.actB.tag.peel{background:#f2b705;color:#5a3d00;text-shadow:none}.actB.tag.save{background:#2fb35a}.actB.tag.off{background:#9aa4ad;opacity:.75}.actB.tag.bite{background:#6a9a3a}
+  .actB.tag.frz{background:#14a6c9}.actB.tag.stink{background:#8a9a2a}.actB.tag.peel{background:#7b4fd6;color:#fff}.actB.tag.save{background:#2fb35a}.actB.tag.off{background:#9aa4ad;opacity:.75}.actB.tag.bite{background:#6a9a3a}
   .hudOpen #actBtns,.hudOpen .mgBtn{display:none}
   #chatBtns{position:absolute;right:22px;bottom:128px;display:flex;gap:10px;z-index:3}
   .smB{width:54px;height:54px;border:0;border-radius:50%;background:#fffaf0;box-shadow:0 4px 0 #e7d7b8,0 6px 12px rgba(0,0,0,.2);font-size:26px;display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;padding:0}
@@ -353,13 +353,14 @@
 <script>
 // ---- UI icon set (ui_icons.webp, 18 cells in one row) — emoji are shown until it loads ----
 // bump ASSET_V whenever an icon/emote picture changes, so phones download the new one instead of a cached copy
-var ASSET_V='20261120y';
+var ASSET_V='20261120z';
 const IC_N=['logo','pad','freeze','hide','zombie','fire','flash','run','shirt','gear','globe','trophy','girl','boy','jump','tag','logout','hello'];
 const IC={},IC_C={};
 function icFrom(img,i,name){const n=img.height,c=document.createElement('canvas');c.width=c.height=n;c.getContext('2d').drawImage(img,i*n,0,n,n,0,0,n,n);IC_C[name]=c;IC[name]=c.toDataURL();}
 function applyIcons(root){(root||document).querySelectorAll('.ic[data-ic]:not(.on)').forEach(e=>{const u=IC[e.dataset.ic];if(u){e.style.backgroundImage=`url(${u})`;e.textContent='';e.classList.add('on');}});}
 {const im=new Image();im.onload=()=>{IC_N.forEach((n,i)=>icFrom(im,i,n));applyIcons();};im.src='ui_icons.webp?v='+ASSET_V;}
 {const im=new Image();im.onload=()=>{['bite','freezeLogo','bot','timer','look'].forEach((n,i)=>icFrom(im,i,n));applyIcons();};im.src='ui_icons2.webp?v='+ASSET_V;}
+{const im=new Image();im.onload=()=>{['stink','peel'].forEach((n,i)=>icFrom(im,i,n));applyIcons();};im.src='ui_icons3.webp?v='+ASSET_V;}
 new MutationObserver(()=>applyIcons()).observe(document.body,{childList:true,subtree:true});
 const FRAME_W = 170, FRAME_H = 244, N_FRAMES = 8, DRAW = 0.55; // HD frames drawn at ~half size => sharp on retina tablets
 
@@ -607,7 +608,7 @@ async function loadAll(){
   for(const z of ['zombie_boy','zombie_girl'])jobs.push((async()=>{const base={};
     const ims=await Promise.all(Object.entries(FILES).map(async([k,f])=>[k,await loadImg(`sprites/${z}/`+f)]));
     for(const [k,im] of ims){if(!im)return;base[k]=toCanvas(im);}const bt=await loadImg(`sprites/${z}/bite.webp`);if(bt)base.bite=toCanvas(bt);BASE[z]=base;})());
-  const pre=['home_yard','home_house','home_yard_s','home_house_s','moods','food','clean','emotes','chat_icons','ice'].map(n=>`${n}.webp?v=${ASSET_V}`).concat((typeof HOME_PROPS!=='undefined'?HOME_PROPS:[]).map(([n])=>`hp_${n}.webp?v=${ASSET_V}`)).concat(typeof FURN_DEFS!=='undefined'?Object.values(FURN_DEFS).map(d=>d.img+'?v='+ASSET_V):[]);
+  const pre=['home_yard','home_house','home_yard_s','home_house_s','moods','food','clean','emotes','chat_icons','ice','ui_icons3'].map(n=>`${n}.webp?v=${ASSET_V}`).concat((typeof HOME_PROPS!=='undefined'?HOME_PROPS:[]).map(([n])=>`hp_${n}.webp?v=${ASSET_V}`)).concat(typeof FURN_DEFS!=='undefined'?Object.values(FURN_DEFS).map(d=>d.img+'?v='+ASSET_V):[]);
   window.__keep=[];pre.forEach(u=>jobs.push(loadImg(u).then(im=>{if(im)window.__keep.push(im);})));
   for(const id of PETS_SEL.filter(i=>PET_DEFS[i])){const t=Date.now();jobs.push(new Promise(r=>{const w=()=>{if(PETS_IMG[id]!==null||Date.now()-t>20000)r();else setTimeout(w,100);};w();}));}
   await Promise.all(jobs);await LAYERS_READY;
@@ -1189,7 +1190,7 @@ function msg(t,ms,sub){const m=$('mgMsg');const key=t+'|'+(sub||'');if(msg._k!==
 function countMsg(){const n=String(Math.ceil(MG.t));
   if(!P.mg)return;
   if(isChaser(P))msg(n,0,MG.mode==='hide'?'Eyes closed… seekers start soon':'Get ready to chase!');
-  else{msg('Run!',0,`${MG.mode==='zombie'?'Zombies':'Chasers'} start in ${n}`);if(MG.mode!=='zombie')drawRunK();}}
+  else{msg('Run!',0,`${MG.mode==='zombie'?'Zombies':'Chasers'} start in ${n}`);}}
 function drawRunK(){const m=$('mgMsg');let c=m.querySelector('.runK');
   if(!c){c=document.createElement('canvas');c.className='runK';c.width=116;c.height=168;m.insertBefore(c,m.firstChild);}
   const af=actFrame(charFor(P),'right');if(!af||!af.img)return;const x=c.getContext('2d');
@@ -1252,42 +1253,32 @@ function drawPeel(q){const blink=q.t<1&&Math.floor(q.t*8)%2;if(blink)return;cons
   ctx.restore();}
 // ---- Stinky look: skunk ears + tail (drawn for all 8 directions), stink cloud, smell waves and flies ----
 const SK_DIR={right:[1,0],downright:[1,1],down:[0,1],downleft:[-1,1],left:[-1,0],upleft:[-1,-1],up:[0,-1],upright:[1,-1]};
-function skunkTail(a,w,h,top){const [fx,fy]=SK_DIR[a.dir]||[0,1],t=performance.now()/1000,back=fx?-fx:1,sway=Math.sin(t*(a.moving?10:2.5))*.12;
-  // a big fluffy plume that grows from the hip and curls over at the top (mirrored to the back side)
-  const bx=a.x+back*w*(fx?.18:.22)*(fy<0&&!fx?-1:1),by=top+h*.78;
-  ctx.save();ctx.translate(bx,by);ctx.scale(back*(fy<0&&!fx?-1:1),1);ctx.rotate(sway);
-  const W=w,Hh=h,plume=(k)=>{ctx.beginPath();ctx.moveTo(-W*.04*k,0);
-    ctx.bezierCurveTo(W*.34*k,-Hh*.06,W*.52*k,-Hh*.3,W*.44*k,-Hh*.5);
-    ctx.bezierCurveTo(W*.38*k,-Hh*.64,W*.16*k,-Hh*.7,W*.02,-Hh*.6);
-    ctx.bezierCurveTo(W*.12,-Hh*.55,W*.2*k,-Hh*.46,W*.16*k,-Hh*.32);
-    ctx.bezierCurveTo(W*.12*k,-Hh*.18,W*.02,-Hh*.08,-W*.04*k,0);ctx.closePath();};
-  ctx.lineJoin='round';plume(1);ctx.fillStyle='#2b2733';ctx.fill();ctx.lineWidth=3;ctx.strokeStyle='#fff';ctx.stroke();ctx.lineWidth=1.6;ctx.strokeStyle='#120f14';ctx.stroke();
-  // white stripe down the middle of the tail
-  ctx.beginPath();ctx.moveTo(W*.05,-Hh*.06);ctx.bezierCurveTo(W*.3,-Hh*.14,W*.38,-Hh*.34,W*.32,-Hh*.5);ctx.bezierCurveTo(W*.27,-Hh*.6,W*.14,-Hh*.62,W*.08,-Hh*.58);
-  ctx.lineCap='round';ctx.lineWidth=W*.09;ctx.strokeStyle='#f7f7f7';ctx.stroke();
-  // fluffy tufts
-  ctx.fillStyle='#2b2733';for(const [x,y,r] of [[.42,-.5,.07],[.3,-.63,.06],[.47,-.38,.06]]){ctx.beginPath();ctx.arc(W*x,Hh*y,W*r,0,7);ctx.fill();}
+function skunkTail(a,w,h,top){const [fx,fy]=SK_DIR[a.dir]||[0,1],t=performance.now()/1000,back=fx?-fx:1,sway=Math.sin(t*(a.moving?9:2.2))*.14;
+  // a small, round, fluffy tail that pops up behind the hips
+  const flip=back*(fy<0&&!fx?-1:1),bx=a.x+back*w*(fx?.16:.2)*(fy<0&&!fx?-1:1),by=top+h*.74,r=w*.16;
+  ctx.save();ctx.translate(bx,by);ctx.scale(flip,1);ctx.rotate(sway+.15);ctx.lineJoin='round';
+  const blob=()=>{ctx.beginPath();ctx.moveTo(0,0);ctx.bezierCurveTo(r*1.1,-r*.2,r*1.9,-r*1.3,r*1.25,-r*2.3);ctx.bezierCurveTo(r*.85,-r*2.95,-r*.25,-r*2.75,-r*.15,-r*2.05);
+    ctx.bezierCurveTo(-r*.05,-r*1.55,r*.55,-r*1.3,r*.4,-r*.75);ctx.bezierCurveTo(r*.3,-r*.35,-r*.05,-r*.2,0,0);ctx.closePath();};
+  blob();ctx.fillStyle='#3a3542';ctx.fill();ctx.lineWidth=2.4;ctx.strokeStyle='#fff';ctx.stroke();ctx.lineWidth=1.3;ctx.strokeStyle='#1c1820';ctx.stroke();
+  ctx.beginPath();ctx.moveTo(r*.35,-r*.35);ctx.bezierCurveTo(r*1.05,-r*.7,r*1.35,-r*1.5,r*1.0,-r*2.15);ctx.lineCap='round';ctx.lineWidth=r*.42;ctx.strokeStyle='#fbfbfb';ctx.stroke();
   ctx.restore();}
-function skunkEars(a,w,h,top){const [fx,fy]=SK_DIR[a.dir]||[0,1],cx=a.x+fx*w*.04,y=top+h*.29,sp=w*(fx&&!fy?.14:.22);
-  ctx.save();ctx.lineJoin='round';
-  for(const s of [-1,1]){const x=cx+s*sp,tilt=s*.4;ctx.save();ctx.translate(x,y);ctx.rotate(tilt);
-    ctx.beginPath();ctx.moveTo(-w*.13,0);ctx.quadraticCurveTo(-w*.09,-w*.3,0,-w*.32);ctx.quadraticCurveTo(w*.09,-w*.3,w*.13,0);ctx.closePath();
-    ctx.lineWidth=4;ctx.strokeStyle='#fff';ctx.stroke();ctx.fillStyle='#2b2733';ctx.fill();ctx.lineWidth=1.6;ctx.strokeStyle='#120f14';ctx.stroke();
-    if(fy>=0){ctx.beginPath();ctx.moveTo(-w*.065,-w*.03);ctx.quadraticCurveTo(0,-w*.25,w*.065,-w*.03);ctx.closePath();ctx.fillStyle='#ff9fb6';ctx.fill();}
-    ctx.restore();}
-  ctx.fillStyle='#f7f7f7';ctx.strokeStyle='#120f14';ctx.lineWidth=1.6;ctx.beginPath();     // white skunk stripe on the head
-  if(fy<0){ctx.ellipse(cx,y+h*.08,w*.08,h*.12,0,0,7);}else{ctx.ellipse(cx+fx*w*.06,y+h*.01,w*.07,h*.04,0,0,7);}
+function skunkEars(a,w,h,top){const [fx,fy]=SK_DIR[a.dir]||[0,1],cx=a.x+fx*w*.04,y=top+h*.3,sp=w*(fx&&!fy?.12:.19),r=w*.075;
+  ctx.save();
+  for(const s of [-1,1]){const x=cx+s*sp;ctx.beginPath();ctx.arc(x,y-r*.6,r,0,7);ctx.fillStyle='#3a3542';ctx.fill();ctx.lineWidth=2;ctx.strokeStyle='#fff';ctx.stroke();ctx.lineWidth=1.2;ctx.strokeStyle='#1c1820';ctx.stroke();
+    if(fy>=0){ctx.beginPath();ctx.arc(x,y-r*.5,r*.5,0,7);ctx.fillStyle='#ffadc2';ctx.fill();}}
+  ctx.fillStyle='#fbfbfb';ctx.strokeStyle='#1c1820';ctx.lineWidth=1.2;ctx.beginPath();     // little white stripe on the head
+  if(fy<0){ctx.ellipse(cx,y+h*.06,w*.05,h*.08,0,0,7);}else{ctx.ellipse(cx+fx*w*.05,y+h*.005,w*.045,h*.025,0,0,7);}
   ctx.fill();ctx.stroke();ctx.restore();}
 function stinkCloud(a,h){const t=performance.now()/1000,k=S.scale/0.7,z=a.z||0;ctx.save();      // drawn behind the kid
-  for(let i=0;i<7;i++){const ang=t*.8+i*.9,r=(34+8*Math.sin(t*2+i))*k;ctx.globalAlpha=.42;ctx.fillStyle=['#9ccc65','#7cb342','#aed581'][i%3];
-    ctx.beginPath();ctx.arc(a.x+Math.cos(ang)*r*1.15,a.y-h*.42-z+Math.sin(ang)*r*.75,(16+5*Math.sin(t*3+i))*k,0,7);ctx.fill();}
+  for(let i=0;i<5;i++){const ang=t*.8+i*1.25,r=(26+6*Math.sin(t*2+i))*k;ctx.globalAlpha=.28;ctx.fillStyle=['#9ccc65','#7cb342','#aed581'][i%3];
+    ctx.beginPath();ctx.arc(a.x+Math.cos(ang)*r*1.15,a.y-h*.42-z+Math.sin(ang)*r*.75,(11+3*Math.sin(t*3+i))*k,0,7);ctx.fill();}
   ctx.restore();}
 function drawStink(a,h){const t=performance.now()/1000,k=S.scale/0.7,z=a.z||0;ctx.save();     // drawn in front: smell waves + flies
   ctx.lineCap='round';
-  for(let i=0;i<3;i++){const x=a.x+(i-1)*18*k,ph=(t*0.9+i*.33)%1,y0=a.y-h*.95-z-ph*26*k;ctx.globalAlpha=Math.min(1,(1-ph)*1.6);
-    for(const [lw,col] of [[7*k,'#fff'],[4*k,'#6aa834']]){ctx.lineWidth=lw;ctx.strokeStyle=col;ctx.beginPath();ctx.moveTo(x,y0);ctx.quadraticCurveTo(x+8*k,y0-8*k,x,y0-16*k);ctx.quadraticCurveTo(x-8*k,y0-24*k,x,y0-32*k);ctx.stroke();}}
+  for(let i=0;i<2;i++){const x=a.x+(i-.5)*14*k,ph=(t*0.9+i*.5)%1,y0=a.y-h*.98-z-ph*14*k;ctx.globalAlpha=Math.min(1,(1-ph)*1.6)*.85;
+    for(const [lw,col] of [[5*k,'#fff'],[2.6*k,'#7cb342']]){ctx.lineWidth=lw;ctx.strokeStyle=col;ctx.beginPath();ctx.moveTo(x,y0);ctx.quadraticCurveTo(x+5*k,y0-5*k,x,y0-10*k);ctx.quadraticCurveTo(x-5*k,y0-15*k,x,y0-20*k);ctx.stroke();}}
   ctx.globalAlpha=1;
-  for(let i=0;i<5;i++){const sp=3+i*.7,ang=t*sp+i*1.7,fx=a.x+Math.cos(ang)*(34+i*4)*k,fy=a.y-h*.7-z+Math.sin(ang*1.3)*(20+i*3)*k,wf=Math.sin(t*60+i)*.5+.5;
+  for(let i=0;i<2;i++){const sp=3+i*.7,ang=t*sp+i*1.7,fx=a.x+Math.cos(ang)*(34+i*4)*k,fy=a.y-h*.7-z+Math.sin(ang*1.3)*(20+i*3)*k,wf=Math.sin(t*60+i)*.5+.5;
     ctx.strokeStyle='rgba(60,60,60,.35)';ctx.lineWidth=1.2;ctx.beginPath();ctx.arc(a.x,a.y-h*.7-z,(34+i*4)*k,ang-.5,ang-.1);ctx.stroke();
     ctx.fillStyle='rgba(220,235,255,.85)';ctx.beginPath();ctx.ellipse(fx-3*k,fy-4*k,3.6*k,(1.6+wf)*k,.7,0,7);ctx.ellipse(fx+3*k,fy-4*k,3.6*k,(1.6+wf)*k,-.7,0,7);ctx.fill();
     ctx.fillStyle='#1d1d1d';ctx.beginPath();ctx.ellipse(fx,fy,4.2*k,3.2*k,0,0,7);ctx.fill();ctx.fillStyle='#c0392b';ctx.beginPath();ctx.arc(fx+3*k,fy-1*k,1.3*k,0,7);ctx.fill();}
@@ -1889,7 +1880,7 @@ function drawFoodIcon(g,kind,x,y,sz){const i=FOODS.findIndex(f=>f.id===kind);
   if(FOOD_IMG.complete&&FOOD_IMG.naturalWidth){const c=FOOD_IMG.height;g.drawImage(FOOD_IMG,i*c,0,c,c,x-sz/2,y-sz/2,sz,sz);}
   else{g.save();g.font=`${sz*.8}px sans-serif`;g.textAlign='center';g.textBaseline='middle';g.fillText(FOODS[i].e,x,y);g.restore();}}
 function iconCanvas(kind,px){const c=document.createElement('canvas');c.width=c.height=px*2;const paint=()=>{const g=c.getContext('2d');g.clearRect(0,0,c.width,c.height);drawFoodIcon(g,kind,px,px,px*2);};paint();if(!FOOD_IMG.complete)FOOD_IMG.addEventListener('load',paint);return c;}
-const PET_SCALE=()=>0.48*S.scale/0.7;                  // pets drawn a little bigger than true scale so kids can see them clearly
+const PET_SCALE=()=>0.6*S.scale/0.7;                  // pets drawn a little bigger than true scale so kids can see them clearly
 const petH=p=>PET_DEFS[p.id].h*PET_SCALE();
 const petFoot=p=>{const H=petH(p);return {rx:H*.42,ry:H*.14};};   // the pet's own "block" on the ground
 // pets live inside the fence: never on the road in front of the house
