@@ -330,7 +330,7 @@
 <script>
 // ---- UI icon set (ui_icons.webp, 18 cells in one row) — emoji are shown until it loads ----
 // bump ASSET_V whenever an icon/emote picture changes, so phones download the new one instead of a cached copy
-var ASSET_V='20261120m';
+var ASSET_V='20261120n';
 const IC_N=['logo','pad','freeze','hide','zombie','fire','flash','run','shirt','gear','globe','trophy','girl','boy','jump','tag','logout','hello'];
 const IC={},IC_C={};
 function icFrom(img,i,name){const n=img.height,c=document.createElement('canvas');c.width=c.height=n;c.getContext('2d').drawImage(img,i*n,0,n,n,0,0,n,n);IC_C[name]=c;IC[name]=c.toDataURL();}
@@ -1570,7 +1570,7 @@ const PET_INFO={   // all 38 pets – stats ready for later
   orange_cat:{tame:.7,speed:150},tabby_cat:{tame:.6,speed:150},black_cat:{tame:.5,speed:160},calico_cat:{tame:.65,speed:150},white_cat:{tame:.55,speed:130},
   thai_pup:{tame:.85,speed:185},pomeranian:{tame:.9,speed:165},chihuahua:{tame:.8,speed:175},corgi:{tame:.9,speed:170},golden_pup:{tame:.95,speed:185},
   shiba:{tame:.6,speed:185},husky:{tame:.7,speed:200},scottish_fold:{tame:.6,speed:120},persian:{tame:.5,speed:100},holland_lop:{tame:.55,speed:140},
-  hamster:{tame:.4,speed:90},guinea_pig:{tame:.5,speed:80},squirrel:{tame:.35,speed:200},budgie:{tame:.6,speed:150},turtle:{tame:.5,speed:30},
+  hamster:{tame:.4,speed:90},guinea_pig:{tame:.5,speed:80},squirrel:{tame:.35,speed:200},budgie:{tame:.6,speed:165},turtle:{tame:.5,speed:30},
   capybara:{tame:.8,speed:90},alpaca:{tame:.6,speed:120},fennec_fox:{tame:.45,speed:210},bearded_dragon:{tame:.6,speed:60},chameleon:{tame:.3,speed:25},
   hedgehog:{tame:.4,speed:70},axolotl:{tame:.5,speed:40},meerkat:{tame:.55,speed:170},sugar_glider:{tame:.6,speed:160},leopard_gecko:{tame:.5,speed:60},chinchilla:{tame:.45,speed:130},
   red_panda:{tame:.6,speed:120},sloth:{tame:.7,speed:28},otter:{tame:.75,speed:160},koala:{tame:.55,speed:35},baby_panda:{tame:.7,speed:70},arctic_fox:{tame:.5,speed:190},baby_penguin:{tame:.8,speed:60}};
@@ -1586,7 +1586,7 @@ const PET_DEFS={   // pets that have their sprite sheet in the game now
   shiba:{name:'Shiba',h:100,special:'proud',feel:7,still:[2,3]},
   otter:{name:'Otter',h:104,special:'float',feel:3,still:[2,3]},
   red_panda:{name:'Red Panda',h:108,special:'standup',feel:7,still:[2,3]},
-  budgie:{name:'Budgie',h:74,special:'flap',feel:10,still:[2,3]}};
+  budgie:{name:'Budgie',h:74,special:'flap',feel:10,still:[2,3],fly:{row:1,frames:[1,2,3,2],alt:34,speed:2.4}}};
 // where the mouth is when eating (m) and where the bottom is (b), as a share of the picture height, measured on each sheet
 const PET_GEO={"calico_cat": {"m": 0.472, "b": 0.45}, "sloth": {"m": 0.357, "b": 0.36}, "corgi": {"m": 0.45, "b": 0.43}, "turtle": {"m": 0.44, "b": 0.465}, "capybara": {"m": 0.468, "b": 0.455}, "hamster": {"m": 0.415, "b": 0.375}, "holland_lop": {"m": 0.455, "b": 0.45}, "baby_penguin": {"m": 0.357, "b": 0.355}, "shiba": {"m": 0.383, "b": 0.425}, "otter": {"m": 0.448, "b": 0.44}, "red_panda": {"m": 0.463, "b": 0.45}, "budgie": {"m": 0.43, "b": 0.44}};
 const petCellH=p=>petH(p)/0.85*0.98;
@@ -1601,6 +1601,37 @@ const PETS_SEL=(()=>{let v=lsGet('sw_pets');try{v=JSON.parse(v);}catch(e){v=null
 const newPet=id=>({id,x:0,y:0,face:1,state:'stand',st:0,t:Math.random()*3,placed:false,wander:null,wantT:Math.random()*2,plan:'idle',side:0,stuck:0});
 const PETS=PETS_SEL.map(newPet);
 function savePets(){lsSet('sw_pets',JSON.stringify(PETS.map(p=>p.id)));}
+// ---- hunger: 0 = full, 100 = starving. How fast it rises and how much a pet eats follow the real animal:
+// small animals with a fast heartbeat (hamster, budgie) get hungry quickly but eat little; slow animals (sloth, turtle) hardly get hungry;
+// big grazers (capybara) and busy hunters (otter) eat a lot. rate = points per minute of play, meal = portions to go from starving to full.
+const PET_APPETITE={hamster:[22,1],budgie:[24,1],guinea_pig:[18,2],holland_lop:[16,2],calico_cat:[11,2],orange_cat:[11,2],corgi:[13,3],shiba:[12,3],
+  golden_pup:[13,4],otter:[20,3],baby_penguin:[15,2],capybara:[14,4],red_panda:[10,3],baby_panda:[12,4],koala:[5,2],sloth:[3,2],turtle:[4,1],hedgehog:[14,2],fennec_fox:[13,2]};
+const appetite=id=>PET_APPETITE[id]||[12,2];
+const HUNGER=(()=>{let v={};try{v=JSON.parse(localStorage.getItem('sw_hunger'))||{};}catch(e){}const now=Date.now();
+  for(const k in v){const mins=Math.min(60,(now-(v[k].t||now))/60000);v[k].h=Math.min(100,(v[k].h||0)+appetite(k)[0]*mins*.4);}return v;})();   // time away counts a little
+const hungerOf=id=>(HUNGER[id]||(HUNGER[id]={h:55,belly:0})).h;
+function saveHunger(){const now=Date.now();for(const k in HUNGER)HUNGER[k].t=now;try{localStorage.setItem('sw_hunger',JSON.stringify(HUNGER));}catch(e){}}
+setInterval(saveHunger,5000);addEventListener('pagehide',saveHunger);
+// ---- mood bubbles (drawn in code) ----
+function mood(p,k,dur){p.mood={k,t0:performance.now(),dur:dur||2.4};}
+const MOODS=['full','hungry','love','happy','sleepy','sad','curious','yuck'];const MOOD_IMG=new Image();MOOD_IMG.src='moods.webp?v='+ASSET_V;
+function drawMood(k,x,y,sz,a){if(MOOD_IMG.complete&&MOOD_IMG.naturalWidth){const c=MOOD_IMG.height,i=MOODS.indexOf(k);ctx.save();ctx.globalAlpha=a;ctx.drawImage(MOOD_IMG,i*c,0,c,c,x-sz*.62,y-sz*.62,sz*1.24,sz*1.24);ctx.restore();return;}
+  ctx.save();ctx.globalAlpha=a;ctx.translate(x,y);const r=sz/2;
+  ctx.fillStyle='#fff';ctx.strokeStyle='#3b2a1a';ctx.lineWidth=Math.max(1.5,sz*.07);ctx.beginPath();ctx.arc(0,0,r,0,7);ctx.fill();ctx.stroke();
+  ctx.beginPath();ctx.moveTo(-r*.55,r*.7);ctx.lineTo(-r*.95,r*1.15);ctx.lineTo(-r*.15,r*.92);ctx.closePath();ctx.fill();ctx.stroke();ctx.fillStyle='#fff';ctx.fillRect(-r*.5,r*.62,r*.4,r*.3);
+  const L=ctx.lineWidth;ctx.lineWidth=L;ctx.lineCap='round';ctx.lineJoin='round';
+  if(k==='full'||k==='hungry'){ctx.fillStyle=k==='full'?'#e0a35f':'#fff3d6';ctx.beginPath();ctx.moveTo(-r*.62,-r*.05);ctx.lineTo(r*.62,-r*.05);ctx.quadraticCurveTo(r*.55,r*.55,0,r*.55);ctx.quadraticCurveTo(-r*.55,r*.55,-r*.62,-r*.05);ctx.fill();ctx.stroke();   // bowl
+    if(k==='full'){ctx.fillStyle='#c98a4b';for(const [dx,dy] of [[-.3,-.18],[0,-.28],[.3,-.18]]){ctx.beginPath();ctx.arc(dx*r,dy*r,r*.17,0,7);ctx.fill();ctx.stroke();}
+      ctx.strokeStyle='#3fae4a';ctx.lineWidth=L*1.6;ctx.beginPath();ctx.moveTo(r*.25,-r*.55);ctx.lineTo(r*.42,-r*.38);ctx.lineTo(r*.72,-r*.75);ctx.stroke();}
+    else{ctx.fillStyle='#6fc3ff';ctx.beginPath();ctx.moveTo(r*.35,-r*.75);ctx.quadraticCurveTo(r*.55,-r*.4,r*.35,-r*.32);ctx.quadraticCurveTo(r*.15,-r*.4,r*.35,-r*.75);ctx.fill();ctx.stroke();}}
+  else if(k==='love'){ctx.fillStyle='#ef4b5c';ctx.beginPath();ctx.moveTo(0,r*.5);ctx.bezierCurveTo(-r*.95,-r*.1,-r*.45,-r*.85,0,-r*.3);ctx.bezierCurveTo(r*.45,-r*.85,r*.95,-r*.1,0,r*.5);ctx.fill();ctx.stroke();}
+  else if(k==='happy'){ctx.fillStyle='#ffd22e';ctx.beginPath();for(let i=0;i<8;i++){const a2=i*Math.PI/4-Math.PI/2,rr2=i%2?r*.24:r*.62;ctx.lineTo(Math.cos(a2)*rr2,Math.sin(a2)*rr2);}ctx.closePath();ctx.fill();ctx.stroke();}
+  else if(k==='sleepy'){ctx.fillStyle='#5a7bd8';ctx.font=`700 ${sz*.5}px Mali, system-ui, sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('Zz',0,r*.05);}
+  else if(k==='sad'){ctx.fillStyle='#6fc3ff';ctx.beginPath();ctx.moveTo(0,-r*.6);ctx.quadraticCurveTo(r*.5,r*.05,0,r*.45);ctx.quadraticCurveTo(-r*.5,r*.05,0,-r*.6);ctx.fill();ctx.stroke();}
+  else if(k==='curious'){ctx.fillStyle='#ff9f1c';ctx.font=`900 ${sz*.72}px Mali, system-ui, sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.strokeText('?',0,r*.08);ctx.fillText('?',0,r*.08);}
+  else if(k==='yuck'){ctx.strokeStyle='#4caf50';ctx.lineWidth=L*1.5;ctx.beginPath();ctx.moveTo(-r*.5,r*.15);for(let i=0;i<=8;i++)ctx.lineTo(-r*.5+i*r*.125,r*.15+(i%2?-1:1)*r*.13);ctx.stroke();
+    ctx.fillStyle='#4caf50';ctx.beginPath();ctx.arc(-r*.28,-r*.3,r*.09,0,7);ctx.arc(r*.28,-r*.3,r*.09,0,7);ctx.fill();}
+  ctx.restore();}
 function togglePet(id){const i=PETS.findIndex(p=>p.id===id);if(i>=0)PETS.splice(i,1);else{if(PETS.length>=PET_MAX)PETS.shift();PETS.push(newPet(id));}savePets();}
 const FOOD=[];   // food dropped on the ground: {x,y,left,kind}
 // ---- poop: pets poop a while after eating (and now and then); sweep it up with the broom ----
@@ -1653,12 +1684,12 @@ const petsHere=()=>MAPID==='home'?PETS.filter(p=>p.placed&&PET_DEFS[p.id]):[];
 // does a body at (x,y) with half-size rx,ry bump into a pet?
 function hitPet(x,y,rx,ry,ox,oy){for(const p of petsHere()){const f=petFoot(p);const v=overlap(x,y,rx,ry,p,f.rx,f.ry);if(v<1&&v<overlap(ox,oy,rx,ry,p,f.rx,f.ry))return true;}return false;}
 function nearestPet(){return petsHere().sort((a,b)=>dist(a,P)-dist(b,P))[0];}
-function petAction(a,p){p=p||nearestPet();if(!p)return;p.state=a;p.st=0;if(a==='love'){p.emo={i:PET_DEFS[p.id].feel,t0:performance.now()};sfxEmote(P,p.emo.i);}}
+function petAction(a,p){p=p||nearestPet();if(!p)return;p.state=a;p.st=0;if(a==='love'){mood(p,'love');sfxEmote(P,PET_DEFS[p.id].feel);}}
 function dropFood(kind){if(MAPID!=='home'||!inYard())return false;kind=kind||'kibble';const dx=P.dir&&P.dir.includes('left')?-1:P.dir==='right'||P.dir==='dr'||P.dir==='ur'?1:0,dy=P.dir==='down'||P.dir==='dl'||P.dir==='dr'?1:P.dir==='up'||P.dir==='ul'||P.dir==='ur'?-1:0;
   let x=P.x+dx*50,y=P.y+dy*34+(dx||dy?0:30);if(homeHit(x,y,10,5)){x=P.x;y=P.y+30;}
   FOOD.push({x,y,left:1,kind,t0:performance.now()});if(FOOD.length>6)FOOD.shift();sfxPop(P);return true;}
 const randYard=()=>({x:60*HK+Math.random()*(PET_MAXX()-90*HK),y:PET_MINY()+40*HK+Math.random()*(HOME.RH+1400*HK-PET_MINY()-40*HK)});
-function petMoveTo(p,tx,ty,sp,dt){const d=Math.hypot(tx-p.x,ty-p.y);if(d<1)return true;const st=Math.min(sp*dt,d),nx=p.x+(tx-p.x)/d*st,ny=p.y+(ty-p.y)/d*st;
+function petMoveTo(p,tx,ty,sp,dt){const d=Math.hypot(tx-p.x,ty-p.y);if(d<1)return true;const fl=PET_DEFS[p.id].fly,st=Math.min(sp*dt*(fl&&p.alt>fl.alt*.5?fl.speed:1),d),nx=p.x+(tx-p.x)/d*st,ny=p.y+(ty-p.y)/d*st;
   {const sg=tx>p.x?1:-1;if(sg!==p.face&&Math.abs(tx-p.x)>Math.max(6,Math.abs(ty-p.y)*.35)&&(p.faceT||0)<=0){p.face=sg;p.faceT=.4;}}const f=petFoot(p),prx=FOOT_RX*S.scale,pry=FOOT_RY*S.scale;
   const bump=(x,y,o,orx,ory)=>{const v=overlap(x,y,f.rx,f.ry,o,orx,ory);return v<1&&v<overlap(p.x,p.y,f.rx,f.ry,o,orx,ory);};
   const ok=(x,y)=>y>=PET_MINY()&&x<=PET_MAXX()&&!homeHit(x,y,f.rx*.7,f.ry*.7)&&!bump(x,y,P,prx,pry)&&!PETS.some(o=>o!==p&&o.placed&&bump(x,y,o,petFoot(o).rx*.8,petFoot(o).ry*.8));
@@ -1681,7 +1712,7 @@ function placePets(){const list=PETS.filter(p=>PET_DEFS[p.id]);list.forEach((p,i
 function petPlan(p){const info=PET_INFO[p.id],k=petTempo(p),r=Math.random(),pFollow=(info.tame*.6+.1)*.5;   // 50% less keen to come to you than before
   if(r<pFollow&&inYard()){p.plan='follow';p.wantT=(3+Math.random()*4);}
   else if(r<pFollow+.35){p.plan='stroll';{let best=null,bd=-1;for(let i=0;i<6;i++){const c=randYard(),m=Math.min(...PETS.filter(o=>o!==p).map(o=>dist(o.wander||o,c)),9999);if(m>bd){bd=m;best=c;}}p.wander=best;}p.wantT=(5+Math.random()*5)/k;}
-  else if(r<pFollow+.5){p.plan='special';p.state='special';p.st=0;p.wantT=(4+Math.random()*3)/Math.sqrt(k);}
+  else if(r<pFollow+.5){p.plan='special';p.state='special';p.st=0;if(PET_DEFS[p.id].special==='sleep')mood(p,'sleepy',3);p.wantT=(4+Math.random()*3)/Math.sqrt(k);}
   else{p.plan='idle';p.wander=null;p.wantT=(2.5+Math.random()*4)/Math.sqrt(k);}}
 function petFree(p,x,y){const f=petFoot(p);return y>=PET_MINY()&&x<=PET_MAXX()&&x>=30*HK&&!homeHit(x,y,f.rx*.7,f.ry*.7);}
 function updatePets(dt){if(MAPID!=='home'){PETS.forEach(p=>p.placed=false);return;}placePets();const L=PETS.filter(p=>PET_DEFS[p.id]);L.forEach(p=>updatePet(p,dt));
@@ -1696,14 +1727,22 @@ function petWalk(p,on){if(on){if(p.state!=='walk'){p.state='walk';p.st=0;}}else 
 const FOLLOW_SLOTS=[[-1,.35],[1,.35],[0,1]];
 function updatePet(p,dt){const info=PET_INFO[p.id],k=petTempo(p),sp=info.speed*(S.speed/200);
   p.t+=dt;p.st+=dt;p.faceT=(p.faceT||0)-dt;
-  if(p.poopIn==null)p.poopIn=40+Math.random()*60;p.poopIn-=dt;if(p.poopIn<=0&&p.state!=='eat'&&p.state!=='love'&&POOP.length<8){p.poopIn=50+Math.random()*70;p.state='poop';p.st=0;p.pooped=false;}
+  {const fl=PET_DEFS[p.id].fly;if(fl){const landing=p.goFood&&dist(p,p.goFood)<95;p.flying=p.state==='walk'&&!landing&&!p.nearFood;
+    p.alt=(p.alt||0)+((p.flying?fl.alt:0)-(p.alt||0))*Math.min(1,dt*(p.flying?4:6));}}
+  const HG=HUNGER[p.id]||(HUNGER[p.id]={h:55,belly:0}),AP=appetite(p.id);HG.h=Math.min(100,HG.h+AP[0]*dt/60);
+  p.moodT=(p.moodT??(3+Math.random()*5))-dt;if(p.moodT<=0){p.moodT=7+Math.random()*7;if(!p.mood&&p.state!=='eat'){if(HG.h>88)mood(p,'sad');else if(HG.h>68)mood(p,'hungry');else if(HG.h<15&&Math.random()<.4)mood(p,'happy');}}
+  // poop comes after a good meal has gone through
+  if(p.poopIn==null)p.poopIn=1e9;if(HG.belly>=1&&p.poopIn>1e8){p.poopIn=12+Math.random()*14;HG.belly-=1;}p.poopIn-=dt;
+  if(p.poopIn<=0&&p.state!=='eat'&&p.state!=='love'&&POOP.length<8){p.poopIn=1e9;p.state='poop';p.st=0;p.pooped=false;}
   if(p.state==='poop'){if(!p.pooped&&p.st>.5){p.pooped=true;petPoop(p);}if(p.st>1.5){p.state='stand';p.st=0;}return;}
   // eating / showing love: stay put until done
-  if(p.state==='eat'){if(p.food&&FOOD.includes(p.food)){p.food.left-=dt*k/4;if(p.food.left<=0){FOOD.splice(FOOD.indexOf(p.food),1);p.food=null;petAction('love',p);p.poopIn=(9+Math.random()*12)/Math.sqrt(k);}}else if(p.st>3/k){p.state='stand';p.st=0;}return;}
+  if(p.state==='eat'){if(p.food&&FOOD.includes(p.food)){p.food.left-=dt*k/4;if(p.food.left<=0){FOOD.splice(FOOD.indexOf(p.food),1);p.food=null;const AP=appetite(p.id);HG.h=Math.max(0,HG.h-100/AP[1]);HG.belly=(HG.belly||0)+1/AP[1];petAction('love',p);if(HG.h<15)mood(p,'full',2.8);}}else if(p.st>3/k){p.state='stand';p.st=0;}return;}
   if(p.state==='love'&&p.st<2.2/Math.sqrt(k))return;
   // 1) food on the ground it can smell? go and eat it (fast pets get there first)
-  const food=FOOD.filter(f=>likes(p.id,f.kind)&&dist(f,p)<600&&!PETS.some(o=>o!==p&&((o.food===f&&o.state==='eat')||(o.goFood===f&&dist(o,f)<dist(p,f))))).sort((a,b)=>dist(a,p)-dist(b,p))[0];   // one pet per food: the closest one gets it
-  if(!food){p.goFood=null;p.nearFood=false;}
+  let food=FOOD.filter(f=>likes(p.id,f.kind)&&dist(f,p)<600&&!PETS.some(o=>o!==p&&((o.food===f&&o.state==='eat')||(o.goFood===f&&dist(o,f)<dist(p,f))))).sort((a,b)=>dist(a,p)-dist(b,p))[0];   // one pet per food: the closest one gets it
+  for(const f of FOOD){if(dist(f,p)>170)continue;f.seen=f.seen||{};if(f.seen[p.id])continue;f.seen[p.id]=1;
+    if(!likes(p.id,f.kind))mood(p,'yuck');else if(HG.h<20)mood(p,'full');else mood(p,'curious',1.4);}
+  if(!food||HG.h<20){food=null;p.goFood=null;p.nearFood=false;}
   if(food){if(p.goFood!==food){p.goFood=food;p.eatFace=dist(food,P)<130?(food.x<P.x?1:-1):(food.x>=p.x?1:-1);p.bestD=1e9;p.noProg=0;}   // eat from the side away from you
     const mo=(PET_GEO[p.id]?.m||.42)*petCellH(p),tx=food.x-p.eatFace*mo,ty=food.y-1,d0=Math.hypot(tx-p.x,ty-p.y);p.nearFood=d0<40;
     if(d0<p.bestD-2){p.bestD=d0;p.noProg=0;}else p.noProg+=dt;
@@ -1721,15 +1760,19 @@ function updatePet(p,dt){const info=PET_INFO[p.id],k=petTempo(p),sp=info.speed*(
 function drawFood(){if(MAPID!=='home')return;for(const f of FOOD){const k=.45+.55*f.left,sz=30*k*S.scale/0.7;ctx.save();ctx.fillStyle='rgba(0,0,0,.15)';ctx.beginPath();ctx.ellipse(f.x,f.y+1,sz*.45,sz*.16,0,0,7);ctx.fill();ctx.restore();
   const fi=Math.max(0,FOODS.findIndex(o=>o.id===f.kind));ctx.save();if(CLEAN&&CLEAN.obj===f)ctx.globalAlpha=Math.max(0,1-Math.max(0,CLEAN.t-.8)/.3);drawFoodIcon(ctx,f.kind||'kibble',f.x,f.y+1-FOOD_BOT[fi]*sz,sz);ctx.restore();}}
 function drawPet(p){const def=PET_DEFS[p.id],H=petH(p),t=p.t,s=p.state;
-  ctx.save();ctx.fillStyle='rgba(0,0,0,.16)';ctx.beginPath();ctx.ellipse(p.x,p.y,H*.38,H*.11,0,0,7);ctx.fill();ctx.restore();
+  ctx.save();ctx.fillStyle='rgba(0,0,0,.16)';ctx.beginPath();const shk=1-Math.min(.45,(p.alt||0)/90);ctx.ellipse(p.x,p.y,H*.38*shk,H*.11*shk,0,0,7);ctx.fill();ctx.restore();
   const sheet=petImg(p.id);
   if(sheet){const n=4,cw=sheet.width/n,chh=sheet.height/4;let row,f;
-    if(s==='stand'||s==='poop'){[row,f]=def.still;}
+    if((p.alt||0)>2&&def.fly){row=def.fly.row;f=def.fly.frames[Math.floor(t*11)%def.fly.frames.length];}
+    else if(s==='stand'||s==='poop'){[row,f]=def.still;}
     else{row={walk:0,special:1,eat:2,love:3}[s];const k=petTempo(p),fps={walk:Math.max(1.6,9*k),special:Math.max(1.4,5*k),eat:Math.max(1.6,6*k),love:Math.max(1.8,6*k)}[s];f=Math.floor(t*fps)%n;}
     const ch2=H/0.85*(chh-4)/chh,w=ch2*cw/chh;
     const sq=s==='poop'?1-.06*Math.sin(Math.min(1,p.st/.5)*Math.PI/2)*(p.st<1.1?1:Math.max(0,1-(p.st-1.1)/.3)):1;   // a little squat
-    ctx.save();ctx.translate(p.x,p.y+H*0.02);ctx.scale(p.face*(2-sq),sq);ctx.drawImage(sheet,f*cw,row*chh,cw,chh,-w/2,-ch2,w,ch2);ctx.restore();}
-  if(p.emo){const u=(performance.now()-p.emo.t0)/1000;if(u>2.5)p.emo=null;else drawEmoteIcon(p.emo.i,p.x+H*.35,p.y-H-12-Math.sin(u*6)*2,Math.min(1,u*5)*34);}
+    ctx.save();ctx.translate(p.x,p.y+H*0.02-(p.alt||0)+(p.alt>2?Math.sin(t*7)*2:0));ctx.scale(p.face*(2-sq),sq);ctx.drawImage(sheet,f*cw,row*chh,cw,chh,-w/2,-ch2,w,ch2);ctx.restore();}
+  const top=p.y-(p.alt||0)-H*1.02;
+  if(p.mood){const u=(performance.now()-p.mood.t0)/1000;if(u>p.mood.dur)p.mood=null;else drawMood(p.mood.k,p.x+H*.38,top-14-Math.sin(u*6)*2,Math.min(1,u*6)*28*S.scale/0.7,Math.min(1,(p.mood.dur-u)*3));}
+  {const hg=hungerOf(p.id),full=1-hg/100,bw=30*S.scale/0.7,bh=5*S.scale/0.7,bx=p.x-bw/2,by=top-2;   // fullness bar over the head
+    ctx.save();ctx.fillStyle='rgba(59,42,26,.55)';rr(bx-1.5,by-1.5,bw+3,bh+3,(bh+3)/2);ctx.fill();ctx.fillStyle=full>.6?'#5cc95a':full>.3?'#ffc93c':'#ff5a4a';rr(bx,by,Math.max(bh,bw*full),bh,bh/2);ctx.fill();ctx.restore();}
   if(s==='special'&&def.special==='sleep'){ctx.save();ctx.font='700 13px Mali, sans-serif';ctx.fillStyle='#5a7bd8';ctx.strokeStyle='#fff';ctx.lineWidth=3;
     for(let i=0;i<3;i++){const u=(t*.6+i/3)%1;ctx.globalAlpha=1-u;const zx=p.x+H*.25+u*14,zy=p.y-H-4-u*26;ctx.strokeText('z',zx,zy);ctx.fillText('z',zx,zy);}ctx.restore();}}
 // pet panel (only at home)
@@ -1740,7 +1783,7 @@ function buildPetPanel(){const box=$('petPanel');box.innerHTML='';
   [['calico_cat','🐱 Cat'],['corgi','🐶 Corgi'],['sloth','🦥 Sloth'],['turtle','🐢 Turtle'],['capybara','🦫 Capybara'],['hamster','🐹 Hamster'],['holland_lop','🐰 Bunny'],['baby_penguin','🐧 Penguin'],['shiba','🐕 Shiba'],['otter','🦦 Otter'],['red_panda','🦊 Red Panda'],['budgie','🐦 Budgie']].forEach(([id,l])=>btn(r1,l,PETS.some(p=>p.id===id),()=>togglePet(id)));
   const r2=head('Do (nearest pet)');
   [['love','❤️ Pet it'],['special','💤 Own action']].forEach(([v,l])=>btn(r2,l,false,()=>petAction(v)));
-  if(PETS.length){const L=document.createElement('div');L.className='petLikes';PETS.forEach(p=>{const d=document.createElement('div');d.append((PET_DEFS[p.id]?.name||p.id)+' likes ');likedFoods(p.id).forEach(f=>d.appendChild(iconCanvas(f.id,22)));L.appendChild(d);});box.appendChild(L);}
+  if(PETS.length){const L=document.createElement('div');L.className='petLikes';PETS.forEach(p=>{const d=document.createElement('div');const hg=Math.round(hungerOf(p.id));d.append((PET_DEFS[p.id]?.name||p.id)+' likes ');likedFoods(p.id).forEach(f=>d.appendChild(iconCanvas(f.id,22)));const t=document.createElement('span');t.style.cssText='margin-left:auto;font-weight:700;color:'+(hg>66?'#d0342c':hg>33?'#c98a00':'#3a9a3a');t.textContent=hg>66?'Hungry':hg>33?'A bit hungry':'Full';d.appendChild(t);L.appendChild(d);});box.appendChild(L);}
   const x=document.createElement('button');x.className='hideX petX';x.innerHTML='<i class="ic" data-ic="close">✕</i>';x.onclick=e=>{e.stopPropagation();box.style.display='none';};box.appendChild(x);applyIcons(box);}
 {const c=$('btnClean').querySelector('canvas'),g=c.getContext('2d'),p=()=>{g.clearRect(0,0,72,72);cleanIcon(g,1,36,36,70,0);};p();CLEAN_IMG.addEventListener('load',p);}
 $('btnClean').addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();foodPanel.style.display='none';startClean();});
