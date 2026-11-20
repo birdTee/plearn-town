@@ -338,7 +338,7 @@
 <script>
 // ---- UI icon set (ui_icons.webp, 18 cells in one row) — emoji are shown until it loads ----
 // bump ASSET_V whenever an icon/emote picture changes, so phones download the new one instead of a cached copy
-var ASSET_V='20261120q';
+var ASSET_V='20261120r';
 const IC_N=['logo','pad','freeze','hide','zombie','fire','flash','run','shirt','gear','globe','trophy','girl','boy','jump','tag','logout','hello'];
 const IC={},IC_C={};
 function icFrom(img,i,name){const n=img.height,c=document.createElement('canvas');c.width=c.height=n;c.getContext('2d').drawImage(img,i*n,0,n,n,0,0,n,n);IC_C[name]=c;IC[name]=c.toDataURL();}
@@ -1607,9 +1607,16 @@ const PET_DEFS={   // pets that have their sprite sheet in the game now
   alpaca:{name:'Alpaca',h:130,special:'prance',feel:2,still:[2,3]},
   meerkat:{name:'Meerkat',h:92,special:'lookout',feel:1,still:[2,3]},
   chinchilla:{name:'Chinchilla',h:76,special:'spin',feel:7,still:[2,3]},
-  arctic_fox:{name:'Arctic Fox',h:100,special:'pounce',feel:7,still:[2,3]}};
+  arctic_fox:{name:'Arctic Fox',h:100,special:'pounce',feel:7,still:[2,3]},
+  tabby_cat:{name:'Tabby Cat',h:100,special:'tailchase',feel:2,still:[2,3]},
+  black_cat:{name:'Black Cat',h:100,special:'arch',feel:2,still:[2,3]},
+  white_cat:{name:'White Cat',h:100,special:'knead',feel:2,still:[2,3]},
+  thai_pup:{name:'Thai Dog',h:104,special:'scratch',feel:7,still:[2,3]},
+  pomeranian:{name:'Pomeranian',h:92,special:'spin',feel:7,still:[2,3]},
+  chihuahua:{name:'Chihuahua',h:86,special:'bark',feel:1,still:[2,3]},
+  husky:{name:'Husky',h:118,special:'howl',feel:7,still:[2,3]}};
 // where the mouth is when eating (m) and where the bottom is (b), as a share of the picture height, measured on each sheet
-const PET_GEO={"calico_cat": {"m": 0.472, "b": 0.45}, "sloth": {"m": 0.357, "b": 0.36}, "corgi": {"m": 0.45, "b": 0.43}, "turtle": {"m": 0.44, "b": 0.465}, "capybara": {"m": 0.468, "b": 0.455}, "hamster": {"m": 0.415, "b": 0.375}, "holland_lop": {"m": 0.455, "b": 0.45}, "baby_penguin": {"m": 0.357, "b": 0.355}, "shiba": {"m": 0.383, "b": 0.425}, "otter": {"m": 0.448, "b": 0.44}, "red_panda": {"m": 0.463, "b": 0.45}, "orange_cat": {"m": 0.425, "b": 0.485}, "guinea_pig": {"m": 0.458, "b": 0.46}, "hedgehog": {"m": 0.458, "b": 0.455}, "koala": {"m": 0.405, "b": 0.43}, "fennec_fox": {"m": 0.44, "b": 0.45}, "baby_panda": {"m": 0.412, "b": 0.4}, "golden_pup": {"m": 0.463, "b": 0.435}, "squirrel": {"m": 0.445, "b": 0.46}, "alpaca": {"m": 0.415, "b": 0.385}, "meerkat": {"m": 0.438, "b": 0.445}, "chinchilla": {"m": 0.448, "b": 0.455}, "arctic_fox": {"m": 0.432, "b": 0.45}};
+const PET_GEO={"calico_cat": {"m": 0.472, "b": 0.45}, "sloth": {"m": 0.357, "b": 0.36}, "corgi": {"m": 0.45, "b": 0.43}, "turtle": {"m": 0.44, "b": 0.465}, "capybara": {"m": 0.468, "b": 0.455}, "hamster": {"m": 0.415, "b": 0.375}, "holland_lop": {"m": 0.455, "b": 0.45}, "baby_penguin": {"m": 0.357, "b": 0.355}, "shiba": {"m": 0.383, "b": 0.425}, "otter": {"m": 0.448, "b": 0.44}, "red_panda": {"m": 0.463, "b": 0.45}, "orange_cat": {"m": 0.425, "b": 0.485}, "guinea_pig": {"m": 0.458, "b": 0.46}, "hedgehog": {"m": 0.458, "b": 0.455}, "koala": {"m": 0.405, "b": 0.43}, "fennec_fox": {"m": 0.44, "b": 0.45}, "baby_panda": {"m": 0.412, "b": 0.4}, "golden_pup": {"m": 0.463, "b": 0.435}, "squirrel": {"m": 0.445, "b": 0.46}, "alpaca": {"m": 0.415, "b": 0.385}, "meerkat": {"m": 0.438, "b": 0.445}, "chinchilla": {"m": 0.448, "b": 0.455}, "arctic_fox": {"m": 0.432, "b": 0.45}, "tabby_cat": {"m": 0.445, "b": 0.445}, "black_cat": {"m": 0.458, "b": 0.455}, "white_cat": {"m": 0.417, "b": 0.47}, "thai_pup": {"m": 0.425, "b": 0.38}, "pomeranian": {"m": 0.422, "b": 0.465}, "chihuahua": {"m": 0.378, "b": 0.345}, "husky": {"m": 0.367, "b": 0.43}};
 const petCellH=p=>petH(p)/0.85*0.98;
 const PETS_IMG={};
 function petImg(id){if(PETS_IMG[id]!==undefined)return PETS_IMG[id];PETS_IMG[id]=null;
@@ -1626,7 +1633,7 @@ function savePets(){lsSet('sw_pets',JSON.stringify(PETS.map(p=>p.id)));}
 // small animals with a fast heartbeat (hamster, budgie) get hungry quickly but eat little; slow animals (sloth, turtle) hardly get hungry;
 // big grazers (capybara) and busy hunters (otter) eat a lot. rate = points per minute of play, meal = portions to go from starving to full.
 const PET_APPETITE={hamster:[22,1],budgie:[24,1],guinea_pig:[18,2],holland_lop:[16,2],calico_cat:[11,2],orange_cat:[11,2],corgi:[13,3],shiba:[12,3],
-  golden_pup:[13,4],otter:[20,3],baby_penguin:[15,2],capybara:[14,4],red_panda:[10,3],baby_panda:[12,4],koala:[5,2],sloth:[3,2],turtle:[4,1],hedgehog:[14,2],fennec_fox:[13,2],squirrel:[20,1],alpaca:[9,3],meerkat:[16,2],chinchilla:[14,1],arctic_fox:[13,2]};
+  golden_pup:[13,4],otter:[20,3],baby_penguin:[15,2],capybara:[14,4],red_panda:[10,3],baby_panda:[12,4],koala:[5,2],sloth:[3,2],turtle:[4,1],hedgehog:[14,2],fennec_fox:[13,2],squirrel:[20,1],tabby_cat:[11,2],black_cat:[11,2],white_cat:[10,2],thai_pup:[13,3],pomeranian:[14,2],chihuahua:[16,1],husky:[15,4],alpaca:[9,3],meerkat:[16,2],chinchilla:[14,1],arctic_fox:[13,2]};
 const appetite=id=>PET_APPETITE[id]||[12,2];
 const HUNGER=(()=>{let v={};try{v=JSON.parse(localStorage.getItem('sw_hunger'))||{};}catch(e){}const now=Date.now();
   for(const k in v){const mins=Math.min(60,(now-(v[k].t||now))/60000);v[k].h=Math.min(100,(v[k].h||0)+appetite(k)[0]*mins*.4);}return v;})();   // time away counts a little
@@ -1816,7 +1823,7 @@ function buildPetPanel(){const box=$('petPanel');box.innerHTML='';
   const head=(title)=>{const h=document.createElement('div');h.className='petLbl';h.textContent=title;box.appendChild(h);const row=document.createElement('div');row.className='petRow';box.appendChild(row);return row;};
   const btn=(row,label,on,fn)=>{const b=document.createElement('button');b.textContent=label;if(on)b.classList.add('on');b.onclick=e=>{e.stopPropagation();fn();buildPetPanel();};row.appendChild(b);};
   const r1=head(`Pets in the yard: ${PETS.length}`);const hint=document.createElement('div');hint.className='petHint';hint.textContent='Drag a pet onto the lawn to call it. Tap ✕ to send it home.';r1.before(hint);
-  [['calico_cat','🐱 Cat'],['corgi','🐶 Corgi'],['sloth','🦥 Sloth'],['turtle','🐢 Turtle'],['capybara','🦫 Capybara'],['hamster','🐹 Hamster'],['holland_lop','🐰 Bunny'],['baby_penguin','🐧 Penguin'],['shiba','🐕 Shiba'],['otter','🦦 Otter'],['red_panda','🦊 Red Panda'],['budgie','🐦 Budgie'],['orange_cat','🐈 Orange Cat'],['guinea_pig','🐹 Guinea Pig'],['hedgehog','🦔 Hedgehog'],['koala','🐨 Koala'],['fennec_fox','🦊 Fennec'],['baby_panda','🐼 Panda'],['golden_pup','🐶 Golden'],['squirrel','🐿️ Squirrel'],['alpaca','🦙 Alpaca'],['meerkat','🦦 Meerkat'],['chinchilla','🐭 Chinchilla'],['arctic_fox','🦊 Arctic Fox']].forEach(([id,l])=>{const b=document.createElement('button');b.className='petChip'+(PETS.some(p=>p.id===id)?' on':'');b.textContent=l;petDragSetup(b,id);r1.appendChild(b);});
+  [['calico_cat','🐱 Cat'],['corgi','🐶 Corgi'],['sloth','🦥 Sloth'],['turtle','🐢 Turtle'],['capybara','🦫 Capybara'],['hamster','🐹 Hamster'],['holland_lop','🐰 Bunny'],['baby_penguin','🐧 Penguin'],['shiba','🐕 Shiba'],['otter','🦦 Otter'],['red_panda','🦊 Red Panda'],['budgie','🐦 Budgie'],['orange_cat','🐈 Orange Cat'],['guinea_pig','🐹 Guinea Pig'],['hedgehog','🦔 Hedgehog'],['koala','🐨 Koala'],['fennec_fox','🦊 Fennec'],['baby_panda','🐼 Panda'],['golden_pup','🐶 Golden'],['squirrel','🐿️ Squirrel'],['alpaca','🦙 Alpaca'],['meerkat','🦦 Meerkat'],['chinchilla','🐭 Chinchilla'],['arctic_fox','🦊 Arctic Fox'],['tabby_cat','🐱 Tabby'],['black_cat','🐈‍⬛ Black Cat'],['white_cat','🤍 White Cat'],['thai_pup','🐕 Thai Dog'],['pomeranian','🐶 Pom'],['chihuahua','🐕 Chihuahua'],['husky','🐺 Husky']].forEach(([id,l])=>{const b=document.createElement('button');b.className='petChip'+(PETS.some(p=>p.id===id)?' on':'');b.textContent=l;petDragSetup(b,id);r1.appendChild(b);});
   const r2=head('Do (nearest pet)');
   [['love','❤️ Pet it'],['special','💤 Own action']].forEach(([v,l])=>btn(r2,l,false,()=>petAction(v)));
   if(PETS.length){const L=document.createElement('div');L.className='petLikes';PETS.forEach(p=>{const d=document.createElement('div');const hg=Math.round(hungerOf(p.id));d.append((PET_DEFS[p.id]?.name||p.id)+' likes ');likedFoods(p.id).forEach(f=>d.appendChild(iconCanvas(f.id,22)));const t=document.createElement('span');t.style.cssText='margin-left:auto;font-weight:700;color:'+(hg>66?'#d0342c':hg>33?'#c98a00':'#3a9a3a');t.textContent=hg>66?'Hungry':hg>33?'A bit hungry':'Full';d.appendChild(t);L.appendChild(d);});box.appendChild(L);}
