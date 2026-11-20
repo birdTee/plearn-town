@@ -90,6 +90,7 @@
   .actB small{font-size:10px;opacity:.8;font-weight:500}.touch .actB small{display:none}
   .actB.jump{width:92px;height:92px;background:#3fa9f5;font-size:17px}.actB.tag{width:74px;height:74px;background:#e8483f;font-size:16px;margin-bottom:34px}
   .actB:active{transform:translateY(3px);box-shadow:0 2px 0 rgba(0,0,0,.25)}
+  .actB.tag.frz{background:#14a6c9}.actB.tag.save{background:#2fb35a}.actB.tag.off{background:#9aa4ad;opacity:.75}.actB.tag.bite{background:#6a9a3a}
   .hudOpen #actBtns,.hudOpen .mgBtn{display:none}
   #chatBtns{position:absolute;right:22px;bottom:128px;display:flex;gap:10px;z-index:3}
   .smB{width:54px;height:54px;border:0;border-radius:50%;background:#fffaf0;box-shadow:0 4px 0 #e7d7b8,0 6px 12px rgba(0,0,0,.2);font-size:26px;display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;padding:0}
@@ -1066,9 +1067,9 @@ const NPC_NAMES=['Kla','Toey','Prang','Namsai','Phupha','Hom','Fahsai','Khao','C
 
 // ---------- mini-games (friends are simulated for now; same flow will work with real online players) ----------
 const MGAMES={
-  freeze:{icon:'<i class="ic" data-ic="freezeLogo">❄️</i>',name:'Freeze Tag',desc:'Tagged = frozen. Friends can tag you free'},
-  hide:{icon:'<i class="ic" data-ic="hide">🙈</i>',name:'Hide & Seek',desc:'Hide in the dark. Seekers carry flashlights'},
-  zombie:{icon:'<i class="ic" data-ic="zombie">🧟</i>',name:'Zombie Tag',desc:'Tagged = you become a zombie'}};
+  freeze:{icon:'<i class="ic" data-ic="freezeLogo">❄️</i>',name:'Freeze Tag',desc:'🔥 Chasers tag you → you freeze 🧊<br>🏃 Runners tag frozen friends → saved!<br>Chasers win only if EVERYONE is frozen'},
+  hide:{icon:'<i class="ic" data-ic="hide">🙈</i>',name:'Hide & Seek',desc:'🙈 Hiders hide in the dark<br>🔦 Seekers shine a light to find them<br>Seekers win if they find EVERYONE'},
+  zombie:{icon:'<i class="ic" data-ic="zombie">🧟</i>',name:'Zombie Tag',desc:'🧟 Zombies bite humans → they become zombies<br>🏃 Humans run until time is up<br>Humans win if ANYONE is left'}};
 const MG={on:false,phase:'',mode:'',players:[],t:0,seekT:0,seekerIsP:false,joinTimers:[]};
 const mgPanel=$('mgPanel');
 function mgOpen(){if(MG.on)return;mgPanel.style.display='flex';$('mgTitle').textContent='Mini-games · '+GAME_T+' seconds';$('mgPick').style.display='grid';$('mgLobby').style.display='none';$('mgEnd').style.display='none';
@@ -1111,18 +1112,24 @@ function mgStart(){leaveHomeNow();mgClose();if(MG.online&&MG.isHost)mgList();con
   MG.seekerIsP=(MG.mode==='hide'&&P.role==='seeker');
   if(MG.online&&MG.isHost){NET.g=hostState();NET.sendT=0;}
   $('mgHud').style.display='block';$('mgBtn').style.display='none';mgHudUpdate();}
-function roleText(a){return {it:'You are a chaser <i class="ic" data-ic="fire">🔥</i> Freeze everyone!',run:'Run! Tag frozen friends to free them',zombie:'You are a zombie <i class="ic" data-ic="zombie">🧟</i> Tag everyone!',human:'Run from the zombies!',seeker:'You are a seeker <i class="ic" data-ic="flash">🔦</i> Your light catches people',hider:'Hide in the dark! Stay out of the light!'}[a.role]||'';}
-function setTagBtn(bite){if(setTagBtn.b===bite)return;setTagBtn.b=bite;const b=$('btnTag');
-  b.innerHTML=bite?'<i class="ic" data-ic="bite"></i>Bite<small>E</small>':'<i class="ic" data-ic="tag"></i>Tag<small>E</small>';b.classList.toggle('bite',bite);applyIcons(b);}
+function roleText(a){return {it:'You are a CHASER <i class="ic" data-ic="fire">🔥</i> Press ❄️ Freeze! near a runner. Freeze everyone to win!',run:'You are a RUNNER <i class="ic" data-ic="run">🏃</i> Don\'t get tagged! Press 🤝 Save! near a frozen friend',zombie:'You are a ZOMBIE <i class="ic" data-ic="zombie">🧟</i> Press Bite! near a human to make a new zombie',human:'You are a HUMAN <i class="ic" data-ic="run">🏃</i> Run from the zombies until time is up!',seeker:'You are a SEEKER <i class="ic" data-ic="flash">🔦</i> Shine your light on hiders to find them',hider:'You are a HIDER <i class="ic" data-ic="hide">🙈</i> Hide in the dark – stay out of the light!'}[a.role]||'';}
+// the action button says what it does right now (changes with the game and your role)
+const TAG_BTN={tag:['tag','👋','Tag',''],freeze:['freeze','❄️','Freeze!','frz'],save:['hello','🤝','Save!','save'],frozen:['freeze','🧊','Frozen','off'],bite:['bite','🧟','Bite!','bite'],none:null};
+function tagBtnState(){if(!MG.on||!P.mg)return 'tag';
+  if(MG.mode==='freeze'){if(P.frozen)return 'frozen';return P.role==='it'?'freeze':'save';}
+  if(MG.mode==='zombie')return P.role==='zombie'?'bite':'none';
+  return 'none';}
+function setTagBtn(st){if(st===false)st='tag';else if(st===true)st='bite';if(setTagBtn.b===st)return;setTagBtn.b=st;const b=$('btnTag'),d=TAG_BTN[st];
+  b.style.display=d?'':'none';if(!d)return;b.innerHTML=`<i class="ic" data-ic="${d[0]}">${d[1]}</i>${d[2]}<small>E</small>`;b.className='actB tag'+(d[3]?' '+d[3]:'');applyIcons(b);}
 function mgHudUpdate(){app.classList.toggle('inMG',MG.on);
   const tm=`${MG.phase==='count'?GAME_T:Math.ceil(Math.max(0,MG.t))}`;if(mgHudUpdate.tm!==tm){mgHudUpdate.tm=tm;$('mgTime').innerHTML='<i class="ic" data-ic="timer">⏱</i>'+tm;}
-  setTagBtn(MG.on&&MG.mode==='zombie'&&P.mg&&P.role==='zombie');
-  let r={it:'You: Chaser',run:'You: Runner',zombie:'You: Zombie',human:'You: Human',seeker:'You: Seeker',hider:'You: Hider'}[P.role]||'';if(P.frozen)r='You are frozen!';if(P.found)r='You were found';
+  setTagBtn(tagBtnState());
+  let r={it:'🔥 You: Chaser',run:'🏃 You: Runner',zombie:'🧟 You: Zombie',human:'🏃 You: Human',seeker:'🔦 You: Seeker',hider:'🙈 You: Hider'}[P.role]||'';if(P.frozen)r='🧊 Frozen – wait for a friend!';if(P.found)r='🔦 You were found';
   if(mgHudUpdate.r!==r){mgHudUpdate.r=r;$('mgRole').textContent=r;}
   const ps=MG.players,ic=(n,f)=>`<i class="ic" data-ic="${n}">${f}</i>`;let info='';
-  if(MG.mode==='freeze'){const q=ps.filter(p=>p.role==='run');info=`${ic('run','🏃')}<b>${q.filter(p=>!p.frozen).length}</b>/${q.length}`;}
-  if(MG.mode==='zombie')info=`${ic('run','🏃')}<b>${ps.filter(p=>p.role==='human').length}</b>/${ps.length}`;
-  if(MG.mode==='hide'){const h=ps.filter(p=>p.role==='hider');info=MG.seekT>0?`${ic('flash','🔦')}<b>${Math.ceil(MG.seekT)}</b>s`:`${ic('hide','🙈')}<b>${h.filter(p=>!p.found).length}</b>/${h.length}`;}
+  if(MG.mode==='freeze'){const q=ps.filter(p=>p.role==='run');info=`${ic('run','🏃')}<b>${q.filter(p=>!p.frozen).length}</b>/${q.length}<small> free</small>`;}
+  if(MG.mode==='zombie')info=`${ic('run','🏃')}<b>${ps.filter(p=>p.role==='human').length}</b>/${ps.length}<small> human</small>`;
+  if(MG.mode==='hide'){const h=ps.filter(p=>p.role==='hider');info=MG.seekT>0?`${ic('flash','🔦')}<small>eyes open in </small><b>${Math.ceil(MG.seekT)}</b>s`:`${ic('hide','🙈')}<b>${h.filter(p=>!p.found).length}</b>/${h.length}<small> hiding</small>`;}
   if(mgHudUpdate.i!==info){mgHudUpdate.i=info;$('mgInfo').innerHTML=info;}}
 function msg(t,ms,sub){const m=$('mgMsg');const key=t+'|'+(sub||'');if(msg._k!==key||m.style.display==='none'){msg._k=key;if(sub){m.innerHTML='';m.append(t);const sm=document.createElement('small');sm.innerHTML=sub;m.appendChild(sm);}else m.textContent=t;
   m.classList.toggle('big',/^\d$|^Start!$|^Go!$/.test(t));m.classList.toggle('run',/^Run!/.test(t));m.classList.remove('pop');void m.offsetWidth;m.classList.add('pop');}
