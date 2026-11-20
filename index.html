@@ -96,6 +96,12 @@
   .actB.tag.bite{background:#6fbf4a;box-shadow:0 5px 0 #3f8a2a}
   #fade{position:absolute;inset:0;background:#fffaf0;opacity:0;pointer-events:none;transition:opacity .28s;z-index:40}#fade.on{opacity:1}
   .atHome #mgBtn,.atHome #btnTag{display:none!important}
+  .petBtn{display:none}.atHome .petBtn{display:flex}
+  .petPanel{position:absolute;right:12px;top:62px;z-index:6;background:#fffaf0;border-radius:16px;padding:10px 12px;box-shadow:0 5px 0 #e7d7b8,0 10px 24px rgba(0,0,0,.25);color:#3b2a1a;width:280px}
+  .petLbl{font-size:12px;font-weight:700;margin:6px 0 4px;color:#7a5a3a}.petRow{display:flex;gap:6px;flex-wrap:wrap}
+  .petRow button{flex:1;border:2px solid #f0d9a8;background:#fff3d6;border-radius:12px;padding:7px 6px;font:inherit;font-size:13px;font-weight:700;color:#3b2a1a;cursor:pointer;white-space:nowrap}
+  .petRow button.on{background:#ffcc33;border-color:#e0a91c}.petX{position:absolute;right:-10px;top:-10px}
+  .hudOpen .petBtn,.hudOpen .petPanel,#app:not(.atHome) .petPanel{display:none!important}
   .chatNote{font-size:11px;color:#9a7a5a;text-align:center;margin-top:4px}
 
   .logout{margin-top:10px;width:100%;border:0;border-radius:12px;padding:8px;background:#e8483f;color:#fff;font:inherit;font-weight:700;cursor:pointer}
@@ -221,6 +227,8 @@
 </div></div>
 <div id="actBtns"><button id="btnTag" class="actB tag"><i class="ic" data-ic="tag"></i>Tag<small>E</small></button><button id="btnJump" class="actB jump"><i class="ic" data-ic="jump"></i>Jump<small>Space</small></button></div>
 <div id="fade"></div>
+<button id="petBtn" class="mgBtn petBtn">🐾 Pet</button>
+<div id="petPanel" class="petPanel" style="display:none"></div>
 <div id="chatBtns"><button id="btnEmo" class="smB" aria-label="Emotes">😊<small>H L 1-0</small></button><button id="btnChat" class="smB" aria-label="Chat">💬<small>Enter</small></button></div>
 <div id="emoPanel" class="emoPanel" style="display:none"></div>
 <div id="chatPanel" class="chatPanel" style="display:none"><div class="quick" id="quick"></div>
@@ -286,7 +294,7 @@
 <script>
 // ---- UI icon set (ui_icons.webp, 18 cells in one row) — emoji are shown until it loads ----
 // bump ASSET_V whenever an icon/emote picture changes, so phones download the new one instead of a cached copy
-var ASSET_V='20261120a';
+var ASSET_V='20261120b';
 const IC_N=['logo','pad','freeze','hide','zombie','fire','flash','run','shirt','gear','globe','trophy','girl','boy','jump','tag','logout','hello'];
 const IC={},IC_C={};
 function icFrom(img,i,name){const n=img.height,c=document.createElement('canvas');c.width=c.height=n;c.getContext('2d').drawImage(img,i*n,0,n,n,0,0,n,n);IC_C[name]=c;IC[name]=c.toDataURL();}
@@ -802,7 +810,7 @@ function loop(now){const dt=Math.min(.05,(now-last)/1000);last=now;
     P.t+=dt;const prev=P.frame;P.frame=frameAt(S.frames,sheet(P.char,P.dir).A,P.t,S.fps);if(prev!==P.frame)drawStrip();
   }else if(wasMoving){P.t=0;P.frame=0;drawStrip();}
   if(ready&&npcsOn())NPCS.forEach(n=>updateNPC(n,dt));
-  updateMG(dt);netTick(dt);
+  updateMG(dt);netTick(dt);updatePet(dt);
   const MWd=mapW(),MHd=mapH();cam.x=clamp(P.x-VW/2,0,Math.max(0,MWd-VW)); if(MWd<VW)cam.x=(MWd-VW)/2; cam.y=clamp(P.y-VH*0.6,0,Math.max(0,MHd-VH));
   if(MHd<VH)cam.y=(MHd-VH)/2;
   ctx.setTransform(dpr*Z,0,0,dpr*Z,0,0);
@@ -817,6 +825,7 @@ function loop(now){const dt=Math.min(.05,(now-last)/1000);last=now;
   const items=[];if(MAPID==='school'){trees.forEach(t=>items.push({y:t[1],d:()=>drawTree(t[0],t[1])}));bushes.forEach(b=>items.push({y:b.y,d:()=>drawBush(b)}));
   NPCS.forEach(n=>{if(npcsOn()||n.mg)items.push({y:n.y,d:()=>drawActor(n,false)});});}
   REMOTE.forEach(a=>{if(sameMap(a))items.push({y:a.y,d:()=>drawActor(a,false)});});
+  if(MAPID==='home'&&PET.id)items.push({y:PET.y,d:drawPet});
   items.push({y:P.y,d:()=>drawActor(P,true)});
   items.sort((a,b)=>a.y-b.y).forEach(i=>i.d());
   ctx.restore();
@@ -973,6 +982,8 @@ $('mgAddBot').onclick=()=>{const left=NPCS.filter(n=>!MG.bots.includes(n));if(le
 $('mgAllBots').onclick=()=>{MG.bots=[...NPCS];mgList();};
 $('mgNoBots').onclick=()=>{MG.bots=[];mgList();};
 function mgClose(){MG.joinTimers.forEach(clearTimeout);mgPanel.style.display='none';}
+$('petBtn').addEventListener('click',e=>{e.stopPropagation();const b=$('petPanel');if(b.style.display==='none'){buildPetPanel();b.style.display='block';}else b.style.display='none';});
+['pointerdown','touchstart','mousedown','click'].forEach(t=>$('petPanel').addEventListener(t,e=>e.stopPropagation(),{passive:true}));
 $('mgBtn').onclick=mgOpen;$('mgClose').onclick=()=>{if(MG.phase==='end')mgFinish();mgClose();};$('mgCancel').onclick=()=>{if(!MG.on){if(MG.online&&MG.isHost){NET.g=null;MG.online=false;MG.isHost=false;}if(NET.j){NET.j=null;NET.host=null;}NET.sendT=0;$('mgStart').style.display='';$('mgCancel').textContent='Cancel';}mgClose();};$('mgStart').onclick=mgStart;
 $('mgAgain').onclick=()=>{mgFinish();mgOpen();mgLobby(MG.mode);};$('mgDone').onclick=()=>{mgFinish();mgClose();};
 function mgStart(){leaveHomeNow();mgClose();if(MG.online&&MG.isHost)mgList();const ps=[P,...MG.joined,...(MG.online&&MG.isHost?MG.bots||[]:[])];MG.players=ps;MG.on=true;MG.phase='count';MG.t=HEAD;MG.seekT=0;MG.win=null;
@@ -1450,6 +1461,63 @@ function playStep(T,s,t,sp){const d=SND.mus,bar=Math.floor(s/16),q=s%16,ch=CHORD
   }}
 function setMusic(on){SND.music=on;lsSet('sw_music',on);if(SND.ac)SND.mus.gain.setTargetAtTime(on?.22:0,SND.ac.currentTime,.1);}
 function setSounds(on){SND.sounds=on;lsSet('sw_sounds',on);if(SND.ac)SND.sfx.gain.value=on?.55:0;}
+
+// ================= PETS (test in Home): pick a pet + how it is animated =================
+// mode 'frames' = drawn sprite sheet from ChatGPT (rows: 0 walk, 1 own idle action, 2 eat, 3 feeling; 4 frames each)
+// mode 'code'   = one picture moved by code (bounce, breathe, tilt, Zzz…) – always looks exactly like the original
+const PET_DEFS={
+  calico_cat:{name:'Calico Cat',h:100,special:'groom',feel:2},
+  sloth:{name:'Sloth',h:110,special:'sleep',feel:3}};
+const PETS_IMG={};
+function petImg(id,kind){const k=id+'|'+kind;if(PETS_IMG[k]!==undefined)return PETS_IMG[k];PETS_IMG[k]=null;
+  const im=new Image();im.onload=()=>{PETS_IMG[k]=im;};im.onerror=()=>{PETS_IMG[k]=false;};im.src=`pets/${id}${kind==='sheet'?'_sheet':''}.webp?v=${ASSET_V}`;return null;}
+const PET={id:lsGet('sw_pet')||'calico_cat',mode:lsGet('sw_petmode')||'frames',x:0,y:0,face:1,state:'stand',st:0,t:0,placed:false};
+const PET_SCALE=()=>0.48*S.scale/0.7;                  // pets drawn a little bigger than true scale so kids can see them clearly
+function petSay(){}
+function petAction(a){if(!PET.id)return;PET.state=a;PET.st=0;if(a==='love'){PET.emo={i:PET_DEFS[PET.id].feel,t0:performance.now()};sfxEmote(P,PET.emo.i);}}
+function updatePet(dt){if(MAPID!=='home'||!PET.id){PET.placed=false;return;}
+  if(!PET.placed){PET.x=P.x-60;PET.y=P.y+10;PET.placed=true;PET.state='stand';}
+  PET.t+=dt;PET.st+=dt;
+  const tx=P.x-55*(P.dir&&P.dir.includes('left')?-1:1),ty=P.y+8,d=Math.hypot(tx-PET.x,ty-PET.y);
+  if((PET.state==='eat'&&PET.st<3.5)||(PET.state==='love'&&PET.st<2.2))return;
+  if(d>200){PET.x=tx;PET.y=ty;}                       // got stuck far away: hop next to you
+  if(d>34){const sp=Math.min(S.speed*1.08,d*3.2)*dt,nx=PET.x+(tx-PET.x)/d*sp,ny=PET.y+(ty-PET.y)/d*sp;
+    if(Math.abs(tx-PET.x)>2)PET.face=tx>PET.x?1:-1;
+    if(!homeHit(nx,ny,8,4)){PET.x=nx;PET.y=ny;}else if(!homeHit(nx,PET.y,8,4))PET.x=nx;else if(!homeHit(PET.x,ny,8,4))PET.y=ny;
+    if(PET.state!=='walk'){PET.state='walk';PET.st=0;}}
+  else if(PET.state==='walk'||PET.state==='eat'||PET.state==='love'){PET.state='stand';PET.st=0;}
+  else if(PET.state==='stand'&&PET.st>3){PET.state='special';PET.st=0;}}
+function drawPet(){if(MAPID!=='home'||!PET.id)return;const def=PET_DEFS[PET.id],H=def.h*PET_SCALE(),t=PET.t,s=PET.state;
+  ctx.save();ctx.fillStyle='rgba(0,0,0,.16)';ctx.beginPath();ctx.ellipse(PET.x,PET.y,H*.38,H*.11,0,0,7);ctx.fill();ctx.restore();
+  if(s==='eat'){ // food bowl in front
+    const bx=PET.x+PET.face*H*.42,by=PET.y+2;ctx.save();ctx.fillStyle='#e8483f';ctx.strokeStyle='#3b2a1a';ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(bx,by-4,13,6,0,0,7);ctx.fill();ctx.stroke();
+    ctx.fillStyle='#c98a4b';ctx.beginPath();ctx.ellipse(bx,by-7,9,3,0,0,7);ctx.fill();ctx.restore();}
+  const sheet=petImg(PET.id,'sheet'),base=petImg(PET.id,'base');
+  if(PET.mode==='frames'&&sheet){const n=4,cw=sheet.width/n,chh=sheet.height/4,row={walk:0,stand:0,special:1,eat:2,love:3}[s],fps={walk:9,stand:0,special:4,eat:6,love:6}[s];
+    const f=fps?Math.floor(t*fps)%n:0,ch2=H/0.85*(chh-4)/chh,w=ch2*cw/chh;   // walk-row pose fills 85% of a cell
+    ctx.save();ctx.translate(PET.x,PET.y+H*0.02);ctx.scale(PET.face,1);ctx.drawImage(sheet,f*cw,row*chh,cw,chh,-w/2,-ch2,w,ch2);ctx.restore();}
+  else if(base){let dy=0,rot=0,sx=1,sy=1;
+    if(s==='walk'){dy=-Math.abs(Math.sin(t*12))*H*.07;rot=Math.sin(t*12)*.06;sy=1+Math.abs(Math.sin(t*12))*.03;sx=1/sy;}
+    else if(s==='stand'){sy=1+Math.sin(t*3)*.015;}
+    else if(s==='special'){if(def.special==='sleep'){sy=.9+Math.sin(t*1.6)*.025;sx=1.04;}else{rot=Math.sin(t*2.2)*.09;}}
+    else if(s==='eat'){rot=.12+Math.abs(Math.sin(t*9))*.07;sy=1-Math.abs(Math.sin(t*9))*.04;}
+    else if(s==='love'){dy=-Math.abs(Math.sin(t*8))*H*.16;sy=1+Math.sin(t*16)*.03;}
+    const w=H*base.width/base.height;ctx.save();ctx.translate(PET.x,PET.y+dy);ctx.scale(PET.face,1);ctx.rotate(rot*PET.face*0+rot);ctx.scale(sx,sy);
+    ctx.drawImage(base,-w/2,-H,w,H);ctx.restore();}
+  if(PET.emo){const u=(performance.now()-PET.emo.t0)/1000;if(u>2.5)PET.emo=null;else drawEmoteIcon(PET.emo.i,PET.x+H*.35,PET.y-H-12-Math.sin(u*6)*2,Math.min(1,u*5)*34);}
+  // little extras for both modes
+  if(s==='special'&&def.special==='sleep'){ctx.save();ctx.font='700 13px Mali, sans-serif';ctx.fillStyle='#5a7bd8';ctx.strokeStyle='#fff';ctx.lineWidth=3;
+    for(let i=0;i<3;i++){const u=(t*.6+i/3)%1;ctx.globalAlpha=1-u;const zx=PET.x+H*.25+u*14,zy=PET.y-H-4-u*26;ctx.strokeText('z',zx,zy);ctx.fillText('z',zx,zy);}ctx.restore();}
+  if(s==='special'&&def.special==='groom'&&PET.mode!=='frames'){ctx.save();ctx.fillStyle='#ffcc33';for(let i=0;i<2;i++){const u=(t*.8+i/2)%1;ctx.globalAlpha=1-u;
+    const sx2=PET.x+PET.face*H*.3+Math.sin(i*3)*6,sy2=PET.y-H*.5-u*16;ctx.beginPath();for(let k=0;k<4;k++){const a=k*Math.PI/2;ctx.lineTo(sx2+Math.cos(a)*5,sy2+Math.sin(a)*5);ctx.lineTo(sx2+Math.cos(a+.78)*2,sy2+Math.sin(a+.78)*2);}ctx.fill();}ctx.restore();}}
+// pet panel (only at home)
+function buildPetPanel(){const box=$('petPanel');box.innerHTML='';
+  const sec=(title,opts,cur,on)=>{const h=document.createElement('div');h.className='petLbl';h.textContent=title;box.appendChild(h);const row=document.createElement('div');row.className='petRow';
+    opts.forEach(([v,l])=>{const b=document.createElement('button');b.textContent=l;if(v===cur)b.classList.add('on');b.onclick=e=>{e.stopPropagation();on(v);buildPetPanel();};row.appendChild(b);});box.appendChild(row);};
+  sec('Pet',[['calico_cat','🐱 Calico Cat'],['sloth','🦥 Sloth'],[null,'None']],PET.id,v=>{PET.id=v;PET.placed=false;lsSet('sw_pet',v);});
+  sec('Show it with',[['frames','Drawn frames'],['code','Code animation']],PET.mode,v=>{PET.mode=v;lsSet('sw_petmode',v);});
+  sec('Try',[['eat','🍖 Feed'],['love','❤️ Love'],['special','💤 Own action']],null,v=>{petAction(v);});
+  const x=document.createElement('button');x.className='hideX petX';x.innerHTML='<i class="ic" data-ic="close">✕</i>';x.onclick=e=>{e.stopPropagation();box.style.display='none';};box.appendChild(x);applyIcons(box);}
 
 // ---------- buttons / keys ----------
 function pressJump(){if(playerLocked())return;startJump(P);}
