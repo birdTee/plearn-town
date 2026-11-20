@@ -807,13 +807,40 @@ function homeRoad(){if(HOME_ROAD)return HOME_ROAD;const k=2,W0=Math.ceil(HOME.W/
 const HEDGE=[[85,1],[250,.9],[800,.95],[965,1.05]];
 function drawHedgeTops(){const o=homeProps().find(o=>o.n==='bushL');if(!o)return;for(const [x,k] of HEDGE){const w=181*HK*k,h=174*HK*k;ctx.drawImage(o.im,x*HK-w/2,HOME.RH+18*HK-h*.62,w,h);}}
 // signpost on the far side of the road: the way up goes to Mayfair Market
-function drawMarketSign(){const x=517*HK+70,y=186*RK,k=S.scale/0.7;ctx.save();ctx.font=`700 ${13*k}px Mali, system-ui, sans-serif`;
-  ctx.fillStyle='rgba(0,0,0,.18)';ctx.beginPath();ctx.ellipse(x,y+2,14*k,4*k,0,0,7);ctx.fill();
-  ctx.fillStyle='#9a6a3c';ctx.strokeStyle='#3b2a1a';ctx.lineWidth=2.5;ctx.fillRect(x-3*k,y-58*k,6*k,58*k);ctx.strokeRect(x-3*k,y-58*k,6*k,58*k);
-  ctx.font=`700 ${13*k}px Mali, system-ui, sans-serif`;const t='Mayfair Market',tw=ctx.measureText(t).width,bw=tw+38*k,bh=26*k,bx=x-bw/2,by=y-74*k;
-  ctx.fillStyle='#fffaf0';rr(bx,by,bw,bh,9*k);ctx.fill();ctx.stroke();
-  ctx.fillStyle='#e8483f';ctx.beginPath();const ax=bx+13*k,ay=by+bh/2;ctx.moveTo(ax,ay-8*k);ctx.lineTo(ax+7*k,ay+1*k);ctx.lineTo(ax+2.5*k,ay+1*k);ctx.lineTo(ax+2.5*k,ay+8*k);ctx.lineTo(ax-2.5*k,ay+8*k);ctx.lineTo(ax-2.5*k,ay+1*k);ctx.lineTo(ax-7*k,ay+1*k);ctx.closePath();ctx.fill();
-  ctx.fillStyle='#3b2a1a';ctx.textBaseline='middle';ctx.textAlign='left';ctx.fillText(t,bx+24*k,by+bh/2+1);ctx.restore();}
+// ---- wooden signposts in the same cartoon style as the rest of the town (thick brown outline, soft wood shading) ----
+const SG_OUT='#4a2414';
+function woodBoard(x,y,w,h,k){const g=ctx.createLinearGradient(0,y,0,y+h);g.addColorStop(0,'#f2c27a');g.addColorStop(.55,'#dfa25a');g.addColorStop(1,'#c4823f');
+  ctx.fillStyle=g;rr(x,y,w,h,8*k);ctx.fill();
+  ctx.save();rr(x,y,w,h,8*k);ctx.clip();ctx.strokeStyle='rgba(122,70,28,.35)';ctx.lineWidth=1.6*k;           // planks + wood grain
+  for(const f of [.36,.68]){ctx.beginPath();ctx.moveTo(x,y+h*f);ctx.lineTo(x+w,y+h*f);ctx.stroke();}
+  ctx.strokeStyle='rgba(122,70,28,.18)';for(let i=0;i<5;i++){const yy=y+h*(.15+i*.17),xx=x+w*((i*37)%100)/100;ctx.beginPath();ctx.moveTo(xx,yy);ctx.quadraticCurveTo(xx+10*k,yy-2*k,xx+22*k,yy);ctx.stroke();}
+  ctx.fillStyle='rgba(255,240,200,.55)';rr(x+5*k,y+3*k,w-10*k,4*k,2*k);ctx.fill();ctx.restore();
+  ctx.lineWidth=3.2*k;ctx.strokeStyle=SG_OUT;rr(x,y,w,h,8*k);ctx.stroke();
+  ctx.fillStyle='#8a5a2b';for(const [nx,ny] of [[x+7*k,y+h/2],[x+w-7*k,y+h/2]]){ctx.beginPath();ctx.arc(nx,ny,2.2*k,0,7);ctx.fill();}}   // nails
+function woodPost(x,top,bot,k){const w=9*k,g=ctx.createLinearGradient(x-w/2,0,x+w/2,0);g.addColorStop(0,'#c98a45');g.addColorStop(.5,'#a8682f');g.addColorStop(1,'#87511f');
+  ctx.fillStyle=g;rr(x-w/2,top,w,bot-top,3*k);ctx.fill();ctx.lineWidth=3*k;ctx.strokeStyle=SG_OUT;rr(x-w/2,top,w,bot-top,3*k);ctx.stroke();}
+function signTuft(x,y,k){ctx.save();ctx.fillStyle='#6cc04a';ctx.strokeStyle='#3f7a2a';ctx.lineWidth=1.6*k;
+  for(const [dx,h,r] of [[-9,10,-.4],[-3,14,-.1],[4,12,.2],[10,8,.5]]){ctx.save();ctx.translate(x+dx*k,y);ctx.rotate(r);ctx.beginPath();ctx.moveTo(-2.5*k,0);ctx.quadraticCurveTo(0,-h*k,2.5*k,0);ctx.closePath();ctx.fill();ctx.stroke();ctx.restore();}
+  ctx.fillStyle='#ff8fb0';ctx.beginPath();ctx.arc(x+13*k,y-6*k,3*k,0,7);ctx.fill();ctx.fillStyle='#ffe066';ctx.beginPath();ctx.arc(x+13*k,y-6*k,1.3*k,0,7);ctx.fill();ctx.restore();}
+function signText(t,x,y,k,size){ctx.font=`700 ${size*k}px Mali, system-ui, sans-serif`;ctx.textAlign='left';ctx.textBaseline='middle';ctx.lineJoin='round';
+  ctx.lineWidth=4*k;ctx.strokeStyle='#fff3d6';ctx.strokeText(t,x,y);ctx.fillStyle='#4a2414';ctx.fillText(t,x,y);}
+function arrowIcon(cx,cy,k,dir){ctx.save();ctx.translate(cx,cy);ctx.rotate(dir==='down'?Math.PI:0);ctx.beginPath();
+  ctx.moveTo(0,-9*k);ctx.lineTo(8*k,0);ctx.lineTo(3*k,0);ctx.lineTo(3*k,8*k);ctx.lineTo(-3*k,8*k);ctx.lineTo(-3*k,0);ctx.lineTo(-8*k,0);ctx.closePath();
+  ctx.fillStyle='#e8483f';ctx.fill();ctx.lineWidth=2.2*k;ctx.strokeStyle=SG_OUT;ctx.stroke();ctx.restore();}
+function houseIcon(cx,cy,k){ctx.save();ctx.lineJoin='round';ctx.lineWidth=2.2*k;ctx.strokeStyle=SG_OUT;
+  ctx.fillStyle='#fff3d6';ctx.fillRect(cx-7*k,cy-1*k,14*k,10*k);ctx.strokeRect(cx-7*k,cy-1*k,14*k,10*k);
+  ctx.fillStyle='#e8483f';ctx.beginPath();ctx.moveTo(cx-10*k,cy);ctx.lineTo(cx,cy-10*k);ctx.lineTo(cx+10*k,cy);ctx.closePath();ctx.fill();ctx.stroke();
+  ctx.fillStyle='#8a5a2b';ctx.fillRect(cx-2.2*k,cy+3*k,4.4*k,6*k);ctx.restore();}
+function basketIcon(cx,cy,k){ctx.save();ctx.lineJoin='round';ctx.lineWidth=2.2*k;ctx.strokeStyle=SG_OUT;
+  ctx.beginPath();ctx.arc(cx,cy-2*k,6.5*k,Math.PI,0);ctx.stroke();
+  ctx.fillStyle='#f0a64a';ctx.beginPath();ctx.moveTo(cx-10*k,cy-2*k);ctx.lineTo(cx+10*k,cy-2*k);ctx.lineTo(cx+7*k,cy+8*k);ctx.lineTo(cx-7*k,cy+8*k);ctx.closePath();ctx.fill();ctx.stroke();
+  ctx.fillStyle='#e8483f';ctx.beginPath();ctx.arc(cx-3*k,cy-3*k,3*k,0,7);ctx.fill();ctx.fillStyle='#7cc04a';ctx.beginPath();ctx.arc(cx+3.5*k,cy-3.5*k,2.8*k,0,7);ctx.fill();ctx.restore();}
+function drawMarketSign(){const x=517*HK+70,y=186*RK,k=S.scale/0.7;ctx.save();
+  ctx.fillStyle='rgba(0,0,0,.2)';ctx.beginPath();ctx.ellipse(x,y+2,18*k,5*k,0,0,7);ctx.fill();
+  woodPost(x,y-62*k,y+2*k,k);
+  ctx.font=`700 ${13*k}px Mali, system-ui, sans-serif`;const t='Mayfair Market',tw=ctx.measureText(t).width,bw=tw+66*k,bh=30*k,bx=x-bw/2,by=y-82*k;
+  woodBoard(bx,by,bw,bh,k);arrowIcon(bx+16*k,by+bh/2,k,'up');basketIcon(bx+bw-18*k,by+bh/2,k);signText(t,bx+29*k,by+bh/2+1,k,13);
+  signTuft(x,y+1,k);ctx.restore();}
 function leaveHomeNow(){if(MAPID!=='home')return;MAPID='school';P.x=WORLD_W/2;P.y=WORLD_H-TILE*1.3;app.classList.remove('atHome');}
 function goMap(id){if(mapBusy||MAPID===id)return;mapBusy=true;const f=$('fade');f.classList.add('on');
   setTimeout(()=>{if(id==='home'){MAPID='home';P.x=HOME.spawn.x;P.y=HOME.spawn.y;P.dir='down';FOOD.length=0;PETS.forEach(p=>p.placed=false);}
@@ -827,11 +854,12 @@ function checkPortals(vy){doorCheck();if(MG.on||mapBusy)return;
   if(MAPID==='school'&&vy>0&&P.y>=WORLD_H-TILE*.6-2&&Math.abs(P.x-WORLD_W/2)<ROAD_HALF)goMap('home');
   else if(MAPID==='home'&&vy<0&&P.y<=HOME.minY+2)goMap('school');}
 function drawHomeSign(){   // at the bottom of the road: "Home" sign with a little house
-  const x=WORLD_W/2,y=WORLD_H-62;ctx.save();ctx.fillStyle='rgba(0,0,0,.18)';ctx.beginPath();ctx.ellipse(x,y+30,34,8,0,0,7);ctx.fill();
-  ctx.fillStyle='#fffaf0';ctx.strokeStyle='#3b2a1a';ctx.lineWidth=3;rr(x-52,y-18,104,36,18);ctx.fill();ctx.stroke();
-  ctx.fillStyle='#e8483f';ctx.beginPath();ctx.moveTo(x-38,y);ctx.lineTo(x-28,y-10);ctx.lineTo(x-18,y);ctx.closePath();ctx.fill();ctx.stroke();
-  ctx.fillStyle='#ffcc33';ctx.fillRect(x-35,y,14,9);ctx.strokeRect(x-35,y,14,9);
-  ctx.fillStyle='#3b2a1a';ctx.font='700 15px Mali, sans-serif';ctx.textAlign='left';ctx.textBaseline='middle';ctx.fillText('Home ↓',x-12,y+1);ctx.restore();}
+  const x=WORLD_W/2,y=WORLD_H-48,k=1;ctx.save();
+  ctx.fillStyle='rgba(0,0,0,.2)';ctx.beginPath();ctx.ellipse(x,y+14,58,9,0,0,7);ctx.fill();
+  woodPost(x-38,y-30,y+14,k);woodPost(x+38,y-30,y+14,k);
+  const bw=120,bh=36,bx=x-bw/2,by=y-44;woodBoard(bx,by,bw,bh,k);
+  houseIcon(bx+20,by+bh/2+1,k);signText('Home',bx+36,by+bh/2+1,k,16);arrowIcon(bx+bw-16,by+bh/2,k,'down');
+  signTuft(x-38,y+14,k);signTuft(x+38,y+14,k);ctx.restore();}
 const OBST=[];                                        // fixed things: trees, fountain, sign posts
 trees.forEach(t=>OBST.push({x:t[0],y:t[1]-4,rx:22,ry:12}));
 bushes.forEach(b=>OBST.push(b.big?{x:b.x,y:b.y-4,rx:36,ry:16}:{x:b.x,y:b.y-3,rx:22,ry:11,low:true}));
