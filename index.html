@@ -4,6 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,interactive-widget=overlays-content">
 <title>Plearn Town</title>
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="theme-color" content="#8fd3f4">
+<link rel="preload" as="image" href="logo.webp" fetchpriority="high">
 <link href="https://fonts.googleapis.com/css2?family=Mali:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
   html,body{-webkit-touch-callout:none;margin:0;height:100%;overflow:hidden;background:#1d2b1f;font-family:'Mali',system-ui,sans-serif;touch-action:none;user-select:none;-webkit-user-select:none}
@@ -184,6 +188,27 @@
 </style>
 </head>
 <body>
+<div id="splash"><div class="spIn"><img id="spLogo" src="logo.webp" alt="Plearn Town"><div class="spBar"><i id="spFill"></i></div></div></div>
+<style>
+  #splash{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;
+    background:radial-gradient(circle at 50% 42%,#fffbe8 0,#d9f1ff 45%,#8fd3f4 100%);transition:opacity .5s ease}
+  #splash.out{opacity:0;pointer-events:none}
+  #splash .spIn{display:flex;flex-direction:column;align-items:center;gap:min(4vh,28px);width:100%}
+  #spLogo{width:min(78vw,96vh,620px);height:auto;max-height:72vh;object-fit:contain;
+    filter:drop-shadow(0 8px 18px rgba(30,80,130,.25));animation:spPop .7s cubic-bezier(.3,1.6,.5,1) both,spBob 2.4s ease-in-out .7s infinite}
+  .spBar{width:min(46vw,260px);height:12px;border-radius:8px;background:rgba(255,255,255,.75);box-shadow:inset 0 0 0 2px #fff,0 2px 6px rgba(30,80,130,.18);overflow:hidden}
+  #spFill{display:block;height:100%;width:8%;border-radius:8px;background:linear-gradient(90deg,#ffcf1f,#ff9f1c);transition:width .3s ease}
+  @keyframes spPop{from{transform:scale(.6);opacity:0}to{transform:scale(1);opacity:1}}
+  @keyframes spBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+</style>
+<script>
+(function(){const t0=Date.now();let p=8;
+  const tick=()=>{const done=window.ready===true||(typeof ready!=='undefined'&&ready);
+    p=done?100:Math.min(92,p+(92-p)*.06);const f=document.getElementById('spFill');if(f)f.style.width=p+'%';
+    if(done&&Date.now()-t0>2200){setTimeout(()=>{const s=document.getElementById('splash');s.classList.add('out');setTimeout(()=>s.remove(),600);},350);return;}
+    setTimeout(tick,120);};
+  setTimeout(tick,120);})();
+</script>
 <div id="app">
 <canvas id="c"></canvas>
 <div id="joy" aria-label="Move joystick"><div id="knob"></div></div>
