@@ -90,7 +90,7 @@
   .actB small{font-size:10px;opacity:.8;font-weight:500}.touch .actB small{display:none}
   .actB.jump{width:92px;height:92px;background:#3fa9f5;font-size:17px}.actB.tag{width:74px;height:74px;background:#e8483f;font-size:16px;margin-bottom:34px}
   .actB:active{transform:translateY(3px);box-shadow:0 2px 0 rgba(0,0,0,.25)}
-  .actB.tag.frz{background:#14a6c9}.actB.tag.save{background:#2fb35a}.actB.tag.off{background:#9aa4ad;opacity:.75}.actB.tag.bite{background:#6a9a3a}
+  .actB.tag.frz{background:#14a6c9}.actB.tag.stink{background:#8a9a2a}.actB.tag.peel{background:#f2b705;color:#5a3d00;text-shadow:none}.actB.tag.save{background:#2fb35a}.actB.tag.off{background:#9aa4ad;opacity:.75}.actB.tag.bite{background:#6a9a3a}
   .hudOpen #actBtns,.hudOpen .mgBtn{display:none}
   #chatBtns{position:absolute;right:22px;bottom:128px;display:flex;gap:10px;z-index:3}
   .smB{width:54px;height:54px;border:0;border-radius:50%;background:#fffaf0;box-shadow:0 4px 0 #e7d7b8,0 6px 12px rgba(0,0,0,.2);font-size:26px;display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;padding:0}
@@ -175,7 +175,7 @@
   .mgPanel{position:absolute;inset:0;z-index:6;background:rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center}
   .mgBox{width:min(440px,92%);max-height:calc(var(--ah) - 30px);overflow:auto;background:#fffaf0;border-radius:22px;padding:14px 16px;color:#3b2a1a;box-shadow:0 6px 0 #e7d7b8}
   .mgHead{display:flex;justify-content:space-between;align-items:center;font-size:18px;margin-bottom:8px}
-  .mgGames{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .mgGames{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.mgBox:has(.mgGames[style*=grid]){width:min(640px,94%)}@media (max-width:620px){.mgGames{grid-template-columns:repeat(2,1fr)}}
   .mgGame{border:2px solid #f0c98b;background:#fff;border-radius:16px;padding:10px 6px;font:inherit;color:#3b2a1a;cursor:pointer;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:flex-start}
   .mgGame b{display:flex;align-items:center;justify-content:center;height:50px;font-size:30px}.mgGame span{display:flex;align-items:center;justify-content:center;height:2.5em;line-height:1.15;font-size:13px;font-weight:700}.mgGame small{display:block;font-size:11px;line-height:1.3;opacity:.75}
   .mgSub{font-size:13px;margin-bottom:6px}.mgList{display:flex;flex-direction:column;gap:6px}
@@ -845,7 +845,8 @@ function hitAt(a,x,y){const rx=FOOT_RX*S.scale,ry=FOOT_RY*S.scale,air=(a.z||0)>A
   for(const o of OBST){if(o.low&&air)continue;const v=overlap(x,y,rx,ry,o,o.rx,o.ry);if(v<1&&v<overlap(a.x,a.y,rx,ry,o,o.rx,o.ry))return o.low?'low':'thing';}
   if(!air&&y>BG_H)for(const cx of CURB_X){const R=rx*.45,dn=Math.abs(x-cx),d0=Math.abs(a.x-cx);if((dn<R&&dn<d0)||(x-cx)*(a.x-cx)<0)return 'curb';}
   const people=[P,...NPCS.filter(n=>(npcsOn()||n.mg)&&!(MG.on&&MG.mode==='hide'&&!n.mg)),...[...REMOTE.values()].filter(r=>!(MG.on&&MG.mode==='hide'&&!r.mg))];   // during hide & seek only players are on the field
-  for(const o of people){if(o===a||!sameMap(o))continue;const v=overlap(x,y,rx,ry,o,rx,ry);if(v<1&&v<overlap(a.x,a.y,rx,ry,o,rx,ry))return 'person';}
+  const thru=MG.on&&MG.mode==='freeze'&&a.mg&&a.role==='run';
+  for(const o of people){if(o===a||!sameMap(o))continue;if(thru&&o.frozen)continue;const v=overlap(x,y,rx,ry,o,rx,ry);if(v<1&&v<overlap(a.x,a.y,rx,ry,o,rx,ry))return 'person';}
   return null;}
 // try to move; slide along trees/fountain, but stop dead against a person
 function tryMove(a,nx,ny){const h=hitAt(a,nx,ny);if(!h){a.x=nx;a.y=ny;return true;}
@@ -916,6 +917,7 @@ function loop(now){const dt=Math.min(.05,(now-last)/1000);last=now;
   if(P.moving){vx/=len;vy/=len;
     const nd=DIRS[((Math.round(Math.atan2(vy,vx)/(Math.PI/4))%8)+8)%8];if(nd!==P.dir){P.dir=nd;drawStrip();}
     if(MG.on&&MG.mode==='zombie'&&P.role==='zombie')spdK*=zombieK();
+    if(MG.on&&MG.mode==='stinky'&&P.mg&&P.role==='stinky')spdK*=STINKY_K;
     if(MAPID==='home'){const wx=1024*HK+12,dy0=HOME.RH+725*HK;if(Math.abs(vx)>Math.abs(vy)&&Math.abs(P.x-wx)<55&&Math.abs(P.y-dy0)<70)P.y+=(dy0-P.y)*Math.min(1,dt*7);}
     const moved=tryMove(P,clamp(P.x+vx*S.speed*spdK*dt,TILE,mapW()-TILE),clamp(P.y+vy*S.speed*spdK*dt,mapMinY(),mapH()-(MAPID==='home'?30:TILE*.6)));
     checkPortals(vy);
@@ -942,6 +944,7 @@ function loop(now){const dt=Math.min(.05,(now-last)/1000);last=now;
   NPCS.forEach(n=>{if(npcsOn()||n.mg)items.push({y:n.y,d:()=>drawActor(n,false)});});}
   REMOTE.forEach(a=>{if(sameMap(a))items.push({y:a.y,d:()=>drawActor(a,false)});});
   if(MAPID==='home'){items.push({y:186*RK,d:drawMarketSign});(FURN||[]).forEach(f=>items.push({y:f.y,d:()=>drawFurn(f)}));drawFood();drawPoops((y,d)=>items.push({y,d}));petsHere().forEach(p=>items.push({y:p.y,d:()=>drawPet(p)}));homeProps().forEach(o=>items.push({y:o.base,d:()=>drawProp(o,dt)}));}
+  if(MG.on&&MG.mode==='stinky'&&MAPID==='school')(MG.peels||[]).forEach(q=>items.push({y:q.y-6,d:()=>drawPeel(q)}));
   items.push({y:P.y,d:()=>drawActor(P,true)});
   items.sort((a,b)=>a.y-b.y).forEach(i=>i.d());
   ctx.restore();
@@ -987,11 +990,15 @@ function drawActor(a,isPlayer){if(hiddenForMe(a))return;const CH=charFor(a);
   if(!ready||!variant(CH))return;
   let img,fi;const vb=variant(CH);if(a.biteUntil>performance.now()&&vb&&vb.bite){img=IS_LEFT[a.dir]?vb.biteL:vb.bite;fi=IDLE_IDX[a.dir];}else if(z>2||a.frozen){const f=actFrame(CH,a.dir);img=f.img;fi=f.fi;}else if(a.moving){img=sheet(CH,a.dir).img;fi=a.frame;}else{const id=idleFrame(CH,a.dir);img=id.img;fi=id.fi;}
   if(!img)return;
+  const stinky=MG.on&&a.mg&&MG.mode==='stinky'&&a.role==='stinky',slip=a.slipT>0;
+  if(slip){ctx.save();ctx.translate(a.x,a.y);ctx.rotate(Math.sin(performance.now()/40)*.35);ctx.translate(-a.x,-a.y);}
   const tint=a.frozen?'rgba(110,190,255,.35)':(MG.on&&a.mg&&MG.mode==='zombie'&&a.role==='zombie'&&CH===a.char?'rgba(90,200,80,.42)':null);
   ctx.globalAlpha=alpha;
   if(tint){const c=tinted(img,fi,tint,CH+(IS_LEFT[a.dir]?'L':'')+(z>2||a.frozen?'A':(a.moving?a.dir:'I')));ctx.drawImage(c,0,0,FRAME_W,FRAME_H,a.x-w/2,a.y-h+3*S.scale*DRAW*2-z,w,h);}
   else ctx.drawImage(img,fi*FRAME_W,0,FRAME_W,FRAME_H,a.x-w/2,a.y-h+3*S.scale*DRAW*2-z,w,h);
   if(a.frozen)drawIce(a,w,h);
+  if(slip)ctx.restore();
+  if(stinky)drawStink(a,h);
   drawName(a,a.x,a.y-h+h*0.24-z,isPlayer);ctx.globalAlpha=1;
   if(a.pop&&a.pop.t<0.7){const k=a.pop.t/0.7;ctx.font='700 16px Mali, sans-serif';ctx.textAlign='center';ctx.lineWidth=4;ctx.strokeStyle='#fff';ctx.strokeText(a.pop.txt,a.x,a.y-h*0.95-z-k*18);ctx.fillStyle='#e8483f';ctx.fillText(a.pop.txt,a.x,a.y-h*0.95-z-k*18);}
 }
@@ -999,7 +1006,7 @@ const dist=(a,b)=>Math.hypot(a.x-b.x,(a.y-b.y)*1.3);
 function nearCover(a){for(const b of bushes)if(Math.hypot(a.x-b.x,a.y-b.y)<(b.big?75:55))return true;for(const t of trees)if(Math.hypot(a.x-t[0],a.y-t[1])<60)return true;return false;}
 
 // team marker: coloured ring under the feet (red = chasers / zombies green / seekers yellow, blue = runners)
-function teamRing(a){const ch=isChaser(a);let c=ch?'#ff4d4d':'#3fa9f5';if(MG.mode==='zombie'&&ch)c='#4ccf4c';if(MG.mode==='hide'&&ch)c='#ffd84a';if(a.found)c='#999';
+function teamRing(a){const ch=isChaser(a);let c=ch?'#ff4d4d':'#3fa9f5';if(MG.mode==='zombie'&&ch)c='#4ccf4c';if(MG.mode==='stinky'&&ch)c='#8a9a2a';if(MG.mode==='hide'&&ch)c='#ffd84a';if(a.found)c='#999';
   const rx=26*S.scale/0.7,ry=10*S.scale/0.7;ctx.save();ctx.lineWidth=4;ctx.strokeStyle=c;ctx.globalAlpha=.9;ctx.beginPath();ctx.ellipse(a.x,a.y-2,rx,ry,0,0,7);ctx.stroke();
   ctx.globalAlpha=.25;ctx.fillStyle=c;ctx.fill();ctx.restore();}
 // frozen: the kid inside a block of ice (like the reference: clear blue block, white edges, shine streaks, cracks, puddle)
@@ -1038,27 +1045,33 @@ function inFlash(s,h){const dx=h.x-s.x,dy=(h.y-30)-(s.y-30-(s.z||0));const d=Mat
 
 // ---------- tag ----------
 const TAG_R=()=>80*S.scale/0.7;
-function doTag(a){if(a.tagCd>0||a.frozen||a.found)return;a.tagCd=.45;const zb=charFor(a).startsWith('zombie');a.pop={txt:zb?'Chomp!':'Tag!',t:0};if(zb)a.biteUntil=performance.now()+380;
+function doTag(a,quiet){if(MG.on&&a.mg&&MG.mode==='stinky'&&a.role==='clean'&&MG.phase==='play'){dropPeelReq(a);return;}
+  if(!quiet){if(a.tagCd>0||a.frozen||a.found)return;a.tagCd=.45;}const zb=charFor(a).startsWith('zombie');if(!quiet){a.pop={txt:zb?'Chomp!':MG.on&&MG.mode==='freeze'&&a.role==='run'?'Save!':'Tag!',t:0};if(zb)a.biteUntil=performance.now()+380;}
   if(!MG.on||MG.phase!=='play'||!a.mg)return;
-  let best=null,bd=TAG_R();
+  let best=null,bd=tagRange(a);
   for(const b of MG.players){if(b===a)continue;const d=dist(a,b);if(d>bd)continue;if(canTag(a,b)){best=b;bd=d;}}
-  if(!best)return;
+  if(!best){if(a===P&&!quiet&&MG.mode==='freeze'&&a.role==='run')P.saveArm=.8;return;}
+  if(a===P)P.saveArm=0;
   if(MG.online&&!MG.isHost&&a===P){NET.tg={to:idOf(best),k:++NET.k};NET.sendT=0;return;}   // the host decides
   if(MG.online&&MG.isHost&&a===P){NET.tg={to:idOf(best),k:++NET.k};NET.sendT=0;}
   applyTag(a,best);}
-function isChaser(a){return a.role==='it'||a.role==='zombie'||a.role==='seeker';}
+function isChaser(a){return a.role==='it'||a.role==='zombie'||a.role==='seeker'||a.role==='stinky';}
 // Freeze / Zombie Tag: chasers wait 3 s after Go! so runners can scatter first
 const GAME_T=45,SEEK_T=0;   // every mini-game lasts 45 s; Hide & Seek seekers keep their eyes closed for the first 3 s
 function zombieK(){if(window.ZK_FIX)return window.ZK_FIX;return .8;}   // zombies run at 0.8x a kid's speed   // zombie speed vs a normal walker, tuned by simulation so about half the games are won by zombies: 4 players .90, 7 .80, 10 .70, 13 .60
 const HEAD=5;   // head start: runners run right away, chasers wait 5 s
 const inGrace=a=>MG.on&&MG.phase==='count'&&isChaser(a);
+// how far a tag reaches: saving a frozen friend works from further away, so you can save while running past
+const tagRange=a=>MG.on&&MG.mode==='freeze'&&a.role==='run'?TAG_R()*1.9:TAG_R();
 function canTag(a,b){if(MG.phase!=='play'||inGrace(a))return false;if(MG.mode==='freeze'){if(a.role==='it')return b.role==='run'&&!b.frozen;return a.role==='run'&&b.role==='run'&&b.frozen;}
   if(MG.mode==='zombie')return a.role==='zombie'&&b.role==='human';
+  if(MG.mode==='stinky')return a.role==='stinky'&&!(a.itGrace>0)&&!(a.slipT>0)&&b.role==='clean';
   if(MG.mode==='hide')return false;   /* caught by the light, not by tagging */
   return false;}
 function applyTag(a,b){
   if(MG.mode==='freeze'){if(a.role==='it'){b.frozen=true;b.moving=false;b.jt=null;b.z=0;b.pop={txt:'Frozen!',t:0};}else{b.frozen=false;b.pop={txt:'Saved!',t:0};}}
   else if(MG.mode==='zombie'){b.role='zombie';b.pop={txt:'Zombie!',t:0};}
+  else if(MG.mode==='stinky'){a.role='clean';b.role='stinky';b.itGrace=1.5;b.moving=false;b.pop={txt:'Ewww! 🦨',t:0};a.pop={txt:'Phew!',t:0};a.peelCd=0;}
   else if(MG.mode==='hide'){b.found=true;b.moving=false;b.pop={txt:'Found!',t:0};}
   checkEnd();}
 
@@ -1069,7 +1082,8 @@ const NPC_NAMES=['Kla','Toey','Prang','Namsai','Phupha','Hom','Fahsai','Khao','C
 const MGAMES={
   freeze:{icon:'<i class="ic" data-ic="freezeLogo">❄️</i>',name:'Freeze Tag',desc:'🔥 Chasers tag you → you freeze 🧊<br>🏃 Runners tag frozen friends → saved!<br>Chasers win only if EVERYONE is frozen'},
   hide:{icon:'<i class="ic" data-ic="hide">🙈</i>',name:'Hide & Seek',desc:'🙈 Hiders hide in the dark<br>🔦 Seekers shine a light to find them<br>Seekers win if they find EVERYONE'},
-  zombie:{icon:'<i class="ic" data-ic="zombie">🧟</i>',name:'Zombie Tag',desc:'🧟 Zombies bite humans → they become zombies<br>🏃 Humans run until time is up<br>Humans win if ANYONE is left'}};
+  zombie:{icon:'<i class="ic" data-ic="zombie">🧟</i>',name:'Zombie Tag',desc:'🧟 Zombies bite humans → they become zombies<br>🏃 Humans run until time is up<br>Humans win if ANYONE is left'},
+  stinky:{icon:'<i class="ic" data-ic="stink">🦨</i>',name:'Stinky Tag',desc:'🦨 Stinky runs a bit faster<br>👋 Tag someone → THEY get the stink!<br>🍌 Runners drop banana peels to make Stinky slip<br>Don\'t be Stinky when time runs out'}};
 const MG={on:false,phase:'',mode:'',players:[],t:0,seekT:0,seekerIsP:false,joinTimers:[]};
 const mgPanel=$('mgPanel');
 function mgOpen(){if(MG.on)return;mgPanel.style.display='flex';$('mgTitle').textContent='Mini-games · '+GAME_T+' seconds';$('mgPick').style.display='grid';$('mgLobby').style.display='none';$('mgEnd').style.display='none';
@@ -1104,31 +1118,33 @@ $('mgBtn').onclick=mgOpen;$('mgClose').onclick=()=>{if(MG.phase==='end')mgFinish
 $('mgAgain').onclick=()=>{mgFinish();mgOpen();mgLobby(MG.mode);};$('mgDone').onclick=()=>{mgFinish();mgClose();};
 function mgStart(){leaveHomeNow();mgClose();if(MG.online&&MG.isHost)mgList();const ps=[P,...MG.joined,...(MG.online&&MG.isHost?MG.bots||[]:[])];MG.players=ps;MG.on=true;MG.phase='count';MG.t=HEAD;MG.seekT=0;MG.win=null;
   // everyone starts from where they are standing now
-  ps.forEach(p=>{p.mg=true;p.frozen=false;p.found=false;p.tagCd=0;p.jt=null;p.z=0;p.target=null;p.moving=false;});
-  // random teams: freeze tag = half chasers / half runners; hide & seek and zombie = 1/3 seekers/zombies (rounded down, at least 1)
-  const sh=[...ps].sort(()=>Math.random()-.5);const nCh=MG.mode==='freeze'?Math.max(1,Math.floor(ps.length/2)):Math.max(1,Math.floor(ps.length/3));
+  MG.peels=[];ps.forEach(p=>{p.mg=true;p.frozen=false;p.found=false;p.tagCd=0;p.jt=null;p.z=0;p.target=null;p.moving=false;});
+  // random teams: every game has 1/3 chasers (rounded down, at least 1)
+  const sh=[...ps].sort(()=>Math.random()-.5);const nCh=Math.max(1,Math.floor(ps.length/3));
   const chasers=new Set(sh.slice(0,nCh));
-  ps.forEach(p=>{const c=chasers.has(p);p.role=MG.mode==='freeze'?(c?'it':'run'):MG.mode==='zombie'?(c?'zombie':'human'):(c?'seeker':'hider');p.hideSpot=null;});
+  ps.forEach(p=>{const c=chasers.has(p);p.role=MG.mode==='freeze'?(c?'it':'run'):MG.mode==='zombie'?(c?'zombie':'human'):MG.mode==='stinky'?(c?'stinky':'clean'):(c?'seeker':'hider');p.hideSpot=null;p.slipT=0;p.itGrace=0;p.peelCd=0;p.saveArm=0;});
   MG.seekerIsP=(MG.mode==='hide'&&P.role==='seeker');
   if(MG.online&&MG.isHost){NET.g=hostState();NET.sendT=0;}
   $('mgHud').style.display='block';$('mgBtn').style.display='none';mgHudUpdate();}
-function roleText(a){return {it:'You are a CHASER <i class="ic" data-ic="fire">🔥</i> Press ❄️ Freeze! near a runner. Freeze everyone to win!',run:'You are a RUNNER <i class="ic" data-ic="run">🏃</i> Don\'t get tagged! Press 🤝 Save! near a frozen friend',zombie:'You are a ZOMBIE <i class="ic" data-ic="zombie">🧟</i> Press Bite! near a human to make a new zombie',human:'You are a HUMAN <i class="ic" data-ic="run">🏃</i> Run from the zombies until time is up!',seeker:'You are a SEEKER <i class="ic" data-ic="flash">🔦</i> Shine your light on hiders to find them',hider:'You are a HIDER <i class="ic" data-ic="hide">🙈</i> Hide in the dark – stay out of the light!'}[a.role]||'';}
+function roleText(a){return {it:'You are a CHASER <i class="ic" data-ic="fire">🔥</i> Press ❄️ Freeze! near a runner. Freeze everyone to win!',run:'You are a RUNNER <i class="ic" data-ic="run">🏃</i> Don\'t get tagged! Press 🤝 Save! near a frozen friend',zombie:'You are a ZOMBIE <i class="ic" data-ic="zombie">🧟</i> Press Bite! near a human to make a new zombie',human:'You are a HUMAN <i class="ic" data-ic="run">🏃</i> Run from the zombies until time is up!',seeker:'You are a SEEKER <i class="ic" data-ic="flash">🔦</i> Shine your light on hiders to find them',stinky:'You are STINKY <i class="ic" data-ic="stink">🦨</i> Tag someone to pass the stink! You run a bit faster',clean:'Run from Stinky! <i class="ic" data-ic="run">🏃</i> Press 🍌 Peel to drop a banana peel',hider:'You are a HIDER <i class="ic" data-ic="hide">🙈</i> Hide in the dark – stay out of the light!'}[a.role]||'';}
 // the action button says what it does right now (changes with the game and your role)
-const TAG_BTN={tag:['tag','👋','Tag',''],freeze:['freeze','❄️','Freeze!','frz'],save:['hello','🤝','Save!','save'],frozen:['freeze','🧊','Frozen','off'],bite:['bite','🧟','Bite!','bite'],none:null};
+const TAG_BTN={tag:['tag','👋','Tag',''],freeze:['freeze','❄️','Freeze!','frz'],save:['hello','🤝','Save!','save'],frozen:['freeze','🧊','Frozen','off'],bite:['bite','🧟','Bite!','bite'],stink:['stink','🦨','Tag!','stink'],peel:['peel','🍌','Peel','peel'],peelwait:['peel','🍌','Wait…','off'],none:null};
 function tagBtnState(){if(!MG.on||!P.mg)return 'tag';
   if(MG.mode==='freeze'){if(P.frozen)return 'frozen';return P.role==='it'?'freeze':'save';}
   if(MG.mode==='zombie')return P.role==='zombie'?'bite':'none';
+  if(MG.mode==='stinky'){if(P.role==='stinky')return 'stink';return (P.peelCd||0)>0?'peelwait':'peel';}
   return 'none';}
 function setTagBtn(st){if(st===false)st='tag';else if(st===true)st='bite';if(setTagBtn.b===st)return;setTagBtn.b=st;const b=$('btnTag'),d=TAG_BTN[st];
   b.style.display=d?'':'none';if(!d)return;b.innerHTML=`<i class="ic" data-ic="${d[0]}">${d[1]}</i>${d[2]}<small>E</small>`;b.className='actB tag'+(d[3]?' '+d[3]:'');applyIcons(b);}
 function mgHudUpdate(){app.classList.toggle('inMG',MG.on);
   const tm=`${MG.phase==='count'?GAME_T:Math.ceil(Math.max(0,MG.t))}`;if(mgHudUpdate.tm!==tm){mgHudUpdate.tm=tm;$('mgTime').innerHTML='<i class="ic" data-ic="timer">⏱</i>'+tm;}
   setTagBtn(tagBtnState());
-  let r={it:'🔥 You: Chaser',run:'🏃 You: Runner',zombie:'🧟 You: Zombie',human:'🏃 You: Human',seeker:'🔦 You: Seeker',hider:'🙈 You: Hider'}[P.role]||'';if(P.frozen)r='🧊 Frozen – wait for a friend!';if(P.found)r='🔦 You were found';
+  let r={it:'🔥 You: Chaser',run:'🏃 You: Runner',zombie:'🧟 You: Zombie',human:'🏃 You: Human',seeker:'🔦 You: Seeker',hider:'🙈 You: Hider',stinky:'🦨 You: STINKY!',clean:'🏃 You: Not stinky'}[P.role]||'';if(P.slipT>0)r='🍌 Whoa! Slipped!';if(P.frozen)r='🧊 Frozen – wait for a friend!';if(P.found)r='🔦 You were found';
   if(mgHudUpdate.r!==r){mgHudUpdate.r=r;$('mgRole').textContent=r;}
   const ps=MG.players,ic=(n,f)=>`<i class="ic" data-ic="${n}">${f}</i>`;let info='';
   if(MG.mode==='freeze'){const q=ps.filter(p=>p.role==='run');info=`${ic('run','🏃')}<b>${q.filter(p=>!p.frozen).length}</b>/${q.length}<small> free</small>`;}
   if(MG.mode==='zombie')info=`${ic('run','🏃')}<b>${ps.filter(p=>p.role==='human').length}</b>/${ps.length}<small> human</small>`;
+  if(MG.mode==='stinky'){const st=ps.filter(p=>p.role==='stinky');info=`🦨<b>${st.length}</b><small> stinky: ${st.slice(0,3).map(p=>p===P?'YOU':p.name).join(', ')}</small>`;}
   if(MG.mode==='hide'){const h=ps.filter(p=>p.role==='hider');info=MG.seekT>0?`${ic('flash','🔦')}<small>eyes open in </small><b>${Math.ceil(MG.seekT)}</b>s`:`${ic('hide','🙈')}<b>${h.filter(p=>!p.found).length}</b>/${h.length}<small> hiding</small>`;}
   if(mgHudUpdate.i!==info){mgHudUpdate.i=info;$('mgInfo').innerHTML=info;}}
 function msg(t,ms,sub){const m=$('mgMsg');const key=t+'|'+(sub||'');if(msg._k!==key||m.style.display==='none'){msg._k=key;if(sub){m.innerHTML='';m.append(t);const sm=document.createElement('small');sm.innerHTML=sub;m.appendChild(sm);}else m.textContent=t;
@@ -1153,14 +1169,42 @@ function checkEnd(){if(!MG.on||MG.phase!=='play')return;const ps=MG.players;let 
   if(done)mgEnd(done);}
 function mgEnd(win){MG.phase='end';MG.win=win;if(MG.online&&MG.isHost){NET.g=hostState();NET.sendT=0;}if(MG.online&&!MG.isHost)$('mgAgain').style.display='none';const pChaser=(P.role==='it'||P.role==='seeker'||(MG.mode==='zombie'&&P.role==='zombie'&&MG.players.filter(p=>p.role==='zombie').length===1));
   const chaserWon=win==='chaser';
-  let youWin;if(MG.mode==='zombie')youWin=chaserWon?P.role==='zombie':P.role==='human';else youWin=chaserWon?isChaser(P):!isChaser(P);
+  let youWin;if(MG.mode==='stinky')youWin=P.role!=='stinky';else if(MG.mode==='zombie')youWin=chaserWon?P.role==='zombie':P.role==='human';else youWin=chaserWon?isChaser(P):!isChaser(P);
   sfxJingle(youWin);
-  const head=chaserWon?{freeze:'Chasers win! Everyone is frozen',zombie:'Zombies took over! 🧟',hide:'Seekers found everyone!'}[MG.mode]:{freeze:'Time up! Runners win',zombie:'Time up! Humans win',hide:'Time up! Hiders win'}[MG.mode];
+  const head=MG.mode==='stinky'?`Time up! Still stinky 🦨: ${MG.players.filter(p=>p.role==='stinky').map(p=>p===P?'You':p.name).join(', ')}`:chaserWon?{freeze:'Chasers win! Everyone is frozen',zombie:'Zombies took over! 🧟',hide:'Seekers found everyone!'}[MG.mode]:{freeze:'Time up! Runners win',zombie:'Time up! Humans win',hide:'Time up! Hiders win'}[MG.mode];
   $('mgResult').innerHTML=`${youWin?'<i class="ic" data-ic="trophy">🎉</i> You win!':'<i class="ic" data-ic="sweat">😅</i> Try again next time!'}<small>${head}</small>`;
   mgPanel.style.display='flex';$('mgTitle').innerHTML=MGAMES[MG.mode].icon+' '+MGAMES[MG.mode].name;$('mgPick').style.display='none';$('mgLobby').style.display='none';$('mgEnd').style.display='block';$('mgMsg').style.display='none';}
 function mgFinish(){if(MG.online){if(MG.isHost){NET.g=null;}else{NET.j=null;NET.host=null;}NET.tg=null;NET.sendT=0;MG.online=false;MG.isHost=false;}$('mgAgain').style.display='';$('mgStart').style.display='';$('mgCancel').textContent='Cancel';
-  MG.on=false;MG.phase='';MG.players.forEach(p=>{p.mg=false;p.netBot=false;p.role=null;p.frozen=false;p.found=false;p.jt=null;p.z=0;p.det=null;p.hideSpot=null;p.plan=null;p.target=null;p.moving=false;p.wait=1+Math.random()*2;});MG.players=[];app.classList.remove('inMG');setTagBtn(false);
+  MG.on=false;MG.phase='';MG.peels=[];MG.players.forEach(p=>{p.slipT=0;p.itGrace=0;p.peelCd=0;p.saveArm=0;p.mg=false;p.netBot=false;p.role=null;p.frozen=false;p.found=false;p.jt=null;p.z=0;p.det=null;p.hideSpot=null;p.plan=null;p.target=null;p.moving=false;p.wait=1+Math.random()*2;});MG.players=[];app.classList.remove('inMG');setTagBtn(false);
   $('mgHud').style.display='none';$('mgBtn').style.display='';$('mgMsg').style.display='none';}
+// ---- Stinky Tag: banana peels, slipping, timers ----
+const STINKY_K=1.2,PEEL_LIFE=5,PEEL_CD=2,SLIP_T=1;
+function mgTimers(dt){for(const p of MG.players){if(p.itGrace>0)p.itGrace-=dt;if(p.peelCd>0)p.peelCd-=dt;if(p!==P&&(p.remote||(MG.online&&!MG.isHost))&&p.slipT>0){p.slipT-=dt;if(p.slipT<=0)p.slipT=0;}}
+  if(P.slipT>0&&(P.mg||!MG.online))slideTick(P,dt);
+  if(P.saveArm>0){P.saveArm-=dt;if(MG.phase==='play'&&P.role==='run'&&!P.frozen)doTag(P,true);}}
+function dropPeelReq(a){if(a.peelCd>0||a.slipT>0)return;a.peelCd=PEEL_CD;a.pop={txt:'🍌',t:0};
+  if(a===P&&MG.online&&!MG.isHost){NET.tg={to:'peel',k:++NET.k};NET.sendT=0;return;}dropPeel(a,true);}
+function dropPeel(a,ok){if(!ok){if(a.peelCd>0)return;a.peelCd=PEEL_CD;a.pop={txt:'🍌',t:0};}
+  const ang=DIR_ANG[a.dir]||0;MG.peels.push({x:a.x-Math.cos(ang)*26,y:a.y-Math.sin(ang)*14+4,t:PEEL_LIFE,own:a,age:0});if(MG.peels.length>30)MG.peels.shift();sfxPop&&sfxPop(a);}
+function startSlip(p){const v=p===P||!p.lastX?{x:Math.cos(DIR_ANG[p.dir]||0)*160,y:Math.sin(DIR_ANG[p.dir]||0)*90}:velOf(p);
+  p.slipT=SLIP_T;p.slipV={x:clamp(v.x,-240,240),y:clamp(v.y,-160,160)};p.moving=false;p.jt=null;p.z=0;p.pop={txt:'Whoa! 🍌',t:0};}
+function slideTick(p,dt){p.slipT-=dt;const v=p.slipV||{x:0,y:0},k=Math.max(0,p.slipT/SLIP_T);
+  const nx=clamp(p.x+v.x*k*dt,TILE,WORLD_W-TILE),ny=clamp(p.y+v.y*k*dt,MIN_Y,WORLD_H-TILE*.6);if(!hitAt(p,nx,ny)){p.x=nx;p.y=ny;}
+  if(p.slipT<=0){p.slipT=0;p.slipV=null;}}
+function peelTick(dt){const R0=24*S.scale/0.7;
+  for(const q of MG.peels){q.t-=dt;q.age+=dt;if(q.t<=0)continue;
+    for(const p of MG.players){if(p.slipT>0||p.frozen||(p.z||0)>AIR||(p===q.own&&q.age<.8))continue;
+      if(Math.hypot(p.x-q.x,(p.y-q.y)*1.4)<R0){startSlip(p);q.t=0;break;}}}
+  MG.peels=MG.peels.filter(q=>q.t>0);}
+function drawPeel(q){const sz=40*S.scale/0.7,blink=q.t<1&&Math.floor(q.t*8)%2;if(blink)return;
+  ctx.save();ctx.font=`${sz}px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillStyle='rgba(0,0,0,.18)';ctx.beginPath();ctx.ellipse(q.x,q.y+4,sz*.42,sz*.14,0,0,7);ctx.fill();ctx.translate(q.x,q.y-sz*.2);ctx.rotate(.5);ctx.shadowColor='#fff';ctx.shadowBlur=6;ctx.fillText('🍌',0,0);ctx.restore();}
+// stink cloud + flies around Stinky
+function drawStink(a,h){const t=performance.now()/1000,k=S.scale/0.7;ctx.save();
+  for(let i=0;i<5;i++){const ang=t*.9+i*1.26,r=(30+6*Math.sin(t*2+i))*k;ctx.globalAlpha=.24;ctx.fillStyle=i%2?'#9ccc65':'#7cb342';ctx.beginPath();ctx.arc(a.x+Math.cos(ang)*r,a.y-h*.45-(a.z||0)+Math.sin(ang)*r*.6,(11+3*Math.sin(t*3+i))*k,0,7);ctx.fill();}
+  ctx.globalAlpha=.9;ctx.strokeStyle='#7cb342';ctx.lineWidth=2.5*k;for(let i=0;i<3;i++){const x=a.x+(i-1)*12*k,y0=a.y-h*.98-(a.z||0)-((t*30+i*10)%22)*k;ctx.beginPath();ctx.moveTo(x,y0);ctx.quadraticCurveTo(x+5*k,y0-6*k,x,y0-12*k);ctx.quadraticCurveTo(x-5*k,y0-18*k,x,y0-24*k);ctx.stroke();}
+  ctx.fillStyle='#222';for(let i=0;i<3;i++){const ang=t*(4+i)+i*2.1,fx=a.x+Math.cos(ang)*28*k,fy=a.y-h*.75-(a.z||0)+Math.sin(ang*1.3)*14*k;ctx.beginPath();ctx.arc(fx,fy,2.2*k,0,7);ctx.fill();ctx.globalAlpha=.5;ctx.fillStyle='#ddd';ctx.beginPath();ctx.ellipse(fx-2*k,fy-2.5*k,2*k,1.2*k,.6,0,7);ctx.ellipse(fx+2*k,fy-2.5*k,2*k,1.2*k,-.6,0,7);ctx.fill();ctx.globalAlpha=.9;ctx.fillStyle='#222';}
+  ctx.restore();}
 // bots inside a mini-game
 // what each bot knows: its role in this game, where things are (cover, curbs, edges) and where the others are
 function litBySeekerA(x,y){return MG.players.some(s=>isChaser(s)&&MG.seekT<=0&&inFlash(s,{x,y}));}
@@ -1222,16 +1266,18 @@ function botTarget(b){const ps=MG.players.filter(p=>p!==b);
   if(!b.plan||b.planT<=-1.5){const e=bestEscape(b,ch.length?ch:[{x:WORLD_W/2,y:WORLD_H}]);b.plan={x:e.x,y:e.y};b.planT=0;}
   return b.plan;}
 function updateBot(b,dt){b.tagCd=Math.max(0,(b.tagCd||0)-dt);if(b.pop)b.pop.t+=dt;updJump(b,dt);
+  if(b.slipT>0){slideTick(b,dt);return;}if(b.itGrace>0){b.moving=false;return;}
   if((MG.phase!=='play'&&MG.phase!=='count')||b.frozen||b.found||inGrace(b)){b.moving=false;return;}
   const tg=botTarget(b);b.target=tg;if(!tg){b.moving=false;return;}
   if(tg.chase&&dist(b,tg.chase)<TAG_R()*.85&&b.tagCd<=0){doTag(b);}
-  if(tg.help&&dist(b,tg.help)<TAG_R()*.85&&b.tagCd<=0){doTag(b);}
+  if(tg.help&&dist(b,tg.help)<tagRange(b)*.85&&b.tagCd<=0){doTag(b);}
+  if(MG.mode==='stinky'&&b.role==='clean'&&MG.phase==='play'&&!(b.peelCd>0)){const ch=MG.players.filter(o=>o.role==='stinky');if(ch.some(o=>dist(o,b)<230)&&Math.random()<dt*2.2)dropPeel(b);}
   const dx=tg.x-b.x,dy=tg.y-b.y,d=Math.hypot(dx,dy);if(d<(tg.stay?8:30)&&!tg.chase){b.moving=false;return;}
-  const sp=(isChaser(b)?(MG.mode==='zombie'?168*zombieK():178):168)*(S.speed/200);
+  const sp=(isChaser(b)?(MG.mode==='zombie'?168*zombieK():MG.mode==='stinky'?168*STINKY_K:178):168)*(S.speed/200);
   if(!tg.chase&&noProgress(b,tg.x,tg.y,dt)){b.plan=null;b.hideSpot=null;b.patrol=null;b.pgx=null;b.moving=false;return;}   // goal unreachable: pick another
   if(!steerMove(b,tg.x,tg.y,sp,dt)){b.stuck=(b.stuck||0)+dt;if(b.stuck>.5){b.plan=null;b.hideSpot=null;b.stuck=0;}b.moving=false;}else{b.stuck=0;b.moving=true;}
   b.t=(b.t||0)+dt;b.frame=frameAt(8,8,b.t,12*(sp/120));}
-function updateMG(dt){if(!MG.on)return;MG.dt=dt;
+function updateMG(dt){if(!MG.on)return;MG.dt=dt;mgTimers(dt);
   if(MG.online&&!MG.isHost){if(MG.phase==='count'){MG.t-=dt;if(MG.mode==='hide')MG.seekT=Math.max(0,MG.t);if(MG.t>0)countMsg();}else if(MG.phase==='play'){MG.t=Math.max(0,MG.t-dt);if(MG.seekT>0)MG.seekT-=dt;}mgHudUpdate();return;}
   if(MG.phase==='count'){MG.t-=dt;if(MG.mode==='hide')MG.seekT=Math.max(0,MG.t);if(MG.t>0)countMsg();
     MG.players.forEach(p=>{p.lastX=p._px;p.lastY=p._py;p._px=p.x;p._py=p.y;});
@@ -1241,10 +1287,11 @@ function updateMG(dt){if(!MG.on)return;MG.dt=dt;
   MG.t-=dt;if(MG.seekT>0){MG.seekT-=dt;if(MG.seekT<=0)msg('Seekers are coming!',1200);}
   MG.players.forEach(p=>{p.lastX=p._px;p.lastY=p._py;p._px=p.x;p._py=p.y;});
   MG.players.forEach(p=>{if(p!==P&&!p.remote)updateBot(p,dt);});
+  if(MG.mode==='stinky')peelTick(dt);
   if(MG.mode==='hide'&&MG.seekT<=0){for(const s of MG.players.filter(isChaser))for(const h of MG.players)if(h.role==='hider'&&!h.found&&inFlash(s,h)){h.found=true;h.moving=false;h.pop={txt:'Found!',t:0};s.pop={txt:'Got you!',t:0};checkEnd();}}
   if(MG.t<=0){MG.t=0;mgEnd('runner');}
   mgHudUpdate();}
-const playerLocked=()=>MG.on&&P.mg&&(inGrace(P)||P.frozen||P.found&&false||(MG.mode==='hide'&&P.role==='seeker'&&MG.seekT>0));
+const playerLocked=()=>MG.on&&P.mg&&(inGrace(P)||P.frozen||P.slipT>0||P.itGrace>0||P.found&&false||(MG.mode==='hide'&&P.role==='seeker'&&MG.seekT>0));
 
 // ================= ONLINE: one shared world for everyone who has the game open =================
 // Uses the platform "room": each player shares one presence object (position, look, name, game state).
@@ -1295,14 +1342,16 @@ function netPeers(peers){const seen=new Set();
       n.tx=clamp(+r[1]||0,0,WORLD_W);n.ty=clamp(+r[2]||0,MIN_Y-40,WORLD_H);n.dir=DIRS[r[3]]||n.dir;n.moving=!!r[4];n.tz=clamp(+r[5]||0,0,60);if(!n.netBot){n.netBot=true;n.x=n.tx;n.y=n.ty;}}
     // host: apply the tags other players ask for (checked here, with the positions this page sees)
     if(MG.online&&MG.isHost&&MG.on&&a.mg&&pr.tg&&pr.tg.k!==a.lastTg){a.lastTg=pr.tg.k;
-      const t=byId(pr.tg.to);if(t&&t.mg&&MG.phase==='play'&&canTag(a,t)&&dist(a,t)<TAG_R()*1.6)applyTag(a,t);}}
+      if(pr.tg.to==='peel'){if(MG.phase==='play'&&MG.mode==='stinky'&&a.role==='clean')dropPeel(a);}
+      else{const t=byId(pr.tg.to);if(t&&t.mg&&MG.phase==='play'&&canTag(a,t)&&dist(a,t)<tagRange(a)*1.6)applyTag(a,t);}}}
   for(const k of [...REMOTE.keys()])if(!seen.has(k)){REMOTE.delete(k);NET.pres.delete(k);}
   if(MG.online&&MG.isHost&&MG.on){const gone=MG.players.filter(p=>p.remote&&!REMOTE.has(p.peer));if(gone.length){MG.players=MG.players.filter(p=>!gone.includes(p));checkEnd();}}
   netInvites();netFollowHost();onlineUI();
   if(MG.online&&MG.isHost&&!MG.on&&$('mgLobby').style.display!=='none')mgList();}
 function hostState(){if(!MG.on)return NET.g;const ids=MG.players.map(idOf);
   return {id:NET.gid,mode:MG.mode,ph:MG.phase,tl:Math.round(MG.t*10)/10,sk:Math.round(MG.seekT*10)/10,pl:ids,
-    r:Object.fromEntries(MG.players.map((p,i)=>[ids[i],p.role])),fz:ids.filter((_,i)=>MG.players[i].frozen),fd:ids.filter((_,i)=>MG.players[i].found),win:MG.win||null};}
+    r:Object.fromEntries(MG.players.map((p,i)=>[ids[i],p.role])),fz:ids.filter((_,i)=>MG.players[i].frozen),fd:ids.filter((_,i)=>MG.players[i].found),win:MG.win||null,
+    pe:(MG.peels||[]).map(q=>[Math.round(q.x),Math.round(q.y),Math.round(q.t*10)/10]),sl:ids.filter((_,i)=>MG.players[i].slipT>0),gr:ids.filter((_,i)=>MG.players[i].itGrace>0)};}
 function netTick(dt){
   for(const a of REMOTE.values()){const d=Math.hypot(a.tx-a.x,a.ty-a.y);if(d>260){a.x=a.tx;a.y=a.ty;}else{const k=Math.min(1,dt*10);a.x+=(a.tx-a.x)*k;a.y+=(a.ty-a.y)*k;}
     a.z+=((a.tz||0)-a.z)*Math.min(1,dt*15);if(a.moving){a.t+=dt;a.frame=frameAt(8,8,a.t,S.fps);}else{a.t=0;a.frame=0;}if(a.pop)a.pop.t+=dt;}
@@ -1336,7 +1385,8 @@ function netFollowHost(){if(!NET.j)return;leaveHomeNow();const hp=NET.pres.get(N
   if(g.ph==='lobby'){if(mgPanel.style.display!=='none')guestList();return;}
   const actors=(g.pl||[]).map(byId).filter(Boolean);
   if(!MG.on){MG.on=true;MG.online=true;MG.isHost=false;MG.mode=g.mode;MG.win=null;mgClose();actors.forEach(p=>{p.jt=null;p.z=0;});$('mgHud').style.display='block';$('mgBtn').style.display='none';}
-  MG.players=actors;actors.forEach(p=>{const id=idOf(p);p.mg=true;p.role=(g.r||{})[id]||p.role;p.frozen=(g.fz||[]).includes(id);p.found=(g.fd||[]).includes(id);});
+  MG.players=actors;MG.peels=(g.pe||[]).map(([x,y,t])=>({x,y,t}));actors.forEach(p=>{const id=idOf(p);p.mg=true;p.role=(g.r||{})[id]||p.role;p.frozen=(g.fz||[]).includes(id);p.found=(g.fd||[]).includes(id);
+    const sl=(g.sl||[]).includes(id);if(sl&&!(p.slipT>0))startSlip(p);if(!sl&&p!==P)p.slipT=0;p.itGrace=(g.gr||[]).includes(id)?Math.max(p.itGrace||0,.2):(p===P?Math.min(p.itGrace||0,.2):0);});
   if(P.frozen){P.moving=false;P.jt=null;P.z=0;}
   MG.seekerIsP=(MG.mode==='hide'&&P.role==='seeker');
   if(g.ph==='play'&&MG.phase==='count')msg(isChaser(P)?'Go!':'Start!',1000,isChaser(P)?'Catch them!':'');
