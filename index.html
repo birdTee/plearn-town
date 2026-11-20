@@ -152,7 +152,7 @@
   .petPanel{position:absolute;right:12px;top:62px;z-index:6;max-height:calc(var(--ah) - 80px);overflow-y:auto;box-sizing:border-box;background:#fffaf0;border-radius:16px;padding:10px 12px;box-shadow:0 5px 0 #e7d7b8,0 10px 24px rgba(0,0,0,.25);color:#3b2a1a;width:280px}
   .petLbl{font-size:12px;font-weight:700;margin:6px 0 4px;color:#7a5a3a}.petRow{display:flex;gap:6px;flex-wrap:wrap}
   .petRow button{flex:1;border:2px solid #f0d9a8;background:#fff3d6;border-radius:12px;padding:7px 6px;font:inherit;font-size:13px;font-weight:700;color:#3b2a1a;cursor:pointer;white-space:nowrap}
-  .petRow button.on{background:#ffcc33;border-color:#e0a91c}.petX{position:sticky;top:0;float:right;margin:-4px -6px 4px 8px;z-index:3;width:34px;height:34px}.petStat{margin-top:8px;font-size:12px;color:#7a5a3a}.petStat b{color:#e8a33f;letter-spacing:1px}
+  .petRow button.on{background:#ffcc33;border-color:#e0a91c}.petX{position:absolute;top:-12px;right:-10px;z-index:7;width:36px;height:36px;border-radius:50%;border:3px solid #fff;background:#e8483f;color:#fff;font:900 17px/1 system-ui,sans-serif;display:flex;align-items:center;justify-content:center;padding:0;cursor:pointer;box-shadow:0 3px 0 #b8322b,0 4px 10px rgba(0,0,0,.25)}.petX:active{transform:translateY(2px);box-shadow:0 1px 0 #b8322b}.petStat{margin-top:8px;font-size:12px;color:#7a5a3a}.petStat b{color:#e8a33f;letter-spacing:1px}
   .hudOpen .petBtn,.hudOpen .petPanel,#app:not(.atHome) .petPanel{display:none!important}
   .chatNote{font-size:11px;color:#9a7a5a;text-align:center;margin-top:4px}
 
@@ -360,7 +360,9 @@ const FRAME_W = 170, FRAME_H = 244, N_FRAMES = 8, DRAW = 0.55; // HD frames draw
 const LD={total:0,done:0};
 function ldTick(){const pc=LD.total?Math.round(100*LD.done/LD.total):0;const f=document.getElementById('ldFill');if(f){f.style.width=pc+'%';document.getElementById('ldPct').textContent=pc>=100?'Ready ✓':'Loading '+pc+'%';
   try{if(!ready)['lgEnter','lgEnter2','lgEnter3'].forEach(id=>{const b=document.getElementById(id);if(b)b.textContent='Loading '+pc+'%';});}catch(e){}}}
-function loadImg(src){LD.total++;return new Promise(res=>{const im=new Image();const fin=v=>{LD.done++;ldTick();res(v);};im.onload=()=>(im.decode?im.decode().catch(()=>{}):Promise.resolve()).then(()=>fin(im));im.onerror=()=>fin(null);im.src=src;});}
+function loadImg(src,tries){LD.total++;tries=tries||4;return new Promise(res=>{const fin=v=>{LD.done++;ldTick();res(v);};let n=0;
+  const go=()=>{const im=new Image();im.onload=()=>(im.decode?im.decode().catch(()=>{}):Promise.resolve()).then(()=>fin(im));
+   im.onerror=()=>{n++;if(n<tries)setTimeout(go,400*n);else fin(null);};im.src=n?src+(src.includes('?')?'&':'?')+'r='+n:src;};go();});}
 const cv = document.getElementById('c'), ctx = cv.getContext('2d');
 const TILE = 48, MW = 40, MH = 30; // map in tiles
 const WORLD_W = MW*TILE, WORLD_H = MH*TILE;
@@ -593,12 +595,15 @@ async function loadAll(){
   for(const g of Object.keys(GENDERS))for(const o of Object.keys(OUTFITS))for(const [h] of GENDERS[g].hairs){
     jobs.push((async()=>{const p=lookPath(g,o,h);const base={};
       const ims=await Promise.all(Object.entries(FILES).map(async([k,f])=>[k,await loadImg(p+f)]));
-      for(const [k,im] of ims){if(!im)return;base[k]=toCanvas(im);if(OUTFITS[o].sport)blackShoes(base[k]);}
+      for(const [k,im] of ims){if(!im){console.warn('look failed',p+FILES[k]);return;}base[k]=toCanvas(im);if(OUTFITS[o].sport)blackShoes(base[k]);}
       const act=await loadImg(p+'act.webp');if(act){base.act=toCanvas(act);if(OUTFITS[o].sport)blackShoes(base.act);}
       BASE[`${g}_${o}_${h}`]=base;})());}
   for(const z of ['zombie_boy','zombie_girl'])jobs.push((async()=>{const base={};
     const ims=await Promise.all(Object.entries(FILES).map(async([k,f])=>[k,await loadImg(`sprites/${z}/`+f)]));
     for(const [k,im] of ims){if(!im)return;base[k]=toCanvas(im);}const bt=await loadImg(`sprites/${z}/bite.webp`);if(bt)base.bite=toCanvas(bt);BASE[z]=base;})());
+  const pre=['home_yard','home_house','home_yard_s','home_house_s','moods','food','clean','emotes','chat_icons','ice'].map(n=>`${n}.webp?v=${ASSET_V}`).concat((typeof HOME_PROPS!=='undefined'?HOME_PROPS:[]).map(([n])=>`hp_${n}.webp?v=${ASSET_V}`)).concat(typeof FURN_DEFS!=='undefined'?Object.values(FURN_DEFS).map(d=>d.img+'?v='+ASSET_V):[]);
+  window.__keep=[];pre.forEach(u=>jobs.push(loadImg(u).then(im=>{if(im)window.__keep.push(im);})));
+  for(const id of Object.keys(PET_DEFS)){const t=Date.now();jobs.push(new Promise(r=>{const w=()=>{if(PETS_IMG[id]!==null||Date.now()-t>20000)r();else setTimeout(w,100);};w();}));}
   await Promise.all(jobs);await LAYERS_READY;
   try{EYES=await fetch('eyes.json').then(r=>r.json());}catch(e){EYES={};}
   ready=true; applyPick(); spawnNPCs(); NPCS.forEach(n=>variant(n.char)); variant(P.char); ['zombie_boy','zombie_girl'].forEach(z=>{if(BASE[z])variant(z+':-');});
@@ -1636,7 +1641,7 @@ const PET_GEO={"calico_cat": {"m": 0.472, "b": 0.448}, "sloth": {"m": 0.362, "b"
 const petCellH=p=>petH(p)/0.85*0.98;
 const PETS_IMG={};
 function petImg(id){if(PETS_IMG[id]!==undefined)return PETS_IMG[id];PETS_IMG[id]=null;
-  const im=new Image();im.onload=()=>{PETS_IMG[id]=im;};im.onerror=()=>{PETS_IMG[id]=false;};im.src=`pets/${id}_sheet.webp?v=${ASSET_V}`;return null;}
+  loadImg(`pets/${id}_sheet.webp?v=${ASSET_V}`).then(im=>{PETS_IMG[id]=im||undefined;});return null;}
 Object.keys(PET_DEFS).forEach(petImg);   // load every pet picture at start, so choosing a pet shows it at once
 // slow walkers do everything slowly: animation speed and how long each action lasts follow walking speed
 const petTempo=p=>Math.min(1.2,Math.max(.3,(PET_INFO[p.id]?.speed||150)/150));
@@ -1854,7 +1859,7 @@ function buildPetPanel(){const box=$('petPanel');box.innerHTML='';
   else info.textContent='Tap a pet to see what it likes to eat.';
   const row=document.createElement('div');row.className='petDo';box.appendChild(row);
   [['love','❤️ Pet it'],['special','💤 Own action']].forEach(([v,l])=>{const b=document.createElement('button');b.textContent=l;b.onclick=e=>{e.stopPropagation();petAction(v);};row.appendChild(b);});
-  const x=document.createElement('button');x.className='hideX petX';x.innerHTML='<i class="ic" data-ic="close">✕</i>';x.onclick=e=>{e.stopPropagation();box.style.display='none';};box.prepend(x);applyIcons(box);}
+  const x=document.createElement('button');x.className='petX';x.innerHTML='✕';x.onclick=e=>{e.stopPropagation();box.style.display='none';};box.prepend(x);applyIcons(box);}
 {const c=$('btnClean').querySelector('canvas'),g=c.getContext('2d'),p=()=>{g.clearRect(0,0,72,72);cleanIcon(g,1,36,36,70,0);};p();CLEAN_IMG.addEventListener('load',p);}
 $('btnClean').addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();foodPanel.style.display='none';startClean();});
 const foodPanel=$('foodPanel');
