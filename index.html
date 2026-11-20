@@ -348,7 +348,7 @@
 <script>
 // ---- UI icon set (ui_icons.webp, 18 cells in one row) — emoji are shown until it loads ----
 // bump ASSET_V whenever an icon/emote picture changes, so phones download the new one instead of a cached copy
-var ASSET_V='20261120u';
+var ASSET_V='20261120v';
 const IC_N=['logo','pad','freeze','hide','zombie','fire','flash','run','shirt','gear','globe','trophy','girl','boy','jump','tag','logout','hello'];
 const IC={},IC_C={};
 function icFrom(img,i,name){const n=img.height,c=document.createElement('canvas');c.width=c.height=n;c.getContext('2d').drawImage(img,i*n,0,n,n,0,0,n,n);IC_C[name]=c;IC[name]=c.toDataURL();}
@@ -1839,7 +1839,7 @@ const FOOD_FANS={   // what each pet likes, close to what the real animal eats
   hay:'holland_lop guinea_pig chinchilla alpaca capybara sheep'};
 const likes=(id,kind)=>FOOD_FANS[kind].split(' ').includes(id);
 const likedFoods=id=>FOODS.filter(f=>likes(id,f.id));
-const FOOD_BOT=[0.312, 0.305, 0.422, 0.438, 0.312, 0.406, 0.43, 0.398];   // icon bottom below its centre (share of icon size)
+const FOOD_BOT=[0.312, 0.305, 0.422, 0.438, 0.312, 0.406, 0.445, 0.406];   // icon bottom below its centre (share of icon size)
 const FOOD_IMG=new Image();FOOD_IMG.src='food.webp?v='+ASSET_V;
 function drawFoodIcon(g,kind,x,y,sz){const i=FOODS.findIndex(f=>f.id===kind);
   if(FOOD_IMG.complete&&FOOD_IMG.naturalWidth){const c=FOOD_IMG.height;g.drawImage(FOOD_IMG,i*c,0,c,c,x-sz/2,y-sz/2,sz,sz);}
