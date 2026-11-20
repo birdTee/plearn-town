@@ -130,6 +130,8 @@
   .hudOpen .foodPanel{display:none!important}
   .petLikes{display:flex;flex-direction:column;gap:3px;margin:6px 2px 2px;font:600 12px 'Mali',system-ui,sans-serif;color:#6b4a2b}.petLikes div{display:flex;align-items:center;gap:4px}.petLikes canvas{width:22px;height:22px}
   .petBtn{display:none}.atHome .petBtn{display:flex}
+  .atHome .petBtn{left:12px;right:auto}.atHome .petPanel{left:12px;right:auto}
+  .atHome:not(.inHouse) #showBtn{display:none!important}.atHome.inHouse .petBtn,.atHome.inHouse .petPanel{display:none!important}
   .petPanel{position:absolute;right:12px;top:62px;z-index:6;background:#fffaf0;border-radius:16px;padding:10px 12px;box-shadow:0 5px 0 #e7d7b8,0 10px 24px rgba(0,0,0,.25);color:#3b2a1a;width:280px}
   .petLbl{font-size:12px;font-weight:700;margin:6px 0 4px;color:#7a5a3a}.petRow{display:flex;gap:6px;flex-wrap:wrap}
   .petRow button{flex:1;border:2px solid #f0d9a8;background:#fff3d6;border-radius:12px;padding:7px 6px;font:inherit;font-size:13px;font-weight:700;color:#3b2a1a;cursor:pointer;white-space:nowrap}
@@ -328,7 +330,7 @@
 <script>
 // ---- UI icon set (ui_icons.webp, 18 cells in one row) — emoji are shown until it loads ----
 // bump ASSET_V whenever an icon/emote picture changes, so phones download the new one instead of a cached copy
-var ASSET_V='20261120l';
+var ASSET_V='20261120m';
 const IC_N=['logo','pad','freeze','hide','zombie','fire','flash','run','shirt','gear','globe','trophy','girl','boy','jump','tag','logout','hello'];
 const IC={},IC_C={};
 function icFrom(img,i,name){const n=img.height,c=document.createElement('canvas');c.width=c.height=n;c.getContext('2d').drawImage(img,i*n,0,n,n,0,0,n,n);IC_C[name]=c;IC[name]=c.toDataURL();}
@@ -744,10 +746,25 @@ function drawProp(o,dt){if(!o.sway){drawVis(o.im,o.im.width/o.w,o.x,o.y,o.w,o.h)
   ctx.save();ctx.translate(cx,o.base);ctx.transform(1,0,sk,sq,0,0);ctx.drawImage(o.im,-o.w/2,o.y-o.base,o.w,o.h);ctx.restore();}
 let HPROPS=null;function homeProps(){if(!HPROPS){HPROPS=HOME_PROPS.map(([n,x,y,w,h,b])=>{const im=new Image();im.src=`hp_${n}.webp?v=${ASSET_V}`;return {n,im,x:x*HK,y:HOME.RH+y*HK,w:w*HK,h:h*HK,base:HOME.RH+b*HK,sway:n.startsWith('bush'),wob:0,ph:0};});}return HPROPS.filter(o=>o.im.complete&&o.im.naturalWidth);}
 setTimeout(()=>{try{homeProps();homeImgs();}catch(e){}},1500);   // fetch the home pictures early so the yard appears at once
-let portalArmed=false;   // after arriving you must step away from the edge once before a portal works again
+let portalArmed=false;
+setTimeout(()=>{if(!FURN)FURN=FURN_DEFAULT();furnImg('wardrobe');},0);   // after arriving you must step away from the edge once before a portal works again
 const mapW=()=>MAPID==='home'?HOME.W:WORLD_W, mapH=()=>MAPID==='home'?HOME.H:WORLD_H, mapMinY=()=>MAPID==='home'?HOME.minY:MIN_Y;
 const sameMap=a=>a===P||(MAPID==='school'&&(a.mp||'school')==='school');   // every kid's home is private
-function homeHit(x,y,rx,ry){for(const r of HOME.rects){if(x+rx>r.x&&x-rx<r.x+r.w&&y+ry>r.y&&y-ry<r.y+r.h)return true;}return false;}
+function homeHit(x,y,rx,ry){for(const r of HOME.rects){if(x+rx>r.x&&x-rx<r.x+r.w&&y+ry>r.y&&y-ry<r.y+r.h)return true;}
+  for(const f of FURN||[]){const r=furnRect(f);if(r&&x+rx>r.x&&x-rx<r.x+r.w&&y+ry>r.y&&y-ry<r.y+r.h)return true;}return false;}
+// ===== furniture: free-standing pieces in the house. Each has 4 pictures (facing down / left / right / up).
+// Kept as a list so later they can be added, removed, turned and dragged around. =====
+const FURN_DEFS={wardrobe:{n:'Wardrobe',img:'furn_wardrobe.webp',h:122,depth:30}};   // h = picture height (world px at normal size), depth = floor block
+const FURN_DIRS=['down','left','right','up'];
+const FURN_DEFAULT=()=>[{id:'wardrobe',dir:0,x:1952*HK-46,y:HOME.RH+196*HK+30}];   // top-right corner of the room, doors facing the room
+let FURN=(()=>{try{const v=JSON.parse(localStorage.getItem('sw_furn'));if(Array.isArray(v)&&v.length)return v;}catch(e){}return null;})();
+const FURN_IMG={};function furnImg(id){if(!FURN_IMG[id]){const im=new Image();im.src=FURN_DEFS[id].img+'?v='+ASSET_V;FURN_IMG[id]=im;}const im=FURN_IMG[id];return im.complete&&im.naturalWidth?im:null;}
+function furnSize(f){const d=FURN_DEFS[f.id],k=S.scale/0.7,im=furnImg(f.id),cw=im?im.width/4:320,ch=im?im.height:320;const h=d.h*k*(ch/300),w=h*cw/ch;return {w,h};}
+function furnRect(f){const d=FURN_DEFS[f.id];if(!d)return null;const {w}=furnSize(f),bw=w*.62,dep=d.depth*S.scale/0.7*(f.dir===1||f.dir===2?1.5:1);return {x:f.x-bw/2,y:f.y-dep,w:bw,h:dep};}
+function drawFurn(f){const im=furnImg(f.id);if(!im)return;const c=im.width/4,{w,h}=furnSize(f);
+  ctx.save();ctx.fillStyle='rgba(0,0,0,.14)';ctx.beginPath();ctx.ellipse(f.x,f.y-2,w*.36,7*S.scale/0.7,0,0,7);ctx.fill();ctx.restore();
+  ctx.drawImage(im,f.dir*c,0,c,im.height,f.x-w/2,f.y-h,w,h);}
+function saveFurn(){try{localStorage.setItem('sw_furn',JSON.stringify(FURN));}catch(e){}}
 let mapBusy=false;
 function homeImgs(){const hi=dpr*Z/HK>1.1,k=hi?'h':'s';if(!HOME.imgs[k]){HOME.imgs[k]={};
   for(const n of ['yard','house']){const im=new Image();im.onload=()=>{HOME.imgs[k][n]=im;};im.src=`home_${n}${hi?'':'_s'}.webp?v=${ASSET_V}`;}}
@@ -762,6 +779,17 @@ function homeRoad(){if(HOME_ROAD)return HOME_ROAD;const k=2,W0=Math.ceil(HOME.W/
   g.strokeStyle='rgba(0,0,0,.08)';g.lineWidth=1;for(let x=0;x<W0;x+=60){g.beginPath();g.moveTo(x,143);g.lineTo(x,188);g.stroke();}
   g.fillStyle='#8cc65a';g.fillRect(0,188,W0,12);
   HOME_ROAD=c;return c;}
+// the bushes behind the top fence were cut off by the edge of the picture: draw their tops above it (the picture covers the rest)
+const HEDGE=[[85,1],[250,.9],[800,.95],[965,1.05]];
+function drawHedgeTops(){const o=homeProps().find(o=>o.n==='bushL');if(!o)return;for(const [x,k] of HEDGE){const w=181*HK*k,h=174*HK*k;ctx.drawImage(o.im,x*HK-w/2,HOME.RH+18*HK-h*.62,w,h);}}
+// signpost on the far side of the road: the way up goes to Mayfair Market
+function drawMarketSign(){const x=517*HK+70,y=186*RK,k=S.scale/0.7;ctx.save();ctx.font=`700 ${13*k}px Mali, system-ui, sans-serif`;
+  ctx.fillStyle='rgba(0,0,0,.18)';ctx.beginPath();ctx.ellipse(x,y+2,14*k,4*k,0,0,7);ctx.fill();
+  ctx.fillStyle='#9a6a3c';ctx.strokeStyle='#3b2a1a';ctx.lineWidth=2.5;ctx.fillRect(x-3*k,y-58*k,6*k,58*k);ctx.strokeRect(x-3*k,y-58*k,6*k,58*k);
+  ctx.font=`700 ${13*k}px Mali, system-ui, sans-serif`;const t='Mayfair Market',tw=ctx.measureText(t).width,bw=tw+38*k,bh=26*k,bx=x-bw/2,by=y-74*k;
+  ctx.fillStyle='#fffaf0';rr(bx,by,bw,bh,9*k);ctx.fill();ctx.stroke();
+  ctx.fillStyle='#e8483f';ctx.beginPath();const ax=bx+13*k,ay=by+bh/2;ctx.moveTo(ax,ay-8*k);ctx.lineTo(ax+7*k,ay+1*k);ctx.lineTo(ax+2.5*k,ay+1*k);ctx.lineTo(ax+2.5*k,ay+8*k);ctx.lineTo(ax-2.5*k,ay+8*k);ctx.lineTo(ax-2.5*k,ay+1*k);ctx.lineTo(ax-7*k,ay+1*k);ctx.closePath();ctx.fill();
+  ctx.fillStyle='#3b2a1a';ctx.textBaseline='middle';ctx.textAlign='left';ctx.fillText(t,bx+24*k,by+bh/2+1);ctx.restore();}
 function leaveHomeNow(){if(MAPID!=='home')return;MAPID='school';P.x=WORLD_W/2;P.y=WORLD_H-TILE*1.3;app.classList.remove('atHome');}
 function goMap(id){if(mapBusy||MAPID===id)return;mapBusy=true;const f=$('fade');f.classList.add('on');
   setTimeout(()=>{if(id==='home'){MAPID='home';P.x=HOME.spawn.x;P.y=HOME.spawn.y;P.dir='down';FOOD.length=0;PETS.forEach(p=>p.placed=false);}
@@ -769,7 +797,7 @@ function goMap(id){if(mapBusy||MAPID===id)return;mapBusy=true;const f=$('fade');
     portalArmed=false;P.target=null;P.moving=false;P.frame=0;app.classList.toggle('atHome',MAPID==='home');NET.sendT=0;drawStrip();
     setTimeout(()=>{f.classList.remove('on');mapBusy=false;},120);},280);}
 let inHouse=false;
-function doorCheck(){if(MAPID!=='home'){inHouse=false;return;}const e=1024*HK,now=inHouse?P.x>e-12:P.x>e+12;if(now!==inHouse){inHouse=now;sfxDoor();}}
+function doorCheck(){if(MAPID!=='home'){if(inHouse){inHouse=false;app.classList.remove('inHouse');}return;}const e=1024*HK,now=inHouse?P.x>e-12:P.x>e+12;if(now!==inHouse){inHouse=now;app.classList.toggle('inHouse',now);sfxDoor();}}
 function checkPortals(vy){doorCheck();if(MG.on||mapBusy)return;
   if(!portalArmed){if(MAPID==='home'?P.y-HOME.minY>70:WORLD_H-P.y>110)portalArmed=true;return;}
   if(MAPID==='school'&&vy>0&&P.y>=WORLD_H-TILE*.6-2&&Math.abs(P.x-WORLD_W/2)<ROAD_HALF)goMap('home');
@@ -881,7 +909,7 @@ function loop(now){const dt=Math.min(.05,(now-last)/1000);last=now;
   const SN=Z*dpr;cam.x=Math.round(cam.x*SN)/SN;cam.y=Math.round(cam.y*SN)/SN;
   ctx.save();ctx.translate(-cam.x,-cam.y);
   if(MAPID==='home'){for(let i=-2;i<=2;i++)drawVis(homeRoad(),2/RK,i*HOME.W,0,HOME.W,HOME.RH);   // the road runs on past both sides of the screen
-    const I=homeImgs();if(I.yard){drawVis(I.yard,I.yard.width/(1024*HK),0,HOME.RH,1024*HK,1536*HK);}if(I.house){drawVis(I.house,I.house.width/(1024*HK),1024*HK,HOME.RH,1024*HK,1536*HK);}}
+    const I=homeImgs();drawHedgeTops();if(I.yard){drawVis(I.yard,I.yard.width/(1024*HK),0,HOME.RH,1024*HK,1536*HK);}if(I.house){drawVis(I.house,I.house.width/(1024*HK),1024*HK,HOME.RH,1024*HK,1536*HK);}}
   else{drawVis(map,MAPS,0,0,WORLD_W,WORLD_H);
   drawSchool(dt);
   rooms.forEach(r=>drawSign(r[0],r[1],r[2]));drawHomeSign();}
@@ -889,7 +917,7 @@ function loop(now){const dt=Math.min(.05,(now-last)/1000);last=now;
   const items=[];if(MAPID==='school'){trees.forEach(t=>items.push({y:t[1],d:()=>drawTree(t[0],t[1])}));bushes.forEach(b=>items.push({y:b.y,d:()=>drawBush(b)}));
   NPCS.forEach(n=>{if(npcsOn()||n.mg)items.push({y:n.y,d:()=>drawActor(n,false)});});}
   REMOTE.forEach(a=>{if(sameMap(a))items.push({y:a.y,d:()=>drawActor(a,false)});});
-  if(MAPID==='home'){drawFood();drawPoops((y,d)=>items.push({y,d}));petsHere().forEach(p=>items.push({y:p.y,d:()=>drawPet(p)}));homeProps().forEach(o=>items.push({y:o.base,d:()=>drawProp(o,dt)}));}
+  if(MAPID==='home'){items.push({y:186*RK,d:drawMarketSign});(FURN||[]).forEach(f=>items.push({y:f.y,d:()=>drawFurn(f)}));drawFood();drawPoops((y,d)=>items.push({y,d}));petsHere().forEach(p=>items.push({y:p.y,d:()=>drawPet(p)}));homeProps().forEach(o=>items.push({y:o.base,d:()=>drawProp(o,dt)}));}
   items.push({y:P.y,d:()=>drawActor(P,true)});
   items.sort((a,b)=>a.y-b.y).forEach(i=>i.d());
   ctx.restore();
@@ -1554,9 +1582,10 @@ const PET_DEFS={   // pets that have their sprite sheet in the game now
   capybara:{name:'Capybara',h:107,special:'relax',feel:3,still:[2,3]},
   hamster:{name:'Hamster',h:66,special:'cheeks',feel:7,still:[2,3]},
   holland_lop:{name:'Bunny',h:92,special:'hop',feel:2,still:[2,3]},
-  baby_penguin:{name:'Penguin',h:96,special:'flap',feel:10,still:[2,3]}};
+  baby_penguin:{name:'Penguin',h:96,special:'flap',feel:10,still:[2,3]},
+  shiba:{name:'Shiba',h:100,special:'proud',feel:7,still:[2,3]}};
 // where the mouth is when eating (m) and where the bottom is (b), as a share of the picture height, measured on each sheet
-const PET_GEO={"calico_cat": {"m": 0.472, "b": 0.45}, "sloth": {"m": 0.358, "b": 0.36}, "corgi": {"m": 0.45, "b": 0.43}, "turtle": {"m": 0.44, "b": 0.465}, "capybara": {"m": 0.468, "b": 0.455}, "hamster": {"m": 0.415, "b": 0.375}, "holland_lop": {"m": 0.455, "b": 0.45}, "baby_penguin": {"m": 0.358, "b": 0.355}};
+const PET_GEO={"calico_cat": {"m": 0.472, "b": 0.45}, "sloth": {"m": 0.357, "b": 0.36}, "corgi": {"m": 0.45, "b": 0.43}, "turtle": {"m": 0.44, "b": 0.465}, "capybara": {"m": 0.468, "b": 0.455}, "hamster": {"m": 0.415, "b": 0.375}, "holland_lop": {"m": 0.455, "b": 0.45}, "baby_penguin": {"m": 0.357, "b": 0.355}, "shiba": {"m": 0.383, "b": 0.425}};
 const petCellH=p=>petH(p)/0.85*0.98;
 const PETS_IMG={};
 function petImg(id){if(PETS_IMG[id]!==undefined)return PETS_IMG[id];PETS_IMG[id]=null;
@@ -1705,7 +1734,7 @@ function buildPetPanel(){const box=$('petPanel');box.innerHTML='';
   const head=(title)=>{const h=document.createElement('div');h.className='petLbl';h.textContent=title;box.appendChild(h);const row=document.createElement('div');row.className='petRow';box.appendChild(row);return row;};
   const btn=(row,label,on,fn)=>{const b=document.createElement('button');b.textContent=label;if(on)b.classList.add('on');b.onclick=e=>{e.stopPropagation();fn();buildPetPanel();};row.appendChild(b);};
   const r1=head(`Pets in the yard (${PETS.length}/${PET_MAX})`);
-  [['calico_cat','🐱 Cat'],['corgi','🐶 Corgi'],['sloth','🦥 Sloth'],['turtle','🐢 Turtle'],['capybara','🦫 Capybara'],['hamster','🐹 Hamster'],['holland_lop','🐰 Bunny'],['baby_penguin','🐧 Penguin']].forEach(([id,l])=>btn(r1,l,PETS.some(p=>p.id===id),()=>togglePet(id)));
+  [['calico_cat','🐱 Cat'],['corgi','🐶 Corgi'],['sloth','🦥 Sloth'],['turtle','🐢 Turtle'],['capybara','🦫 Capybara'],['hamster','🐹 Hamster'],['holland_lop','🐰 Bunny'],['baby_penguin','🐧 Penguin'],['shiba','🐕 Shiba']].forEach(([id,l])=>btn(r1,l,PETS.some(p=>p.id===id),()=>togglePet(id)));
   const r2=head('Do (nearest pet)');
   [['love','❤️ Pet it'],['special','💤 Own action']].forEach(([v,l])=>btn(r2,l,false,()=>petAction(v)));
   if(PETS.length){const L=document.createElement('div');L.className='petLikes';PETS.forEach(p=>{const d=document.createElement('div');d.append((PET_DEFS[p.id]?.name||p.id)+' likes ');likedFoods(p.id).forEach(f=>d.appendChild(iconCanvas(f.id,22)));L.appendChild(d);});box.appendChild(L);}
@@ -1756,6 +1785,7 @@ function tryResume(){let r=null;try{r=JSON.parse(sessionStorage.getItem('pt_resu
   (r.food||[]).forEach(f=>FOOD.push({...f,t0:performance.now()}));(r.poop||[]).forEach(q=>POOP.push({x:q.x,y:q.y,t0:performance.now()-1e4,from:1}));updPoopN();drawStrip();return true;}
 function enterGame(p){store.set('sw_session',{on:true});LG.g=p.g;LG.h=p.h;LG.c=p.c;pick.g=p.g;pick.o='sport';pick.h[p.g]=p.h;pick.c=p.c;P.name=p.name;applyPick();variant(P.char);
   hud.style.display='none';showBtn.style.display='block';app.classList.remove('hudOpen');
+  MAPID='home';app.classList.add('atHome');P.x=517*HK;P.y=HOME.RH+330*HK;P.dir='down';portalArmed=false;PETS.forEach(q=>q.placed=false);
   const go=()=>{loggedIn=true;window.__inGame=true;resize();requestAnimationFrame(()=>requestAnimationFrame(()=>document.getElementById('loading').classList.add('done')));};
   if(window.__landP){const t0=performance.now();Promise.race([window.__landP,new Promise(r=>setTimeout(r,800))]).then(()=>setTimeout(go,Math.max(0,250-(performance.now()-t0))));window.__landP=null;}else go();}
 $('lgEnter').onclick=async()=>{const name=$('nameIn').value.trim(),a=$('pinA').value,err=$('lgErr');
