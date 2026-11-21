@@ -351,9 +351,18 @@
 
 <script src="config.js"></script>
 <script>
+// Android Chrome can throw away canvas pictures while the screen is off. Listen on EVERY canvas the game makes,
+// so we know for sure when that happened (reading a pixel back is not reliable: Chrome may answer from a backup copy).
+window.__picsGone=false;window.__hiddenAt=0;
+(function(){const gc=HTMLCanvasElement.prototype.getContext;HTMLCanvasElement.prototype.getContext=function(t,o){
+  if(!this.__lw&&t==='2d'){this.__lw=1;this.addEventListener('contextlost',()=>{window.__picsGone=true;});this.addEventListener('contextrestored',()=>{window.__picsGone=true;});}
+  return gc.call(this,t,o);};})();
+document.addEventListener('visibilitychange',()=>{if(document.hidden)window.__hiddenAt=Date.now();});
+</script>
+<script>
 // ---- UI icon set (ui_icons.webp, 18 cells in one row) — emoji are shown until it loads ----
 // bump ASSET_V whenever an icon/emote picture changes, so phones download the new one instead of a cached copy
-var ASSET_V='20261121g';
+var ASSET_V='20261121h';
 const IC_N=['logo','pad','freeze','hide','zombie','fire','flash','run','shirt','gear','globe','trophy','girl','boy','jump','tag','logout','hello'];
 const IC={},IC_C={};
 function icFrom(img,i,name){const n=img.height,c=document.createElement('canvas');c.width=c.height=n;c.getContext('2d').drawImage(img,i*n,0,n,n,0,0,n,n);IC_C[name]=c;IC[name]=c.toDataURL();}
@@ -2081,7 +2090,9 @@ function picsLost(){try{if(SENT.getContext('2d').getImageData(0,0,1,1).data[3]==
 function saveResume(){try{sessionStorage.setItem('pt_resume',JSON.stringify({t:Date.now(),map:MAPID,x:P.x,y:P.y,dir:P.dir,
   food:FOOD.map(f=>({x:f.x,y:f.y,kind:f.kind,left:f.left})),poop:POOP.map(q=>({x:q.x,y:q.y}))}));}catch(e){}}
 let resumeBusy=false;
-function checkPics(){if(resumeBusy||document.hidden||!loggedIn)return;if(picsLost()){resumeBusy=true;saveResume();location.reload();}}
+function checkPics(){if(resumeBusy||document.hidden||!loggedIn)return;
+  const away=window.__hiddenAt&&Date.now()-window.__hiddenAt>30000;window.__hiddenAt=0;   // screen was off a while: refresh to be safe
+  if(window.__picsGone||away||picsLost()){resumeBusy=true;saveResume();location.reload();}}
 document.addEventListener('visibilitychange',()=>setTimeout(checkPics,200));addEventListener('pageshow',()=>setTimeout(checkPics,200));addEventListener('focus',()=>setTimeout(checkPics,200));
 SENT.addEventListener('contextrestored',()=>setTimeout(checkPics,50));setInterval(checkPics,2000);
 function tryResume(){let r=null;try{r=JSON.parse(sessionStorage.getItem('pt_resume'));sessionStorage.removeItem('pt_resume');}catch(e){}
