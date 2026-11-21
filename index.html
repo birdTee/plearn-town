@@ -618,8 +618,8 @@ const ITEM_CELL={girl_school:0,girl_sport:1,girl_party:2,girl_sunny:3,boy_school
 const SHEET_OF={idle:'idle',act:'act',right:'right',down:'down',up:'up',downright:'dr',upright:'ur'};
 const IDLE_VIEW=['right','down','up','dr','ur'];
 // hat size / place per view: width, x shift from head centre, how far the hat bottom goes below the top of the hair
-const HAT_FIT={straw:{row:0,v:{down:[153.5,0,70],dr:[176.7,12,99,0],right:[171,5,92,3],ur:[193.6,4.2,76.1],up:[153.6,0,71.6]}},
-  beanie:{row:1,v:{down:[141,0,83],dr:[185.9,9,85,0],right:[185.9,1.7,77.9],ur:[191.2,1.3,72.7],up:[141,0,81.0]}}};
+const HAT_FIT={straw:{row:0,v:{down:[153.5,0,70],dr:[176.7,12,99,0],right:[171,7,99,4],ur:[193.6,4.2,76.1],up:[153.6,0,71.6]}},
+  beanie:{row:1,v:{down:[141,0,83],dr:[185.9,9,85,0],right:[185.9,3,82],ur:[191.2,1.3,72.7],up:[141,0,81.0]}}};
 const HAT_COL={down:0,dr:1,right:2,ur:3,up:4};
 function lookDir(look){const [g,o,h]=look.split('_');return lookPath(g,o,h).split('/')[1];}
 function wearOf(key){const w=(key.split('|')[1]||'').split(',');return {hat:w[0]||'none',shoes:w[1]||'black',glasses:w[2]||'none'};}
@@ -642,7 +642,8 @@ function tuckHair(g,ox,img,sx,sy,cs,x,y,w,h){const t=document.createElement('can
   const ha=tg.getImageData(0,0,FRAME_W,FRAME_H).data;let y0=FRAME_H,y1=0,x0=FRAME_W,x1=0;
   for(let yy=0;yy<FRAME_H;yy++)for(let xx=0;xx<FRAME_W;xx++)if(ha[(yy*FRAME_W+xx)*4+3]>60){y0=Math.min(y0,yy);y1=Math.max(y1,yy);x0=Math.min(x0,xx);x1=Math.max(x1,xx);}
   if(y1<=y0)return;const cut=y0+(y1-y0)*.9,d=g.getImageData(ox,0,FRAME_W,FRAME_H),p=d.data;
-  for(let yy=0;yy<cut;yy++)for(let xx=0;xx<FRAME_W;xx++){if(xx>=x0-1&&xx<=x1+1&&yy>y0+(y1-y0)*.55)continue;   // under the brim (front, bangs) stays
+  for(let yy=0;yy<y1+2;yy++)for(let xx=0;xx<FRAME_W;xx++){const inSpan=xx>=x0-1&&xx<=x1+1,near=!inSpan&&xx>=x0-14&&xx<=x1+14;
+    if(inSpan?yy>y0+(y1-y0)*.55:(!near&&yy>=cut))continue;   // under the brim (front, bangs) stays; hair right beside the brim is hidden down to the brim line
     const i=(yy*FRAME_W+xx)*4;if(ha[i+3]>60||!p[i+3])continue;
     const v=Math.max(p[i],p[i+1],p[i+2]);if(v<110||(p[i]>150&&p[i+1]<90))p[i+3]=0;}   // dark hair or the red hair tie
   g.putImageData(d,ox,0);}
