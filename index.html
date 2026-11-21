@@ -366,21 +366,23 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden)window.__hi
 <script>
 // ---- UI icon set (ui_icons.webp, 18 cells in one row) — emoji are shown until it loads ----
 // bump ASSET_V whenever an icon/emote picture changes, so phones download the new one instead of a cached copy
-var ASSET_V='20261122f';
+var ASSET_V='20261122g';
+/*VER*/var VER={"anchors_girl.json":"98417c24","apple-touch-icon.png":"8afecd75","chat_icons.webp":"eef4836c","clean.webp":"40da9286","emotes.webp":"e155c1f5","favicon.png":"ffcd656e","food.webp":"e79c35e3","furn_wardrobe.webp":"66d529f7","ground.webp":"846df7f5","hats.webp":"3bcde764","home_house.webp":"c1874d6b","home_house_s.webp":"7b5eb322","home_yard.webp":"acf49b25","home_yard_s.webp":"25b9ca81","hp_bushL.webp":"32944512","hp_bushR.webp":"5160de6a","hp_dogh.webp":"5476c7b8","hp_gate.webp":"b75aef05","hp_wallD.webp":"6b2f16ac","ice.webp":"9f59ce49","icon192.png":"64c4261d","icon512.png":"559bfbe5","items.webp":"ab283a0f","logo.webp":"80b743a8","logo_s.webp":"2cfc803b","moods.webp":"39f53ba6","pets/alpaca_sheet.webp":"660da134","pets/arctic_fox_sheet.webp":"b3f5f075","pets/axolotl_sheet.webp":"7c90f54d","pets/baby_panda_sheet.webp":"3050fd00","pets/baby_penguin_sheet.webp":"0be125bd","pets/bearded_dragon_sheet.webp":"a33b338f","pets/black_cat_sheet.webp":"df4daea9","pets/budgie_sheet.webp":"af9687c7","pets/calico_cat.webp":"985d1735","pets/calico_cat_sheet.webp":"da3dfdc4","pets/capybara_sheet.webp":"159c59a4","pets/chameleon_sheet.webp":"21b6cb11","pets/chihuahua_sheet.webp":"2b56a953","pets/chinchilla_sheet.webp":"196f06a2","pets/cockatoo_sheet.webp":"0d9c00ba","pets/corgi_sheet.webp":"29f029ee","pets/fennec_fox_sheet.webp":"03314e07","pets/french_bulldog_sheet.webp":"f7703c89","pets/golden_pup_sheet.webp":"7ba0e17a","pets/guinea_pig_sheet.webp":"e88e2be5","pets/hamster_sheet.webp":"e311a06a","pets/hedgehog_sheet.webp":"1a546ae7","pets/holland_lop_sheet.webp":"df3106bb","pets/husky_sheet.webp":"e145a47a","pets/koala_sheet.webp":"b30e68fb","pets/leopard_gecko_sheet.webp":"1153c7bf","pets/macaw_sheet.webp":"987521b4","pets/meerkat_sheet.webp":"9fcec931","pets/mini_pig_sheet.webp":"34883582","pets/orange_cat_sheet.webp":"a0b5c763","pets/otter_sheet.webp":"d64bdee5","pets/owl_fly.webp":"58a75cfa","pets/owl_sheet.webp":"1d3f8e0c","pets/persian_sheet.webp":"c3488f71","pets/pomeranian_sheet.webp":"06d57221","pets/red_panda_sheet.webp":"0c02c808","pets/scottish_fold_sheet.webp":"be89b9fa","pets/sheep_sheet.webp":"4bb9091f","pets/shiba_sheet.webp":"40577f29","pets/sloth.webp":"f60c8a5e","pets/sloth_sheet.webp":"18c21add","pets/snowy_owl_fly.webp":"dfc4612b","pets/snowy_owl_sheet.webp":"ea3517ee","pets/squirrel_sheet.webp":"6f32fea3","pets/sugar_glider_sheet.webp":"1f85556d","pets/tabby_cat_sheet.webp":"c8fea378","pets/thai_pup_sheet.webp":"b6c3519b","pets/turtle_sheet.webp":"6aa14448","pets/white_cat_sheet.webp":"1183e037","school_gate.webp":"4b3af634","school_main.webp":"c1496493","school_wing.webp":"95a3c264","school_wing_left.webp":"39c089cf","sprites/boy_school/act.webp":"6c98d340","sprites/boy_school/down.webp":"c8e165f1","sprites/boy_school/dr.webp":"1e5bba8b","sprites/boy_school/idle.webp":"29fb5e68","sprites/boy_school/right.webp":"443403b0","sprites/boy_school/up.webp":"29288f23","sprites/boy_school/ur.webp":"32867ba4","sprites/boy_school_mushroom/act.webp":"a5b6cacb","sprites/boy_school_mushroom/down.webp":"12d3c8dd","sprites/boy_school_mushroom/dr.webp":"2e261109","sprites/boy_school_mushroom/idle.webp":"ed928290","sprites/boy_school_mushroom/right.webp":"f235e36d","sprites/boy_school_mushroom/up.webp":"042d27f4","sprites/boy_school_mushroom/ur.webp":"3218d4c5","sprites/boy_school_spiky/act.webp":"bc26ba56","sprites/boy_school_spiky/down.webp":"76c42712","sprites/boy_school_spiky/dr.webp":"bffeee5a","sprites/boy_school_spiky/idle.webp":"4478f2ea","sprites/boy_school_spiky/right.webp":"1e7d459e","sprites/boy_school_spiky/up.webp":"99ea5e6b","sprites/boy_school_spiky/ur.webp":"3b65ff3f","sprites/boy_sport/act.webp":"dba0f6bc","sprites/boy_sport/down.webp":"f58f944f","sprites/boy_sport/dr.webp":"3cecf0d9","sprites/boy_sport/idle.webp":"995431f6","sprites/boy_sport/right.webp":"83d32eaf","sprites/boy_sport/up.webp":"da39c524","sprites/boy_sport/ur.webp":"186047f2","sprites/boy_sport_mushroom/act.webp":"c558e928","sprites/boy_sport_mushroom/down.webp":"49800db6","sprites/boy_sport_mushroom/dr.webp":"e7edcac9","sprites/boy_sport_mushroom/idle.webp":"3ccd4cc2","sprites/boy_sport_mushroom/right.webp":"4464f34f","sprites/boy_sport_mushroom/up.webp":"9cadc1a2","sprites/boy_sport_mushroom/ur.webp":"35ed1308","sprites/boy_sport_spiky/act.webp":"ee11820c","sprites/boy_sport_spiky/down.webp":"6abba58a","sprites/boy_sport_spiky/dr.webp":"7f172e95","sprites/boy_sport_spiky/idle.webp":"380f162b","sprites/boy_sport_spiky/right.webp":"3a26df49","sprites/boy_sport_spiky/up.webp":"ef02e34d","sprites/boy_sport_spiky/ur.webp":"dd3b8304","sprites/girl_dress_party/act.webp":"9138bef2","sprites/girl_dress_party/down.webp":"25db752a","sprites/girl_dress_party/dr.webp":"54a6d6bf","sprites/girl_dress_party/idle.webp":"53ede582","sprites/girl_dress_party/right.webp":"02fc7947","sprites/girl_dress_party/up.webp":"e228fc55","sprites/girl_dress_party/ur.webp":"470ed06c","sprites/girl_dress_party_bob/act.webp":"0ef8b37f","sprites/girl_dress_party_bob/down.webp":"891f8054","sprites/girl_dress_party_bob/dr.webp":"f067a217","sprites/girl_dress_party_bob/idle.webp":"37191bcb","sprites/girl_dress_party_bob/right.webp":"5ce7bcfd","sprites/girl_dress_party_bob/up.webp":"b691b3cd","sprites/girl_dress_party_bob/ur.webp":"6b19a966","sprites/girl_dress_party_braids/act.webp":"aeb8730e","sprites/girl_dress_party_braids/down.webp":"5e2b808f","sprites/girl_dress_party_braids/dr.webp":"0eadcd39","sprites/girl_dress_party_braids/idle.webp":"6dc51b9b","sprites/girl_dress_party_braids/right.webp":"99e13306","sprites/girl_dress_party_braids/up.webp":"2dd077ae","sprites/girl_dress_party_braids/ur.webp":"9a9a23c3","sprites/girl_dress_sunny/act.webp":"12917a10","sprites/girl_dress_sunny/down.webp":"4d3e47c1","sprites/girl_dress_sunny/dr.webp":"e8b5f47a","sprites/girl_dress_sunny/idle.webp":"69444255","sprites/girl_dress_sunny/right.webp":"bba8e683","sprites/girl_dress_sunny/up.webp":"6c89c294","sprites/girl_dress_sunny/ur.webp":"5be1f39a","sprites/girl_dress_sunny_bob/act.webp":"4d13130a","sprites/girl_dress_sunny_bob/down.webp":"48e1ee29","sprites/girl_dress_sunny_bob/dr.webp":"9464afe0","sprites/girl_dress_sunny_bob/idle.webp":"3110d282","sprites/girl_dress_sunny_bob/right.webp":"ede90b8b","sprites/girl_dress_sunny_bob/up.webp":"cd3d1387","sprites/girl_dress_sunny_bob/ur.webp":"d0bde949","sprites/girl_dress_sunny_braids/act.webp":"d49c4b14","sprites/girl_dress_sunny_braids/down.webp":"d8a7e6a6","sprites/girl_dress_sunny_braids/dr.webp":"d512d145","sprites/girl_dress_sunny_braids/idle.webp":"4dbc67db","sprites/girl_dress_sunny_braids/right.webp":"d16d2c22","sprites/girl_dress_sunny_braids/up.webp":"83153359","sprites/girl_dress_sunny_braids/ur.webp":"b50d119d","sprites/girl_school/act.webp":"409a8ab3","sprites/girl_school/down.webp":"2a09fcfd","sprites/girl_school/dr.webp":"0db9d4a6","sprites/girl_school/idle.webp":"f8ec4257","sprites/girl_school/right.webp":"444f8451","sprites/girl_school/up.webp":"1f72115e","sprites/girl_school/ur.webp":"376d1a00","sprites/girl_school_bob/act.webp":"67c24fc5","sprites/girl_school_bob/down.webp":"0513d14c","sprites/girl_school_bob/dr.webp":"1c7fc96b","sprites/girl_school_bob/idle.webp":"aa9332c0","sprites/girl_school_bob/right.webp":"5f0b3252","sprites/girl_school_bob/up.webp":"edea434c","sprites/girl_school_bob/ur.webp":"1548f603","sprites/girl_school_braids/act.webp":"85e148b0","sprites/girl_school_braids/down.webp":"c5799d83","sprites/girl_school_braids/dr.webp":"8b9da624","sprites/girl_school_braids/idle.webp":"14535324","sprites/girl_school_braids/right.webp":"9678497b","sprites/girl_school_braids/up.webp":"66e07c22","sprites/girl_school_braids/ur.webp":"1b568d69","sprites/girl_sport/act.webp":"bcd79e49","sprites/girl_sport/down.webp":"81891f23","sprites/girl_sport/dr.webp":"ce4e79a4","sprites/girl_sport/idle.webp":"af69343d","sprites/girl_sport/right.webp":"17d5242a","sprites/girl_sport/up.webp":"95c59fe5","sprites/girl_sport/ur.webp":"e104f775","sprites/girl_sport_bob/act.webp":"8cf50b81","sprites/girl_sport_bob/down.webp":"87df6564","sprites/girl_sport_bob/dr.webp":"e53a6deb","sprites/girl_sport_bob/idle.webp":"f35cc57c","sprites/girl_sport_bob/right.webp":"a5050c56","sprites/girl_sport_bob/up.webp":"73a5a7f8","sprites/girl_sport_bob/ur.webp":"5c597d21","sprites/girl_sport_braids/act.webp":"f96fc655","sprites/girl_sport_braids/down.webp":"c911017a","sprites/girl_sport_braids/dr.webp":"5b3ba77c","sprites/girl_sport_braids/idle.webp":"23b6d6b9","sprites/girl_sport_braids/right.webp":"7feeaf72","sprites/girl_sport_braids/up.webp":"059286f8","sprites/girl_sport_braids/ur.webp":"3c0716ff","sprites/zombie_boy/bite.webp":"ba078b4f","sprites/zombie_boy/down.webp":"fc0185ae","sprites/zombie_boy/dr.webp":"1fe36071","sprites/zombie_boy/idle.webp":"92e12d23","sprites/zombie_boy/right.webp":"53cbf802","sprites/zombie_boy/up.webp":"bf41f341","sprites/zombie_boy/ur.webp":"35cbe2c0","sprites/zombie_girl/bite.webp":"b56c0f9e","sprites/zombie_girl/down.webp":"c0623cf5","sprites/zombie_girl/dr.webp":"e186b369","sprites/zombie_girl/idle.webp":"34c89034","sprites/zombie_girl/right.webp":"e5af341e","sprites/zombie_girl/up.webp":"bd4b2779","sprites/zombie_girl/ur.webp":"679313ff","ui_icons.webp":"4e9aac93","ui_icons2.webp":"a81910d9","ui_icons3.webp":"1fbdf734","vercel.json":"56aa2b42"};/*END*/
+function vq(p){return p+'?v='+(VER[p]||ASSET_V);}   // per-file version: unchanged pictures stay in the phone's cache
 const IC_N=['logo','pad','freeze','hide','zombie','fire','flash','run','shirt','gear','globe','trophy','girl','boy','jump','tag','logout','hello'];
 const IC={},IC_C={};
 function icFrom(img,i,name){const n=img.height,c=document.createElement('canvas');c.width=c.height=n;c.getContext('2d').drawImage(img,i*n,0,n,n,0,0,n,n);IC_C[name]=c;IC[name]=c.toDataURL();}
 function applyIcons(root){(root||document).querySelectorAll('.ic[data-ic]:not(.on)').forEach(e=>{const u=IC[e.dataset.ic];if(u){e.style.backgroundImage=`url(${u})`;e.textContent='';e.classList.add('on');}});}
-{const im=new Image();im.onload=()=>{IC_N.forEach((n,i)=>icFrom(im,i,n));applyIcons();};im.src='ui_icons.webp?v='+ASSET_V;}
-{const im=new Image();im.onload=()=>{['bite','freezeLogo','bot','timer','look'].forEach((n,i)=>icFrom(im,i,n));applyIcons();};im.src='ui_icons2.webp?v='+ASSET_V;}
-{const im=new Image();im.onload=()=>{['stink','peel'].forEach((n,i)=>icFrom(im,i,n));applyIcons();};im.src='ui_icons3.webp?v='+ASSET_V;}
+{const im=new Image();im.onload=()=>{IC_N.forEach((n,i)=>icFrom(im,i,n));applyIcons();};im.src=vq('ui_icons.webp');}
+{const im=new Image();im.onload=()=>{['bite','freezeLogo','bot','timer','look'].forEach((n,i)=>icFrom(im,i,n));applyIcons();};im.src=vq('ui_icons2.webp');}
+{const im=new Image();im.onload=()=>{['stink','peel'].forEach((n,i)=>icFrom(im,i,n));applyIcons();};im.src=vq('ui_icons3.webp');}
 new MutationObserver(()=>applyIcons()).observe(document.body,{childList:true,subtree:true});
 const FRAME_W = 170, FRAME_H = 244, N_FRAMES = 8, DRAW = 0.55; // HD frames drawn at ~half size => sharp on retina tablets
 
 const LD={total:0,done:0};
 function ldTick(){const pc=LD.total?Math.round(100*LD.done/LD.total):0;const f=document.getElementById('ldFill');if(f){f.style.width=pc+'%';document.getElementById('ldPct').textContent=pc>=100?'Ready ✓':'Loading '+pc+'%';
   try{if(!ready)['lgEnter','lgEnter2','lgEnter3'].forEach(id=>{const b=document.getElementById(id);if(b)b.textContent='Loading '+pc+'%';});}catch(e){}}}
-function loadImg(src,tries){LD.total++;if(!src.includes('?')&&!src.startsWith('data:'))src+='?v='+ASSET_V;   // new version = fresh pictures (the server lets phones keep .webp for 7 days)
+function loadImg(src,tries){LD.total++;if(!src.includes('?')&&!src.startsWith('data:'))src=vq(src);   // new version = fresh pictures (the server lets phones keep .webp for 7 days)
   tries=tries||4;return new Promise(res=>{const fin=v=>{LD.done++;ldTick();res(v);};let n=0;
   const go=()=>{const im=new Image();im.onload=()=>(im.decode?im.decode().catch(()=>{}):Promise.resolve()).then(()=>fin(im));
    im.onerror=()=>{n++;if(n<tries)setTimeout(go,400*n);else fin(null);};im.src=n?src+(src.includes('?')?'&':'?')+'r='+n:src;};go();});}
@@ -608,10 +610,10 @@ function blackShoes(cv){const g=cv.getContext('2d'),W=cv.width,H=cv.height,d=g.g
   for(let k=0;k<W*H;k++){if(!shoe[k]&&!ring[k])continue;const i=k*4;const v=(p[i]+p[i+1]+p[i+2])/3;const n=Math.max(14,Math.min(70,22+(v-130)*0.30));p[i]=n;p[i+1]=n;p[i+2]=n*1.08;}
   g.putImageData(d,0,0);return cv;}
 const WEAR={hat:[['none','No hat'],['straw','Straw hat'],['beanie','Beanie']],shoes:[['black','Black'],['pink','Pink'],['white','Sneakers']],glasses:[['none','No glasses'],['round','Glasses'],['thick','Thick glasses']]};
-let ANCH=null;fetch('anchors_girl.json?v='+ASSET_V).then(r=>r.json()).then(j=>{ANCH=j;}).catch(()=>{});
-const HAT_IMG=new Image();HAT_IMG.src='hats.webp?v='+ASSET_V;
+let ANCH=null;fetch(vq('anchors_girl.json')).then(r=>r.json()).then(j=>{ANCH=j;}).catch(()=>{});
+const HAT_IMG=new Image();HAT_IMG.src=vq('hats.webp');
 // item pictures for the Dress-up panel: 9 cells of 200px (6 outfits, 3 shoes)
-const ITEM_IMG=new Image();ITEM_IMG.src='items.webp?v='+ASSET_V;ITEM_IMG.onload=()=>{try{if(document.querySelector('#wearPick'))buildPicker();}catch(e){}};
+const ITEM_IMG=new Image();ITEM_IMG.src=vq('items.webp');ITEM_IMG.onload=()=>{try{if(document.querySelector('#wearPick'))buildPicker();}catch(e){}};
 const ITEM_CELL={girl_school:0,girl_sport:1,girl_party:2,girl_sunny:3,boy_school:4,boy_sport:5,black:6,pink:7,white:8};
 const SHEET_OF={idle:'idle',act:'act',right:'right',down:'down',up:'up',downright:'dr',upright:'ur'};
 const IDLE_VIEW=['right','down','up','dr','ur'];
@@ -631,7 +633,7 @@ function bakeWear(cv,sheetKey,w,dir){const a=ANCH&&ANCH[dir]&&ANCH[dir][SHEET_OF
     if(w.glasses!=='none'&&eyes.length&&view!=='up'&&view!=='ur')drawSpecs(g,ox,eyes,view,w.glasses);
     if(w.hat!=='none'&&HAT_IMG.complete&&HAT_IMG.naturalWidth){const H=HAT_FIT[w.hat],[hw,dx,dy,rot=0]=H.v[view],cs=HAT_IMG.height/2,sx=HAT_COL[view]*cs,sy=H.row*cs;
       const k=hw/(cs*.96),hh=cs*k,w2=cs*k;let x=ox+cx+dx-hw/2-cs*.02*k;
-      if(view==='dr'&&!/_bob|_braids/.test(dir))tuckHair(g,ox,HAT_IMG,sx,sy,cs,x,top+dy-hh+4*k,w2,hh);
+      tuckHair(g,ox,HAT_IMG,sx,sy,cs,x,top+dy-hh+4*k,w2,hh);
       const hx=x-ox+i*HFW+HAT_PAD,hy=top+dy-hh+4*k;og.save();og.translate(hx+w2/2,hy+hh*.85);og.rotate(rot*Math.PI/180);   // tilt around the brim
       og.drawImage(HAT_IMG,sx,sy,cs,cs,-w2/2,-hh*.85,w2,hh);og.restore();}}
   return cv;}
@@ -640,7 +642,7 @@ function tuckHair(g,ox,img,sx,sy,cs,x,y,w,h){const t=document.createElement('can
   const ha=tg.getImageData(0,0,FRAME_W,FRAME_H).data;let y0=FRAME_H,y1=0,x0=FRAME_W,x1=0;
   for(let yy=0;yy<FRAME_H;yy++)for(let xx=0;xx<FRAME_W;xx++)if(ha[(yy*FRAME_W+xx)*4+3]>60){y0=Math.min(y0,yy);y1=Math.max(y1,yy);x0=Math.min(x0,xx);x1=Math.max(x1,xx);}
   if(y1<=y0)return;const cut=y0+(y1-y0)*.9,d=g.getImageData(ox,0,FRAME_W,FRAME_H),p=d.data;
-  for(let yy=0;yy<cut;yy++)for(let xx=0;xx<FRAME_W;xx++){if(xx>=x0-1&&yy>y0+(y1-y0)*.55)continue;   // under the brim (front, bangs) stays
+  for(let yy=0;yy<cut;yy++)for(let xx=0;xx<FRAME_W;xx++){if(xx>=x0-1&&xx<=x1+1&&yy>y0+(y1-y0)*.55)continue;   // under the brim (front, bangs) stays
     const i=(yy*FRAME_W+xx)*4;if(ha[i+3]>60||!p[i+3])continue;
     const v=Math.max(p[i],p[i+1],p[i+2]);if(v<110||(p[i]>150&&p[i+1]<90))p[i+3]=0;}   // dark hair or the red hair tie
   g.putImageData(d,ox,0);}
@@ -707,7 +709,7 @@ async function loadAll(){
   for(const z of ['zombie_boy','zombie_girl'])jobs.push((async()=>{const base={};
     const ims=await Promise.all(Object.entries(FILES).map(async([k,f])=>[k,await loadImg(`sprites/${z}/`+f)]));
     for(const [k,im] of ims){if(!im)return;base[k]=toCanvas(im);}const bt=await loadImg(`sprites/${z}/bite.webp`);if(bt)base.bite=toCanvas(bt);BASE[z]=base;})());
-  const pre=['home_yard','home_house','home_yard_s','home_house_s','moods','food','clean','emotes','chat_icons','ice','ui_icons3'].map(n=>`${n}.webp?v=${ASSET_V}`).concat((typeof HOME_PROPS!=='undefined'?HOME_PROPS:[]).map(([n])=>`hp_${n}.webp?v=${ASSET_V}`)).concat(typeof FURN_DEFS!=='undefined'?Object.values(FURN_DEFS).map(d=>d.img+'?v='+ASSET_V):[]);
+  const pre=['home_yard','home_house','home_yard_s','home_house_s','moods','food','clean','emotes','chat_icons','ice','ui_icons3'].map(n=>vq(`${n}.webp`)).concat((typeof HOME_PROPS!=='undefined'?HOME_PROPS:[]).map(([n])=>vq(`hp_${n}.webp`))).concat(typeof FURN_DEFS!=='undefined'?Object.values(FURN_DEFS).map(d=>d.img+'?v='+ASSET_V):[]);
   window.__keep=[];pre.forEach(u=>jobs.push(loadImg(u).then(im=>{if(im)window.__keep.push(im);})));
   for(const id of PETS_SEL.filter(i=>PET_DEFS[i])){const t=Date.now();jobs.push(new Promise(r=>{const w=()=>{if(PETS_IMG[id]!==null||Date.now()-t>20000)r();else setTimeout(w,100);};w();}));}
   await Promise.all(jobs);await LAYERS_READY;
@@ -882,7 +884,7 @@ function drawProp(o,dt){if(!o.sway){drawVis(o.im,o.im.width/o.w,o.x,o.y,o.w,o.h)
   if(o.wob<=0.01){drawVis(o.im,o.im.width/o.w,o.x,o.y,o.w,o.h);return;}
   const sk=Math.sin(o.ph)*.07*o.wob,sq=1+Math.sin(o.ph*2)*.015*o.wob,cx=o.x+o.w/2;
   ctx.save();ctx.translate(cx,o.base);ctx.transform(1,0,sk,sq,0,0);ctx.drawImage(o.im,-o.w/2,o.y-o.base,o.w,o.h);ctx.restore();}
-let HPROPS=null;function homeProps(){if(!HPROPS){HPROPS=HOME_PROPS.map(([n,x,y,w,h,b])=>{const im=new Image();im.src=`hp_${n}.webp?v=${ASSET_V}`;return {n,im,x:x*HK,y:HOME.RH+y*HK,w:w*HK,h:h*HK,base:HOME.RH+b*HK,sway:n.startsWith('bush'),wob:0,ph:0};});}return HPROPS.filter(o=>o.im.complete&&o.im.naturalWidth);}
+let HPROPS=null;function homeProps(){if(!HPROPS){HPROPS=HOME_PROPS.map(([n,x,y,w,h,b])=>{const im=new Image();im.src=vq(`hp_${n}.webp`);return {n,im,x:x*HK,y:HOME.RH+y*HK,w:w*HK,h:h*HK,base:HOME.RH+b*HK,sway:n.startsWith('bush'),wob:0,ph:0};});}return HPROPS.filter(o=>o.im.complete&&o.im.naturalWidth);}
 setTimeout(()=>{try{homeProps();homeImgs();}catch(e){}},1500);   // fetch the home pictures early so the yard appears at once
 let portalArmed=false;
 setTimeout(()=>{if(!FURN)FURN=FURN_DEFAULT();furnImg('wardrobe');},0);   // after arriving you must step away from the edge once before a portal works again
@@ -896,7 +898,7 @@ const FURN_DEFS={wardrobe:{n:'Wardrobe',img:'furn_wardrobe.webp',h:122,depth:30}
 const FURN_DIRS=['down','left','right','up'];
 const FURN_DEFAULT=()=>[{id:'wardrobe',dir:0,x:1952*HK-46,y:HOME.RH+196*HK+30}];   // top-right corner of the room, doors facing the room
 let FURN=(()=>{try{const v=JSON.parse(localStorage.getItem('sw_furn'));if(Array.isArray(v)&&v.length)return v;}catch(e){}return null;})();
-const FURN_IMG={};function furnImg(id){if(!FURN_IMG[id]){const im=new Image();im.src=FURN_DEFS[id].img+'?v='+ASSET_V;FURN_IMG[id]=im;}const im=FURN_IMG[id];return im.complete&&im.naturalWidth?im:null;}
+const FURN_IMG={};function furnImg(id){if(!FURN_IMG[id]){const im=new Image();im.src=vq(FURN_DEFS[id].img);FURN_IMG[id]=im;}const im=FURN_IMG[id];return im.complete&&im.naturalWidth?im:null;}
 function furnSize(f){const d=FURN_DEFS[f.id],k=S.scale/0.7,im=furnImg(f.id),cw=im?im.width/4:320,ch=im?im.height:320;const h=d.h*k*(ch/300),w=h*cw/ch;return {w,h};}
 function furnRect(f){const d=FURN_DEFS[f.id];if(!d)return null;const {w}=furnSize(f),bw=w*.62,dep=d.depth*S.scale/0.7*(f.dir===1||f.dir===2?1.5:1);return {x:f.x-bw/2,y:f.y-dep,w:bw,h:dep};}
 function drawFurn(f){const im=furnImg(f.id);if(!im)return;const c=im.width/4,{w,h}=furnSize(f);
@@ -905,7 +907,7 @@ function drawFurn(f){const im=furnImg(f.id);if(!im)return;const c=im.width/4,{w,
 function saveFurn(){try{localStorage.setItem('sw_furn',JSON.stringify(FURN));}catch(e){}}
 let mapBusy=false;
 function homeImgs(){const hi=dpr*Z/HK>1.1,k=hi?'h':'s';if(!HOME.imgs[k]){HOME.imgs[k]={};
-  for(const n of ['yard','house']){const im=new Image();im.onload=()=>{HOME.imgs[k][n]=im;};im.src=`home_${n}${hi?'':'_s'}.webp?v=${ASSET_V}`;}}
+  for(const n of ['yard','house']){const im=new Image();im.onload=()=>{HOME.imgs[k][n]=im;};im.src=vq(`home_${n}${hi?'':'_s'}.webp`);}}
   const I=HOME.imgs[k];return (I.yard&&I.house)?I:(HOME.imgs.h&&HOME.imgs.h.yard&&HOME.imgs.h.house?HOME.imgs.h:(HOME.imgs.s&&HOME.imgs.s.yard&&HOME.imgs.s.house?HOME.imgs.s:I));}
 let HOME_ROAD=null;
 function homeRoad(){if(HOME_ROAD)return HOME_ROAD;const k=2,W0=Math.ceil(HOME.W/RK),R0=200,c=document.createElement('canvas');c.width=W0*k;c.height=R0*k;const g=c.getContext('2d');g.scale(k,k);
@@ -1606,12 +1608,12 @@ const EMO_ORDER=[10,11,0,1,2,3,4,5,6,7,8,9],EMO_KEY=i=>i===10?'H':i===11?'L':Str
 // sheet cells: one still picture per emote (cell = emote number); cell 12 = the emotes-button face
 const emoCell=i=>i;
 const EMO_IMG=new Image();let emoOk=false;EMO_IMG.onload=()=>{emoOk=true;buildEmoPanel();icFrom(EMO_IMG,6,'sweat');applyIcons();
-  if(EMO_IMG.width>=13*EMO_IMG.height){icFrom(EMO_IMG,12,'face');const b=$('btnEmo'),im=b.querySelector('img');if(im)im.src=IC.face;}};EMO_IMG.src='emotes.webp?v='+ASSET_V;
+  if(EMO_IMG.width>=13*EMO_IMG.height){icFrom(EMO_IMG,12,'face');const b=$('btnEmo'),im=b.querySelector('img');if(im)im.src=IC.face;}};EMO_IMG.src=vq('emotes.webp');
 const ICONS=new Image();ICONS.onload=()=>{   // chat / emote / send / close icons (4 cells in one row)
   const cell=ICONS.height,url=i=>{const c=document.createElement('canvas');c.width=c.height=cell;c.getContext('2d').drawImage(ICONS,i*cell,0,cell,cell,0,0,cell,cell);return c.toDataURL();};
   const put=(id,i,keepText)=>{const b=$(id);const sm=b.querySelector('small');const im=new Image();im.src=url(i);im.alt='';b.textContent='';b.appendChild(im);if(keepText)b.append(keepText);if(sm)b.appendChild(sm);};
   put('btnChat',0);if(IC.face){const b=$('btnEmo'),sm=b.querySelector('small');const im=new Image();im.src=IC.face;b.textContent='';b.appendChild(im);if(sm)b.appendChild(sm);}else put('btnEmo',1);put('chatSend',2);put('chatX',3);icFrom(ICONS,3,'close');applyIcons();};
-ICONS.src='chat_icons.webp?v='+ASSET_V;
+ICONS.src=vq('chat_icons.webp');
 
 // ---- keep it kind and safe: bad words -> ***, no phone numbers / links ----
 const BAD=['fuck','shit','bitch','asshole','dick','pussy','bastard','cunt','slut','whore','nigger','nigga','retard','stupid','idiot','dumb','loser','sexy','sex','porn','kill yourself','kys',
@@ -1910,9 +1912,9 @@ const petCellH=p=>petH(p)/0.85*0.98;
 const PETS_IMG={};
 function petImg(id){if(PETS_IMG[id]!==undefined)return PETS_IMG[id];PETS_IMG[id]=null;
   return petFetch(id);}
-function petFetch(id){PETS_IMG[id]=null;return loadImg(`pets/${id}_sheet.webp?v=${ASSET_V}`,PET_DEFS[id].soon?1:4).then(im=>{PETS_IMG[id]=im||false;dispatchEvent(new CustomEvent('petloaded',{detail:id}));}),null;}
+function petFetch(id){PETS_IMG[id]=null;return loadImg(vq(`pets/${id}_sheet.webp`),PET_DEFS[id].soon?1:4).then(im=>{PETS_IMG[id]=im||false;dispatchEvent(new CustomEvent('petloaded',{detail:id}));}),null;}
 function petLater(){const id=PET_LATER.shift();if(!id)return;if(PETS_IMG[id]!==undefined){petLater();return;}PETS_IMG[id]=null;
-  loadImg(`pets/${id}_sheet.webp?v=${ASSET_V}`,PET_DEFS[id].soon?1:4).then(im=>{PETS_IMG[id]=im||false;dispatchEvent(new CustomEvent('petloaded',{detail:id}));petLater();});}
+  loadImg(vq(`pets/${id}_sheet.webp`),PET_DEFS[id].soon?1:4).then(im=>{PETS_IMG[id]=im||false;dispatchEvent(new CustomEvent('petloaded',{detail:id}));petLater();});}
 // the little "loading" picture shown wherever a pet picture is not here yet
 function drawPetLoading(g,x,y,r){const t=performance.now()/1000;g.save();g.translate(x,y);
   g.fillStyle='rgba(255,250,240,.92)';g.strokeStyle='#e7d3ae';g.lineWidth=Math.max(1.5,r*.12);g.beginPath();g.arc(0,0,r,0,7);g.fill();g.stroke();
@@ -1942,7 +1944,7 @@ function saveHunger(){const now=Date.now();for(const k in HUNGER)HUNGER[k].t=now
 setInterval(saveHunger,5000);addEventListener('pagehide',saveHunger);
 // ---- mood bubbles (drawn in code) ----
 function mood(p,k,dur){p.mood={k,t0:performance.now(),dur:dur||2.4};}
-const MOODS=['full','hungry','love','happy','sleepy','sad','curious','yuck'];const MOOD_IMG=new Image();MOOD_IMG.src='moods.webp?v='+ASSET_V;
+const MOODS=['full','hungry','love','happy','sleepy','sad','curious','yuck'];const MOOD_IMG=new Image();MOOD_IMG.src=vq('moods.webp');
 function drawMood(k,x,y,sz,a){if(MOOD_IMG.complete&&MOOD_IMG.naturalWidth){const c=MOOD_IMG.height,i=MOODS.indexOf(k);ctx.save();ctx.globalAlpha=a;ctx.drawImage(MOOD_IMG,i*c,0,c,c,x-sz*.62,y-sz*.62,sz*1.24,sz*1.24);ctx.restore();return;}
   ctx.save();ctx.globalAlpha=a;ctx.translate(x,y);const r=sz/2;
   ctx.fillStyle='#fff';ctx.strokeStyle='#3b2a1a';ctx.lineWidth=Math.max(1.5,sz*.07);ctx.beginPath();ctx.arc(0,0,r,0,7);ctx.fill();ctx.stroke();
@@ -1966,7 +1968,7 @@ function callPetAt(id,x,y){let p=PETS.find(q=>q.id===id);if(!p){p=newPet(id);PET
 function sendPetHome(id){const i=PETS.findIndex(p=>p.id===id);if(i<0)return;PETS.splice(i,1);savePets();sfxPop(P);}
 const FOOD=[];   // food dropped on the ground: {x,y,left,kind}
 // ---- poop: pets poop a while after eating (and now and then); sweep it up with the broom ----
-const POOP=[];const CLEAN_IMG=new Image();CLEAN_IMG.src='clean.webp?v='+ASSET_V;   // 0 poop, 1 broom, 2 dustpan, 3 sparkle
+const POOP=[];const CLEAN_IMG=new Image();CLEAN_IMG.src=vq('clean.webp');   // 0 poop, 1 broom, 2 dustpan, 3 sparkle
 function cleanIcon(g,i,x,y,sz,rot){if(!(CLEAN_IMG.complete&&CLEAN_IMG.naturalWidth))return;const c=CLEAN_IMG.height;g.save();g.translate(x,y);if(rot)g.rotate(rot);g.drawImage(CLEAN_IMG,i*c,0,c,c,-sz/2,-sz/2,sz,sz);g.restore();}
 let CLEAN=null;   // {poop,t}: the broom is busy
 // keep anything on the lawn (poop, food) inside the yard: not in the house, not over the fence, not in a bush or flower bed
@@ -2005,7 +2007,7 @@ const FOOD_FANS={   // what each pet likes, close to what the real animal eats
 const likes=(id,kind)=>FOOD_FANS[kind].split(' ').includes(id);
 const likedFoods=id=>FOODS.filter(f=>likes(id,f.id));
 const FOOD_BOT=[0.312, 0.305, 0.422, 0.438, 0.312, 0.406, 0.445, 0.406];   // icon bottom below its centre (share of icon size)
-const FOOD_IMG=new Image();FOOD_IMG.src='food.webp?v='+ASSET_V;
+const FOOD_IMG=new Image();FOOD_IMG.src=vq('food.webp');
 function drawFoodIcon(g,kind,x,y,sz){const i=FOODS.findIndex(f=>f.id===kind);
   if(FOOD_IMG.complete&&FOOD_IMG.naturalWidth){const c=FOOD_IMG.height;g.drawImage(FOOD_IMG,i*c,0,c,c,x-sz/2,y-sz/2,sz,sz);}
   else{g.save();g.font=`${sz*.8}px sans-serif`;g.textAlign='center';g.textBaseline='middle';g.fillText(FOODS[i].e,x,y);g.restore();}}
@@ -2098,7 +2100,7 @@ function updatePet(p,dt){const info=PET_INFO[p.id],k=petTempo(p),sp=info.speed*(
 function drawFood(){if(MAPID!=='home')return;for(const f of FOOD){const k=.45+.55*f.left,sz=30*k*S.scale/0.7;ctx.save();ctx.fillStyle='rgba(0,0,0,.15)';ctx.beginPath();ctx.ellipse(f.x,f.y+1,sz*.45,sz*.16,0,0,7);ctx.fill();ctx.restore();
   const fi=Math.max(0,FOODS.findIndex(o=>o.id===f.kind));ctx.save();if(CLEAN&&CLEAN.obj===f)ctx.globalAlpha=Math.max(0,1-Math.max(0,CLEAN.t-.8)/.3);drawFoodIcon(ctx,f.kind||'kibble',f.x,f.y+1-FOOD_BOT[fi]*sz,sz);ctx.restore();}}
 // pets with their own flying picture (one row of 4 frames, same cell size as the sheet)
-const FLY_IMG={};function flyImg(id){if(!(id in FLY_IMG)){FLY_IMG[id]=null;loadImg(`pets/${id}_fly.webp?v=${ASSET_V}`,3).then(im=>FLY_IMG[id]=im||false);}return FLY_IMG[id]||null;}
+const FLY_IMG={};function flyImg(id){if(!(id in FLY_IMG)){FLY_IMG[id]=null;loadImg(vq(`pets/${id}_fly.webp`),3).then(im=>FLY_IMG[id]=im||false);}return FLY_IMG[id]||null;}
 function drawPet(p){const def=PET_DEFS[p.id],H=petH(p),t=p.t,s=p.state;
   ctx.save();ctx.fillStyle='rgba(0,0,0,.16)';ctx.beginPath();const shk=1-Math.min(.45,(p.alt||0)/90);ctx.ellipse(p.x,p.y,H*.38*shk,H*.11*shk,0,0,7);ctx.fill();ctx.restore();
   const sheet=petImg(p.id);if(!sheet){drawPetLoading(ctx,p.x,p.y-H*.45,Math.max(12,H*.38));}
