@@ -643,7 +643,8 @@ function tuckHair(g,ox,img,sx,sy,cs,x,y,w,h,view){const side=view==='dr'||view==
   for(let yy=0;yy<FRAME_H;yy++)for(let xx=0;xx<FRAME_W;xx++)if(ha[(yy*FRAME_W+xx)*4+3]>60){y0=Math.min(y0,yy);y1=Math.max(y1,yy);x0=Math.min(x0,xx);x1=Math.max(x1,xx);}
   if(y1<=y0)return;const cut=y0+(y1-y0)*.9,d=g.getImageData(ox,0,FRAME_W,FRAME_H),p=d.data;
   for(let yy=0;yy<y1+2;yy++)for(let xx=0;xx<FRAME_W;xx++){const inSpan=xx>=x0-1&&xx<=x1+1,near=!inSpan&&xx>=x0-14&&xx<=x1+14;
-    if(inSpan?(!side||xx>(x0+x1)/2||yy>y0+(y1-y0)*.55):(!near&&yy>=cut))continue;   // inside the hat's width only the back (behind the head) above the brim is cleared   // hair under/inside the hat stays (no flat cut line under the brim)   // under the brim (front, bangs) stays; hair right beside the brim is hidden down to the brim line
+    const back=side&&xx<(x0+x1)/2;
+    if(inSpan?(!back||yy>y0+(y1-y0)*.55):back?yy>=y1+2:(!near&&yy>=cut))continue;   // behind the head: nothing pokes out above the brim line   // inside the hat's width only the back (behind the head) above the brim is cleared   // hair under/inside the hat stays (no flat cut line under the brim)   // under the brim (front, bangs) stays; hair right beside the brim is hidden down to the brim line
     const i=(yy*FRAME_W+xx)*4;if(ha[i+3]>60||!p[i+3])continue;
     const v=Math.max(p[i],p[i+1],p[i+2]);if(v<110||(p[i]>150&&p[i+1]<90))p[i+3]=0;}   // dark hair or the red hair tie
   g.putImageData(d,ox,0);}
