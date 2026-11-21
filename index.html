@@ -353,7 +353,7 @@
 <script>
 // ---- UI icon set (ui_icons.webp, 18 cells in one row) — emoji are shown until it loads ----
 // bump ASSET_V whenever an icon/emote picture changes, so phones download the new one instead of a cached copy
-var ASSET_V='20261121b';
+var ASSET_V='20261121c';
 const IC_N=['logo','pad','freeze','hide','zombie','fire','flash','run','shirt','gear','globe','trophy','girl','boy','jump','tag','logout','hello'];
 const IC={},IC_C={};
 function icFrom(img,i,name){const n=img.height,c=document.createElement('canvas');c.width=c.height=n;c.getContext('2d').drawImage(img,i*n,0,n,n,0,0,n,n);IC_C[name]=c;IC[name]=c.toDataURL();}
@@ -1725,7 +1725,7 @@ function setSounds(on){SND.sounds=on;lsSet('sw_sounds',on);if(SND.ac)SND.sfx.gai
 // tame 0..1 : how much it sticks to its owner (high = follows you; low = wanders around the yard and only sometimes comes)
 // speed     : px/s at normal game speed (a kid walks 200)
 const PET_INFO={   // all pets – stats ready for later
-  owl:{tame:.45,speed:95},snowy_owl:{tame:.4,speed:95},
+  owl:{tame:.45,speed:110},snowy_owl:{tame:.4,speed:110},
   orange_cat:{tame:.7,speed:150},tabby_cat:{tame:.6,speed:150},black_cat:{tame:.5,speed:160},calico_cat:{tame:.65,speed:150},white_cat:{tame:.55,speed:130},
   thai_pup:{tame:.85,speed:185},pomeranian:{tame:.9,speed:165},chihuahua:{tame:.8,speed:175},corgi:{tame:.9,speed:170},golden_pup:{tame:.95,speed:185},
   shiba:{tame:.6,speed:185},husky:{tame:.7,speed:200},scottish_fold:{tame:.6,speed:120},persian:{tame:.5,speed:100},holland_lop:{tame:.55,speed:140},
@@ -1773,11 +1773,11 @@ const PET_DEFS={   // pets that have their sprite sheet in the game now
   axolotl:{name:'Axolotl',h:57,special:'wiggle',feel:7,still:[2,3]},
   sugar_glider:{name:'Sugar Glider',h:61,special:'glide',feel:7,still:[2,3]},
   macaw:{name:'Macaw',h:73,special:'flap',feel:10,still:[2,3],fly:{row:1,frames:[1,2,3,2],alt:40,speed:2.0}},
-  cockatoo:{name:'Cockatoo',h:60,special:'crest',feel:10,still:[2,3],fly:{row:1,frames:[1,2,3,2],alt:38,speed:2.2}},
+  cockatoo:{name:'Cockatoo',h:78,special:'crest',feel:10,still:[2,3],fly:{row:1,frames:[1,2,3,2],alt:38,speed:2.2}},
   french_bulldog:{name:'French Bulldog',h:86,special:'snort',feel:7,still:[2,3]},
   mini_pig:{name:'Mini Pig',h:103,special:'dig',feel:7,still:[2,3]},
-  owl:{name:'Owl',h:61,special:'headturn',feel:6,still:[2,3]},
-  snowy_owl:{name:'Snowy Owl',h:66,special:'headturn',feel:6,still:[2,3]},
+  owl:{name:'Owl',h:61,special:'headturn',feel:6,still:[2,3],fly:{img:1,frames:[0,1,2,3],fps:8,alt:40,speed:2.0}},
+  snowy_owl:{name:'Snowy Owl',h:66,special:'headturn',feel:6,still:[2,3],fly:{img:1,frames:[0,1,2,3],fps:8,alt:40,speed:2.0}},
   sheep:{name:'Sheep',h:128,special:'baa',feel:2,still:[2,3]}};
 const petReady=id=>!!PETS_IMG[id];   // new pets appear once their sprite sheet has been added
 // where the mouth is when eating (m) and where the bottom is (b), as a share of the picture height, measured on each sheet
@@ -1969,16 +1969,18 @@ function updatePet(p,dt){const info=PET_INFO[p.id],k=petTempo(p),sp=info.speed*(
   petWalk(p,false);}
 function drawFood(){if(MAPID!=='home')return;for(const f of FOOD){const k=.45+.55*f.left,sz=30*k*S.scale/0.7;ctx.save();ctx.fillStyle='rgba(0,0,0,.15)';ctx.beginPath();ctx.ellipse(f.x,f.y+1,sz*.45,sz*.16,0,0,7);ctx.fill();ctx.restore();
   const fi=Math.max(0,FOODS.findIndex(o=>o.id===f.kind));ctx.save();if(CLEAN&&CLEAN.obj===f)ctx.globalAlpha=Math.max(0,1-Math.max(0,CLEAN.t-.8)/.3);drawFoodIcon(ctx,f.kind||'kibble',f.x,f.y+1-FOOD_BOT[fi]*sz,sz);ctx.restore();}}
+// pets with their own flying picture (one row of 4 frames, same cell size as the sheet)
+const FLY_IMG={};function flyImg(id){if(!(id in FLY_IMG)){FLY_IMG[id]=null;loadImg(`pets/${id}_fly.webp?v=${ASSET_V}`,3).then(im=>FLY_IMG[id]=im||false);}return FLY_IMG[id]||null;}
 function drawPet(p){const def=PET_DEFS[p.id],H=petH(p),t=p.t,s=p.state;
   ctx.save();ctx.fillStyle='rgba(0,0,0,.16)';ctx.beginPath();const shk=1-Math.min(.45,(p.alt||0)/90);ctx.ellipse(p.x,p.y,H*.38*shk,H*.11*shk,0,0,7);ctx.fill();ctx.restore();
   const sheet=petImg(p.id);if(!sheet){drawPetLoading(ctx,p.x,p.y-H*.45,Math.max(12,H*.38));}
   if(sheet){const n=4,cw=sheet.width/n,chh=sheet.height/4;let row,f;
-    if((p.alt||0)>2&&def.fly){row=def.fly.row;f=def.fly.frames[Math.floor(t*11)%def.fly.frames.length];}
+    let src=sheet;if((p.alt||0)>2&&def.fly){const fi=def.fly.img&&flyImg(p.id);if(fi){src=fi;row=0;}else row=def.fly.row;f=def.fly.frames[Math.floor(t*(def.fly.fps||11))%def.fly.frames.length];}
     else if(s==='stand'||s==='poop'){[row,f]=def.still;}
     else{row={walk:0,special:1,eat:2,love:3}[s];const k=petTempo(p),fps={walk:Math.max(1.6,9*k),special:Math.max(1.4,5*k),eat:Math.max(1.6,6*k),love:Math.max(1.8,6*k)}[s];f=Math.floor(t*fps)%n;}
     const ch2=H/0.85*(chh-4)/chh,w=ch2*cw/chh;
     const sq=s==='poop'?1-.06*Math.sin(Math.min(1,p.st/.5)*Math.PI/2)*(p.st<1.1?1:Math.max(0,1-(p.st-1.1)/.3)):1;   // a little squat
-    ctx.save();ctx.translate(p.x,p.y+H*0.02-(p.alt||0)+(p.alt>2?Math.sin(t*7)*2:0));ctx.scale(p.face*(2-sq),sq);ctx.drawImage(sheet,f*cw,row*chh,cw,chh,-w/2,-ch2,w,ch2);ctx.restore();}
+    ctx.save();ctx.translate(p.x,p.y+H*0.02-(p.alt||0)+(p.alt>2?Math.sin(t*7)*2:0));ctx.scale(p.face*(2-sq),sq);ctx.drawImage(src,f*cw,row*chh,cw,chh,-w/2,-ch2,w,ch2);ctx.restore();}
   const top=p.y-(p.alt||0)-H*1.02;
   if(p.mood){const u=(performance.now()-p.mood.t0)/1000;if(u>p.mood.dur)p.mood=null;else drawMood(p.mood.k,p.x+H*.38,top-14-Math.sin(u*6)*2,Math.min(1,u*6)*28*S.scale/0.7,Math.min(1,(p.mood.dur-u)*3));}
   {const hg=hungerOf(p.id),full=1-hg/100,bw=30*S.scale/0.7,bh=5*S.scale/0.7,bx=p.x-bw/2,by=top-2;   // fullness bar over the head
