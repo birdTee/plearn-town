@@ -366,7 +366,7 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden)window.__hi
 <script>
 // ---- UI icon set (ui_icons.webp, 18 cells in one row) — emoji are shown until it loads ----
 // bump ASSET_V whenever an icon/emote picture changes, so phones download the new one instead of a cached copy
-var ASSET_V='20261122a';
+var ASSET_V='20261122b';
 const IC_N=['logo','pad','freeze','hide','zombie','fire','flash','run','shirt','gear','globe','trophy','girl','boy','jump','tag','logout','hello'];
 const IC={},IC_C={};
 function icFrom(img,i,name){const n=img.height,c=document.createElement('canvas');c.width=c.height=n;c.getContext('2d').drawImage(img,i*n,0,n,n,0,0,n,n);IC_C[name]=c;IC[name]=c.toDataURL();}
@@ -616,8 +616,8 @@ const ITEM_CELL={girl_school:0,girl_sport:1,girl_party:2,girl_sunny:3,boy_school
 const SHEET_OF={idle:'idle',act:'act',right:'right',down:'down',up:'up',downright:'dr',upright:'ur'};
 const IDLE_VIEW=['right','down','up','dr','ur'];
 // hat size / place per view: width, x shift from head centre, how far the hat bottom goes below the top of the hair
-const HAT_FIT={straw:{row:0,v:{down:[153.5,0,66.1],dr:[176.7,-0.0,89.2],right:[185.9,6.0,92.1],ur:[193.6,4.2,76.1],up:[153.6,0,71.6]}},
-  beanie:{row:1,v:{down:[141,0,81.0],dr:[185.9,1.1,78.5],right:[185.9,1.7,77.9],ur:[191.2,1.3,72.7],up:[141,0,81.0]}}};
+const HAT_FIT={straw:{row:0,v:{down:[153.5,0,70],dr:[176.7,6,95],right:[185.9,6.0,92.1],ur:[193.6,4.2,76.1],up:[153.6,0,71.6]}},
+  beanie:{row:1,v:{down:[141,0,83],dr:[185.9,5,82],right:[185.9,1.7,77.9],ur:[191.2,1.3,72.7],up:[141,0,81.0]}}};
 const HAT_COL={down:0,dr:1,right:2,ur:3,up:4};
 function lookDir(look){const [g,o,h]=look.split('_');return lookPath(g,o,h).split('/')[1];}
 function wearOf(key){const w=(key.split('|')[1]||'').split(',');return {hat:w[0]||'none',shoes:w[1]||'black',glasses:w[2]||'none'};}
