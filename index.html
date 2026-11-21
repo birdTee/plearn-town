@@ -1244,7 +1244,7 @@ function applyTag(a,b){
   const st=a.st||(a.st={});
   if(MG.mode==='freeze'){if(a.role==='it'){st.tag=(st.tag||0)+1;b.frozen=true;b.moving=false;b.jt=null;b.z=0;b.pop={txt:'Frozen!',t:0};}else{st.save=(st.save||0)+1;b.frozen=false;b.pop={txt:'Saved!',t:0};}}
   else if(MG.mode==='zombie'){st.bite=(st.bite||0)+1;b.role='zombie';b.pop={txt:'Zombie!',t:0};}
-  else if(MG.mode==='stinky'){a.role='clean';b.role='stinky';b.itGrace=1.5;b.moving=false;b.pop={txt:'Ewww! 🦨',t:0};a.pop={txt:'Phew!',t:0};a.peelCd=0;}
+  else if(MG.mode==='stinky'){a.role='clean';b.role='stinky';b.st=b.st||{};b.st.stunk=(b.st.stunk||0)+1;b.itGrace=1.5;b.moving=false;b.pop={txt:'Ewww! 🦨',t:0};a.pop={txt:'Phew!',t:0};a.peelCd=0;}
   else if(MG.mode==='hide'){st.find=(st.find||0)+1;b.found=true;b.moving=false;b.pop={txt:'Found!',t:0};}
   checkEnd();}
 
@@ -1292,11 +1292,11 @@ $('mgBtn').onclick=mgOpen;$('mgClose').onclick=()=>{if(MG.phase==='end')mgFinish
 $('mgAgain').onclick=()=>{mgFinish();mgOpen();mgLobby(MG.mode);};$('mgDone').onclick=()=>{mgFinish();mgClose();};
 function mgStart(){leaveHomeNow();mgClose();if(MG.online&&MG.isHost)mgList();const ps=[P,...MG.joined,...(MG.online&&MG.isHost?MG.bots||[]:[])];MG.players=ps;MG.on=true;MG.phase='count';MG.t=HEAD;MG.seekT=0;MG.win=null;
   // everyone starts from where they are standing now
-  MG.peels=[];ps.forEach(p=>{p.st={tag:0,save:0,bite:0,find:0,slip:0,close:0,stinkT:0};p.mg=true;p.frozen=false;p.found=false;p.tagCd=0;p.jt=null;p.z=0;p.target=null;p.moving=false;});
+  MG.peels=[];ps.forEach(p=>{p.st={tag:0,save:0,bite:0,find:0,slip:0,close:0,stinkT:0,stunk:0};p.mg=true;p.frozen=false;p.found=false;p.tagCd=0;p.jt=null;p.z=0;p.target=null;p.moving=false;});
   // random teams: every game has 1/3 chasers (rounded down, at least 1)
   const sh=[...ps].sort(()=>Math.random()-.5);const nCh=Math.max(1,Math.floor(ps.length/3));
   const chasers=new Set(sh.slice(0,nCh));
-  ps.forEach(p=>{const c=chasers.has(p);p.role=MG.mode==='freeze'?(c?'it':'run'):MG.mode==='zombie'?(c?'zombie':'human'):MG.mode==='stinky'?(c?'stinky':'clean'):(c?'seeker':'hider');p.hideSpot=null;p.slipT=0;p.itGrace=0;p.peelCd=0;p.saveArm=0;});
+  ps.forEach(p=>{const c=chasers.has(p);p.role=MG.mode==='freeze'?(c?'it':'run'):MG.mode==='zombie'?(c?'zombie':'human'):MG.mode==='stinky'?(c?'stinky':'clean'):(c?'seeker':'hider');if(MG.mode==='stinky'&&c&&p.st)p.st.stunk=1;p.hideSpot=null;p.slipT=0;p.itGrace=0;p.peelCd=0;p.saveArm=0;});
   MG.seekerIsP=(MG.mode==='hide'&&P.role==='seeker');
   if(MG.online&&MG.isHost){NET.g=hostState();NET.sendT=0;}
   $('mgHud').style.display='block';$('mgBtn').style.display='none';mgHudUpdate();}
@@ -1345,19 +1345,20 @@ function mgEnd(win){MG.phase='end';MG.win=win;if(MG.online&&MG.isHost){NET.g=hos
   const chaserWon=win==='chaser';
   const S0=p=>p.st||{};
   // Zombie Tag: humans who are still human at the end win; a zombie wins if it bit at least one person
-  let youWin;if(MG.mode==='stinky')youWin=P.role!=='stinky';else if(MG.mode==='zombie')youWin=P.role==='human'||(S0(P).bite||0)>=1;else youWin=chaserWon?isChaser(P):!isChaser(P);
+  let youWin;if(MG.mode==='stinky')youWin=P.role!=='stinky';else if(MG.mode==='zombie')youWin=chaserWon?(P.role==='zombie'&&(S0(P).bite||0)>=1):P.role==='human';   // one survivor = humans win, every zombie loses; all zombies = zombies who bit someone winelse youWin=chaserWon?isChaser(P):!isChaser(P);
   // MVP: the best player of the side that won
   const best=(list,key,unit,units)=>{let v=0;for(const p of list)v=Math.max(v,S0(p)[key]||0);if(!v)return null;const all=list.filter(p=>(S0(p)[key]||0)===v);return {p:all.includes(P)?P:all[0],all,txt:`${v} ${v===1?unit:units}`};};   // ties: everyone with the top score is MVP
   const ps=MG.players;let mvp=null;
   if(MG.mode==='freeze')mvp=chaserWon?best(ps.filter(p=>p.role==='it'),'tag','tag','tags'):best(ps.filter(p=>p.role==='run'),'save','save','saves');
-  else if(MG.mode==='zombie')mvp=best(ps,'bite','bite','bites');
+  else if(MG.mode==='zombie'){if(chaserWon)mvp=best(ps.filter(p=>p.role==='zombie'),'bite','bite','bites');else{const sv=ps.filter(p=>p.role==='human');if(sv.length)mvp={p:sv.includes(P)?P:sv[0],all:sv,txt:'survived!'};}}
   else if(MG.mode==='hide')mvp=chaserWon?best(ps.filter(p=>p.role==='seeker'),'find','find','finds'):best(ps.filter(p=>p.role==='hider'&&!p.found),'close','close call','close calls');
-  else if(MG.mode==='stinky'){const clean=ps.filter(p=>p.role!=='stinky');mvp=best(clean,'slip','banana slip','banana slips');
+  else if(MG.mode==='stinky'){const clean=ps.filter(p=>p.role!=='stinky');clean.forEach(p=>{const t=S0(p);t.skScore=(t.slip||0)+(t.stunk||0);});   // MVP: clean at the end, most banana slips + times been the skunk
+    mvp=best(clean,'skScore','point','points');if(mvp){const t=S0(mvp.p);mvp.txt=`${t.slip||0} 🍌 slip${(t.slip||0)===1?'':'s'} + ${t.stunk||0}× 🦨`;}
     if(!mvp&&clean.length){const c=clean.slice().sort((a,b)=>(S0(a).stinkT||0)-(S0(b).stinkT||0))[0];mvp={p:c,txt:(S0(c).stinkT||0)<1?'never stinky':`stinky only ${Math.round(S0(c).stinkT)} s`};}}
   MG.mvp=mvp;
   sfxJingle(youWin);
   const head=MG.mode==='stinky'?`Time up! Still stinky 🦨: ${MG.players.filter(p=>p.role==='stinky').map(p=>p===P?'You':p.name).join(', ')}`:chaserWon?{freeze:'Chasers win! Everyone is frozen',zombie:'Zombies took over! 🧟',hide:'Seekers found everyone!'}[MG.mode]:{freeze:'Time up! Runners win',zombie:'Time up! Some humans survived',hide:'Time up! Hiders win'}[MG.mode];
-  $('mgResult').innerHTML=`${youWin?'<i class="ic" data-ic="trophy">🎉</i> You win!':'<i class="ic" data-ic="sweat">😅</i> Try again next time!'}<small>${head}</small>${mvp?`<div class="mvp${(mvp.all||[mvp.p]).includes(P)?' me':''}"><b>⭐ MVP</b> ${(mvp.all||[mvp.p]).map(p=>p===P?'You':p.name).join(', ')} <span>${mvp.txt}</span></div>`:''}${MG.mode==='zombie'&&P.role==='zombie'?`<small>You bit ${S0(P).bite||0} ${(S0(P).bite||0)===1?'person':'people'}${(S0(P).bite||0)>=1?' 🧟':' – bite at least 1 to win!'}</small>`:''}`;
+  $('mgResult').innerHTML=`${youWin?'<i class="ic" data-ic="trophy">🎉</i> You win!':'<i class="ic" data-ic="sweat">😅</i> Try again next time!'}<small>${head}</small>${mvp?`<div class="mvp${(mvp.all||[mvp.p]).includes(P)?' me':''}"><b>⭐ MVP</b> ${(mvp.all||[mvp.p]).map(p=>p===P?'You':p.name).join(', ')} <span>${mvp.txt}</span></div>`:''}${MG.mode==='zombie'&&P.role==='zombie'?`<small>You bit ${S0(P).bite||0} ${(S0(P).bite||0)===1?'person':'people'}${!chaserWon?' – someone survived, zombies lose':(S0(P).bite||0)>=1?' 🧟':' – bite at least 1 to win!'}</small>`:''}`;
   mgPanel.style.display='flex';$('mgTitle').innerHTML=MGAMES[MG.mode].icon+' '+MGAMES[MG.mode].name;$('mgPick').style.display='none';$('mgLobby').style.display='none';$('mgEnd').style.display='block';$('mgMsg').style.display='none';}
 function mgFinish(){if(MG.online){if(MG.isHost){NET.g=null;}else{NET.j=null;NET.host=null;}NET.tg=null;NET.sendT=0;MG.online=false;MG.isHost=false;}$('mgAgain').style.display='';$('mgStart').style.display='';$('mgCancel').textContent='Cancel';
   MG.on=false;MG.phase='';MG.peels=[];MG.players.forEach(p=>{p.slipT=0;p.itGrace=0;p.peelCd=0;p.saveArm=0;p.mg=false;p.netBot=false;p.role=null;p.frozen=false;p.found=false;p.jt=null;p.z=0;p.det=null;p.hideSpot=null;p.plan=null;p.target=null;p.moving=false;p.wait=1+Math.random()*2;});MG.players=[];app.classList.remove('inMG');setTagBtn(false);
@@ -1582,7 +1583,7 @@ function hostState(){if(!MG.on)return NET.g;const ids=MG.players.map(idOf);
   return {id:NET.gid,mode:MG.mode,ph:MG.phase,tl:Math.round(MG.t*10)/10,sk:Math.round(MG.seekT*10)/10,pl:ids,
     r:Object.fromEntries(MG.players.map((p,i)=>[ids[i],p.role])),fz:ids.filter((_,i)=>MG.players[i].frozen),fd:ids.filter((_,i)=>MG.players[i].found),win:MG.win||null,
     pe:(MG.peels||[]).map(q=>[Math.round(q.x),Math.round(q.y),Math.round(q.t*10)/10]),sl:ids.filter((_,i)=>MG.players[i].slipT>0),gr:ids.filter((_,i)=>MG.players[i].itGrace>0),
-    st:Object.fromEntries(MG.players.map((p,i)=>{const t=p.st||{};return [ids[i],[t.tag|0,t.save|0,t.bite|0,t.find|0,t.slip|0,t.close|0,Math.round(t.stinkT||0)]];}))};}
+    st:Object.fromEntries(MG.players.map((p,i)=>{const t=p.st||{};return [ids[i],[t.tag|0,t.save|0,t.bite|0,t.find|0,t.slip|0,t.close|0,Math.round(t.stinkT||0),t.stunk|0]];}))};}
 function netTick(dt){
   for(const a of REMOTE.values()){const d=Math.hypot(a.tx-a.x,a.ty-a.y);if(d>260){a.x=a.tx;a.y=a.ty;}else{const k=Math.min(1,dt*10);a.x+=(a.tx-a.x)*k;a.y+=(a.ty-a.y)*k;}
     a.z+=((a.tz||0)-a.z)*Math.min(1,dt*15);if(a.moving){a.t+=dt;a.frame=frameAt(8,8,a.t,S.fps);}else{a.t=0;a.frame=0;}if(a.pop)a.pop.t+=dt;}
@@ -1616,7 +1617,7 @@ function netFollowHost(){if(!NET.j)return;leaveHomeNow();const hp=NET.pres.get(N
   if(g.ph==='lobby'){if(mgPanel.style.display!=='none')guestList();return;}
   const actors=(g.pl||[]).map(byId).filter(Boolean);
   if(!MG.on){MG.on=true;MG.online=true;MG.isHost=false;MG.mode=g.mode;MG.win=null;mgClose();actors.forEach(p=>{p.jt=null;p.z=0;});$('mgHud').style.display='block';$('mgBtn').style.display='none';}
-  MG.players=actors;MG.peels=(g.pe||[]).map(([x,y,t])=>({x,y,t}));actors.forEach(p=>{const id=idOf(p);p.mg=true;p.role=(g.r||{})[id]||p.role;{const v=(g.st||{})[id];if(v)p.st={tag:v[0],save:v[1],bite:v[2],find:v[3],slip:v[4],close:v[5],stinkT:v[6]};}p.frozen=(g.fz||[]).includes(id);p.found=(g.fd||[]).includes(id);
+  MG.players=actors;MG.peels=(g.pe||[]).map(([x,y,t])=>({x,y,t}));actors.forEach(p=>{const id=idOf(p);p.mg=true;p.role=(g.r||{})[id]||p.role;{const v=(g.st||{})[id];if(v)p.st={tag:v[0],save:v[1],bite:v[2],find:v[3],slip:v[4],close:v[5],stinkT:v[6],stunk:v[7]|0};}p.frozen=(g.fz||[]).includes(id);p.found=(g.fd||[]).includes(id);
     const sl=(g.sl||[]).includes(id);if(sl&&!(p.slipT>0))startSlip(p);if(!sl&&p!==P)p.slipT=0;p.itGrace=(g.gr||[]).includes(id)?Math.max(p.itGrace||0,.2):(p===P?Math.min(p.itGrace||0,.2):0);});
   if(P.frozen){P.moving=false;P.jt=null;P.z=0;}
   MG.seekerIsP=(MG.mode==='hide'&&P.role==='seeker');
