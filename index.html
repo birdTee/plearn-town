@@ -353,7 +353,7 @@
 <script>
 // ---- UI icon set (ui_icons.webp, 18 cells in one row) — emoji are shown until it loads ----
 // bump ASSET_V whenever an icon/emote picture changes, so phones download the new one instead of a cached copy
-var ASSET_V='20261121f';
+var ASSET_V='20261121g';
 const IC_N=['logo','pad','freeze','hide','zombie','fire','flash','run','shirt','gear','globe','trophy','girl','boy','jump','tag','logout','hello'];
 const IC={},IC_C={};
 function icFrom(img,i,name){const n=img.height,c=document.createElement('canvas');c.width=c.height=n;c.getContext('2d').drawImage(img,i*n,0,n,n,0,0,n,n);IC_C[name]=c;IC[name]=c.toDataURL();}
@@ -1738,18 +1738,18 @@ const PET_DEFS={   // pets that have their sprite sheet in the game now
   calico_cat:{name:'Calico Cat',h:92,special:'groom',feel:2,still:[2,3]},     // still pose = eat row, last frame (standing, head up)
   sloth:{name:'Sloth',h:81,special:'sleep',feel:3,still:[3,0]},
   corgi:{name:'Corgi',h:89,special:'zoomies',feel:7,still:[2,3]},
-  turtle:{name:'Turtle',h:76,special:'hide',feel:3,still:[2,3]},
+  turtle:{name:'Turtle',h:61,special:'hide',feel:3,still:[2,3]},
   capybara:{name:'Capybara',h:90,special:'relax',feel:3,still:[2,3]},
-  hamster:{name:'Hamster',h:56,special:'cheeks',feel:7,still:[2,3]},
+  hamster:{name:'Hamster',h:45,special:'cheeks',feel:7,still:[2,3]},
   holland_lop:{name:'Bunny',h:68,special:'hop',feel:2,still:[2,3]},
   baby_penguin:{name:'Penguin',h:72,special:'flap',feel:10,still:[2,3]},
   shiba:{name:'Shiba',h:91,special:'proud',feel:7,still:[2,3]},
   otter:{name:'Otter',h:89,special:'float',feel:3,still:[2,3]},
   red_panda:{name:'Red Panda',h:106,special:'standup',feel:7,still:[2,3]},
-  budgie:{name:'Budgie',h:64,special:'flap',feel:10,still:[2,3],fly:{row:1,frames:[1,2,3,2],alt:34,speed:2.4}},
+  budgie:{name:'Budgie',h:51,special:'flap',feel:10,still:[2,3],fly:{row:1,frames:[1,2,3,2],alt:34,speed:2.4}},
   orange_cat:{name:'Orange Cat',h:80,special:'stretch',feel:2,still:[2,3]},
-  guinea_pig:{name:'Guinea Pig',h:80,special:'popcorn',feel:7,still:[2,3]},
-  hedgehog:{name:'Hedgehog',h:68,special:'curl',feel:3,still:[2,3]},
+  guinea_pig:{name:'Guinea Pig',h:64,special:'popcorn',feel:7,still:[2,3]},
+  hedgehog:{name:'Hedgehog',h:54,special:'curl',feel:3,still:[2,3]},
   koala:{name:'Koala',h:75,special:'sleep',feel:3,still:[2,3]},
   fennec_fox:{name:'Fennec Fox',h:75,special:'pounce',feel:7,still:[2,3]},
   baby_panda:{name:'Baby Panda',h:99,special:'roll',feel:2,still:[2,3]},
@@ -1768,11 +1768,11 @@ const PET_DEFS={   // pets that have their sprite sheet in the game now
   husky:{name:'Husky',h:105,special:'howl',feel:7,still:[2,3]},
   scottish_fold:{name:'Scottish Fold',h:77,special:'loaf',feel:2,still:[2,3]},
   persian:{name:'Persian Cat',h:83,special:'groom',feel:2,still:[2,3]},
-  bearded_dragon:{name:'Bearded Dragon',h:90,special:'beard',feel:1,still:[2,3]},
-  chameleon:{name:'Chameleon',h:88,special:'eyes',feel:6,still:[2,3]},
-  leopard_gecko:{name:'Leopard Gecko',h:82,special:'lick',feel:7,still:[2,3]},
-  axolotl:{name:'Axolotl',h:71,special:'wiggle',feel:7,still:[2,3]},
-  sugar_glider:{name:'Sugar Glider',h:76,special:'glide',feel:7,still:[2,3]},
+  bearded_dragon:{name:'Bearded Dragon',h:72,special:'beard',feel:1,still:[2,3]},
+  chameleon:{name:'Chameleon',h:70,special:'eyes',feel:6,still:[2,3]},
+  leopard_gecko:{name:'Leopard Gecko',h:66,special:'lick',feel:7,still:[2,3]},
+  axolotl:{name:'Axolotl',h:57,special:'wiggle',feel:7,still:[2,3]},
+  sugar_glider:{name:'Sugar Glider',h:61,special:'glide',feel:7,still:[2,3]},
   macaw:{name:'Macaw',h:73,special:'flap',feel:10,still:[2,3],fly:{row:1,frames:[1,2,3,2],alt:40,speed:2.0}},
   cockatoo:{name:'Cockatoo',h:78,special:'crest',feel:10,still:[2,3],fly:{row:1,frames:[1,2,3,2],alt:38,speed:2.2}},
   french_bulldog:{name:'French Bulldog',h:86,special:'snort',feel:7,still:[2,3]},
