@@ -366,7 +366,7 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden)window.__hi
 <script>
 // ---- UI icon set (ui_icons.webp, 18 cells in one row) — emoji are shown until it loads ----
 // bump ASSET_V whenever an icon/emote picture changes, so phones download the new one instead of a cached copy
-var ASSET_V='20261121w';
+var ASSET_V='20261121x';
 const IC_N=['logo','pad','freeze','hide','zombie','fire','flash','run','shirt','gear','globe','trophy','girl','boy','jump','tag','logout','hello'];
 const IC={},IC_C={};
 function icFrom(img,i,name){const n=img.height,c=document.createElement('canvas');c.width=c.height=n;c.getContext('2d').drawImage(img,i*n,0,n,n,0,0,n,n);IC_C[name]=c;IC[name]=c.toDataURL();}
@@ -614,7 +614,7 @@ const ITEM_CELL={girl_school:0,girl_sport:1,girl_party:2,girl_sunny:3,boy_school
 const SHEET_OF={idle:'idle',act:'act',right:'right',down:'down',up:'up',downright:'dr',upright:'ur'};
 const IDLE_VIEW=['right','down','up','dr','ur'];
 // hat size / place per view: width, x shift from head centre, how far the hat bottom goes below the top of the hair
-const HAT_FIT={straw:{row:0,v:{down:[167.2,0,66.6],dr:[160.6,8,84.4],right:[169.0,14.5,87.0],ur:[176.0,13,70.8],up:[167.2,0,66.6]}},
+const HAT_FIT={straw:{row:0,v:{down:[150.5,0.0,61.6],dr:[168.6,12.0,86.8],right:[166,11,87.5],ur:[184.8,17.4,73.4],up:[167.2,0,66.6]}},
   beanie:{row:1,v:{down:[147.4,0,82.0],dr:[169.0,9.6,79.5],right:[169.0,10.2,78.9],ur:[173.8,10,73.7],up:[147.4,0,82.0]}}};
 const HAT_COL={down:0,dr:1,right:2,ur:3,up:4};
 function lookDir(look){const [g,o,h]=look.split('_');return lookPath(g,o,h).split('/')[1];}
@@ -805,7 +805,7 @@ setTimeout(()=>{const fsOk=!!document.documentElement.requestFullscreen;$('fsRow
   document.addEventListener('fullscreenchange',()=>{$('fsToggle').checked=!!document.fullscreenElement;});
   $('musicToggle').checked=SND.music;$('soundToggle').checked=SND.sounds;$('musicToggle').onchange=e=>{sndInit();setMusic(e.target.checked)};$('soundToggle').onchange=e=>{sndInit();setSounds(e.target.checked)};},0);
 const pick={g:'girl',o:'school',h:{girl:'ponytail',boy:'short'},c:'blue',acc:'none',w:{hat:'none',shoes:'black',glasses:'none'}};
-function saveWear(){store.set('sw_wear',{o:pick.o,w:pick.w});}
+function saveWear(){store.set('sw_wear',{g:pick.g,o:pick.o,h:pick.h,c:pick.c,w:pick.w});}
 const lookKey=(g,o,h,c,w)=>{const k=`${g}_${o}_${h}:${OUTFITS[o].sport?c:'-'}`;
   return w&&g==='girl'&&(w.hat!=='none'||w.shoes!=='black'||w.glasses!=='none')?`${k}|${w.hat},${w.shoes},${w.glasses}`:k;};
 function thumb(key,idx=1){const v=variant(key);const c=document.createElement('canvas');c.width=FRAME_W;c.height=FRAME_H;if(v)c.getContext('2d').drawImage(v.idle,idx*FRAME_W,0,FRAME_W,FRAME_H,0,0,FRAME_W,FRAME_H);return c;}
@@ -816,9 +816,9 @@ function buildPicker(){
     if(OUTFITS[o].only&&OUTFITS[o].only!==g)continue;const key=lookKey(g,o,pick.h[g],pick.c);if(!BASE[key.split(':')[0]])continue;
     box.appendChild(chip(itemPic('outfit',key),OUTFITS[o].dress?OUTFITS[o].name:`${OUTFITS[o].name} ${GENDERS[g].name}`,pick.g===g&&pick.o===o,()=>{pick.g=g;pick.o=o;saveWear();applyPick();}));}
   const hb=$('hairPick');hb.innerHTML='';
-  for(const [h,name] of GENDERS[pick.g].hairs){const key=lookKey(pick.g,pick.o,h,pick.c);if(!BASE[key.split(':')[0]])continue;
+  for(const [h,name] of GENDERS[pick.g].hairs){const key=lookKey(pick.g,'school',h,'-');if(!BASE[key.split(':')[0]])continue;   // fixed picture: does not change with the outfit
     const c=document.createElement('canvas');c.width=FRAME_W;c.height=128;const v=variant(key);c.getContext('2d').drawImage(v.idle,FRAME_W,44,FRAME_W,128,0,0,FRAME_W,128);
-    hb.appendChild(chip(c,name,pick.h[pick.g]===h,()=>{pick.h[pick.g]=h;applyPick();}));}
+    hb.appendChild(chip(c,name,pick.h[pick.g]===h,()=>{pick.h[pick.g]=h;saveWear();applyPick();}));}
   // wear rows (girl only for now)
   const wr=$('wearPick');wr.innerHTML='';wr.style.display=pick.g==='girl'?'':'none';
   if(pick.g==='girl')for(const [slot,label] of [['hat','Hat'],['shoes','Shoes'],['glasses','Glasses']]){const row=document.createElement('div');row.className='row';row.innerHTML=`<label>${label}</label>`;
@@ -2197,6 +2197,8 @@ function picsLost(){try{if(SENT.getContext('2d').getImageData(0,0,1,1).data[3]==
 function saveResume(){try{sessionStorage.setItem('pt_resume',JSON.stringify({t:Date.now(),map:MAPID,x:P.x,y:P.y,dir:P.dir,
   food:FOOD.map(f=>({x:f.x,y:f.y,kind:f.kind,left:f.left})),poop:POOP.map(q=>({x:q.x,y:q.y}))}));}catch(e){}}
 let resumeBusy=false;
+function savePos(){if(loggedIn&&!resumeBusy&&isFinite(P.x))store.set('sw_pos',{name:P.name,map:MAPID,x:P.x,y:P.y,dir:P.dir});}
+setInterval(savePos,2000);addEventListener('pagehide',savePos);document.addEventListener('visibilitychange',()=>{if(document.hidden)savePos();});
 function checkPics(){if(resumeBusy||document.hidden||!loggedIn)return;
   const away=window.__hiddenAt&&Date.now()-window.__hiddenAt>30000;window.__hiddenAt=0;   // screen was off a while: refresh to be safe
   if(window.__picsGone||away||picsLost()){resumeBusy=true;saveResume();location.reload();}}
@@ -2210,9 +2212,11 @@ function tryResume(){let r=null;try{r=JSON.parse(sessionStorage.getItem('pt_resu
   P.x=r.x;P.y=r.y;P.dir=r.dir||'down';portalArmed=false;
   (r.food||[]).forEach(f=>FOOD.push({...f,t0:performance.now()}));(r.poop||[]).forEach(q=>POOP.push({x:q.x,y:q.y,t0:performance.now()-1e4,from:1}));updPoopN();drawStrip();return true;}
 function enterGame(p){store.set('sw_session',{on:true});LG.g=p.g;LG.h=p.h;LG.c=p.c;pick.g=p.g;pick.o='sport';pick.h[p.g]=p.h;pick.c=p.c;
-  {const sv=store.get('sw_wear');if(sv&&p.g==='girl'){if(sv.o&&OUTFITS[sv.o]&&BASE[lookKey('girl',sv.o,p.h,p.c).split(':')[0]])pick.o=sv.o;if(sv.w)pick.w={...pick.w,...sv.w};}}P.name=p.name;applyPick();variant(P.char);
+  {const sv=store.get('sw_wear');if(sv){if(sv.g&&GENDERS[sv.g])pick.g=sv.g;if(sv.h)for(const g in sv.h)if(GENDERS[g]&&GENDERS[g].hairs.some(x=>x[0]===sv.h[g]))pick.h[g]=sv.h[g];if(sv.c&&HOUSE[sv.c])pick.c=sv.c;
+    const o=sv.o||'sport';if(OUTFITS[o]&&(!OUTFITS[o].only||OUTFITS[o].only===pick.g)&&BASE[lookKey(pick.g,o,pick.h[pick.g],pick.c).split(':')[0]])pick.o=o;else pick.g=p.g;if(sv.w)pick.w={...pick.w,...sv.w};}}P.name=p.name;applyPick();variant(P.char);
   hud.style.display='none';showBtn.style.display='block';app.classList.remove('hudOpen');
   MAPID='home';app.classList.add('atHome');P.x=517*HK;P.y=HOME.RH+330*HK;P.dir='down';portalArmed=false;PETS.forEach(q=>q.placed=false);
+  {const lp=store.get('sw_pos');if(lp&&lp.name===p.name&&isFinite(lp.x)&&isFinite(lp.y)){if(lp.map==='school'){MAPID='school';app.classList.remove('atHome');}P.x=lp.x;P.y=lp.y;P.dir=lp.dir||'down';}}   // back where you left off
   const go=()=>{loggedIn=true;window.__inGame=true;resize();requestAnimationFrame(()=>requestAnimationFrame(()=>document.getElementById('loading').classList.add('done')));};
   if(window.__landP){const t0=performance.now();Promise.race([window.__landP,new Promise(r=>setTimeout(r,800))]).then(()=>setTimeout(go,Math.max(0,250-(performance.now()-t0))));window.__landP=null;}else go();}
 $('lgEnter').onclick=async()=>{const name=$('nameIn').value.trim(),a=$('pinA').value,err=$('lgErr');
