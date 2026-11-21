@@ -366,7 +366,7 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden)window.__hi
 <script>
 // ---- UI icon set (ui_icons.webp, 18 cells in one row) — emoji are shown until it loads ----
 // bump ASSET_V whenever an icon/emote picture changes, so phones download the new one instead of a cached copy
-var ASSET_V='20261121n';
+var ASSET_V='20261121o';
 const IC_N=['logo','pad','freeze','hide','zombie','fire','flash','run','shirt','gear','globe','trophy','girl','boy','jump','tag','logout','hello'];
 const IC={},IC_C={};
 function icFrom(img,i,name){const n=img.height,c=document.createElement('canvas');c.width=c.height=n;c.getContext('2d').drawImage(img,i*n,0,n,n,0,0,n,n);IC_C[name]=c;IC[name]=c.toDataURL();}
@@ -613,8 +613,8 @@ const ITEM_CELL={girl_school:0,girl_sport:1,girl_party:2,girl_sunny:3,boy_school
 const SHEET_OF={idle:'idle',act:'act',right:'right',down:'down',up:'up',downright:'dr',upright:'ur'};
 const IDLE_VIEW=['right','down','up','dr','ur'];
 // hat size / place per view: width, x shift from head centre, how far the hat bottom goes below the top of the hair
-const HAT_FIT={straw:{row:0,v:{down:[152,0,62],dr:[150,5,60],right:[146,12,58],ur:[150,-3,60],up:[152,0,62]}},
-  beanie:{row:1,v:{down:[134,0,78],dr:[134,5,76],right:[130,14,74],ur:[134,-4,76],up:[134,0,78]}}};
+const HAT_FIT={straw:{row:0,v:{down:[152,0,62],dr:[150,12,68],right:[154,14,72],ur:[150,-3,60],up:[152,0,62]}},
+  beanie:{row:1,v:{down:[134,0,78],dr:[134,9,76],right:[138,14,78],ur:[134,-4,76],up:[134,0,78]}}};
 const HAT_COL={down:0,dr:1,right:2,ur:3,up:4};
 function lookDir(look){const [g,o,h]=look.split('_');return lookPath(g,o,h).split('/')[1];}
 function wearOf(key){const w=(key.split('|')[1]||'').split(',');return {hat:w[0]||'none',shoes:w[1]||'black',glasses:w[2]||'none'};}
@@ -661,10 +661,10 @@ function shoeColor(cv,col){const g=cv.getContext('2d'),W=cv.width,H=cv.height,d=
   g.putImageData(d,0,0);}
 // item-only pictures for the dress-up panel
 function itemPic(slot,id,look){const c=document.createElement('canvas');c.width=c.height=120;const g=c.getContext('2d');
-  const none=()=>{g.strokeStyle='#c9b79a';g.lineWidth=7;g.beginPath();g.arc(60,60,34,0,7);g.moveTo(36,84);g.lineTo(84,36);g.stroke();};
-  if(slot==='hat'){if(id==='none')none();else if(HAT_IMG.complete&&HAT_IMG.naturalWidth){const cs=HAT_IMG.height/2;g.drawImage(HAT_IMG,0,HAT_FIT[id].row*cs,cs,cs,6,6,108,108);}}
+  const none=()=>{g.strokeStyle='#c9b79a';g.lineWidth=7;g.beginPath();g.arc(60,60,28,0,7);g.moveTo(40,80);g.lineTo(80,40);g.stroke();};
+  if(slot==='hat'){if(id==='none')none();else if(HAT_IMG.complete&&HAT_IMG.naturalWidth){const cs=HAT_IMG.height/2;g.drawImage(HAT_IMG,0,HAT_FIT[id].row*cs,cs,cs,22,22,76,76);}}
   else if(slot==='glasses'){if(id==='none')none();else drawSpecs(g,0,[[38,62,8],[82,62,8]],'down');}
-  else if(slot==='shoes'){if(ITEM_IMG.complete&&ITEM_IMG.naturalWidth)g.drawImage(ITEM_IMG,ITEM_CELL[id]*200,0,200,200,6,6,108,108);}
+  else if(slot==='shoes'){if(ITEM_IMG.complete&&ITEM_IMG.naturalWidth)g.drawImage(ITEM_IMG,ITEM_CELL[id]*200,0,200,200,22,22,76,76);}
   else if(slot==='outfit'){const [lk,col]=id.split(':'),[gg,oo]=lk.split('_'),n=ITEM_CELL[gg+'_'+oo];
     if(n!=null&&ITEM_IMG.complete&&ITEM_IMG.naturalWidth){const t=document.createElement('canvas');t.width=t.height=200;t.getContext('2d').drawImage(ITEM_IMG,n*200,0,200,200,0,0,200,200);
       g.drawImage(OUTFITS[oo].sport&&col&&col!=='blue'&&col!=='-'?recolor(t,HOUSE[col]):t,6,6,108,108);}}
