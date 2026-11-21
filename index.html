@@ -366,7 +366,7 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden)window.__hi
 <script>
 // ---- UI icon set (ui_icons.webp, 18 cells in one row) — emoji are shown until it loads ----
 // bump ASSET_V whenever an icon/emote picture changes, so phones download the new one instead of a cached copy
-var ASSET_V='20261121m';
+var ASSET_V='20261121n';
 const IC_N=['logo','pad','freeze','hide','zombie','fire','flash','run','shirt','gear','globe','trophy','girl','boy','jump','tag','logout','hello'];
 const IC={},IC_C={};
 function icFrom(img,i,name){const n=img.height,c=document.createElement('canvas');c.width=c.height=n;c.getContext('2d').drawImage(img,i*n,0,n,n,0,0,n,n);IC_C[name]=c;IC[name]=c.toDataURL();}
@@ -632,16 +632,32 @@ function drawSpecs(g,ox,eyes,view){g.save();g.lineWidth=2.6;g.strokeStyle='#2a2a
   else{const [a]=eyes;g.beginPath();g.moveTo(ox+a[0]-a[2]*1.5,a[1]-a[2]*.2);g.lineTo(ox+a[0]-a[2]*4.2,a[1]-a[2]*.6);g.stroke();}
   g.restore();}
 // shoes: the dark pixels at the very bottom of each leg -> pink or white sneakers
-function shoeMask(p,W,H,f,tol=28){const m=new Uint8Array(W*H),x0=f*FRAME_W,x1=Math.min(W,x0+FRAME_W);let low=0;
-  for(let x=x0;x<x1;x++){let y=H-1;while(y>0&&p[(y*W+x)*4+3]<100)y--;low=Math.max(low,y);}
-  for(let x=x0;x<x1;x++){let y=H-1;while(y>0&&p[(y*W+x)*4+3]<100)y--;if(y<low-tol)continue;   // only feet near the ground (a lifted foot is a little higher), never the hands
-    for(let k=0;k<17&&y-k>0;k++){const i=((y-k)*W+x)*4;if(p[i+3]<60)break;const v=Math.max(p[i],p[i+1],p[i+2]);
-      if(v>105||p[i+2]-p[i]>28||p[i]-p[i+2]>30)break;m[(y-k)*W+x]=1;}}   // stop at socks, skin, navy trousers or a red skirt
+function shoeMask(p,W,H,f){   // shoes = solid dark blobs at the bottom of the figure (thin leg/skirt outlines are removed by an "opening")
+  const m=new Uint8Array(W*H),x0=f*FRAME_W,x1=Math.min(W,x0+FRAME_W),fw=x1-x0;let low=0;
+  for(let y=H-1;y>0&&!low;y--)for(let x=x0;x<x1;x++)if(p[(y*W+x)*4+3]>100){low=y;break;}
+  if(!low)return m;const top=Math.max(0,low-46),bh=low-top+1,N=fw*bh,C=new Uint8Array(N);
+  for(let y=top;y<=low;y++)for(let x=x0;x<x1;x++){const i=(y*W+x)*4;if(p[i+3]<60)continue;const r=p[i],g=p[i+1],b=p[i+2],v=Math.max(r,g,b);
+    if(v<128&&b-r<=12&&r-b<=60)C[(y-top)*fw+x-x0]=1;}
+  const morph=(A,rad,grow)=>{const T=new Uint8Array(N),B=new Uint8Array(N);
+    for(let y=0;y<bh;y++)for(let x=0;x<fw;x++){let hit=grow?0:1;for(let k=-rad;k<=rad;k++){const xx=x+k,val=xx<0||xx>=fw?0:A[y*fw+xx];if(grow?val:!val){hit=grow?1:0;break;}}T[y*fw+x]=hit;}
+    for(let y=0;y<bh;y++)for(let x=0;x<fw;x++){let hit=grow?0:1;for(let k=-rad;k<=rad;k++){const yy=y+k,val=yy<0||yy>=bh?0:T[yy*fw+x];if(grow?val:!val){hit=grow?1:0;break;}}B[y*fw+x]=hit;}
+    return B;};
+  const op=morph(morph(C,2,0),2,1),keep=new Uint8Array(N),seen=new Uint8Array(N);
+  for(let s0=0;s0<N;s0++){if(!op[s0]||seen[s0])continue;const st=[s0],cells=[];seen[s0]=1;let ymin=bh,ymax=0;
+    while(st.length){const c=st.pop();cells.push(c);const y=(c/fw)|0,x=c%fw;ymin=Math.min(ymin,y);ymax=Math.max(ymax,y);
+      for(const n of [c-1,c+1,c-fw,c+fw]){if(n<0||n>=N||seen[n]||!op[n])continue;if((n===c-1||n===c+1)&&((n/fw)|0)!==y)continue;seen[n]=1;st.push(n);}}
+    if(ymax>=bh-1-34&&cells.length>=30){const cb={};for(const c of cells){const x=c%fw,y=(c/fw)|0;if(!(cb[x]>=y))cb[x]=y;}
+      for(const c of cells)if(((c/fw)|0)>=cb[c%fw]-22)keep[c]=1;}}   // a shoe is at most ~22px tall in each column: cut off legs merged above it
+  const near=morph(keep,1,1);
+  for(let k=0;k<N;k++)if(near[k]&&C[k]){const y=((k/fw)|0)+top,x=k%fw+x0;m[y*W+x]=1;}
   return m;}
-function shoeColor(cv,col){const g=cv.getContext('2d'),W=cv.width,H=cv.height,d=g.getImageData(0,0,W,H),p=d.data;
-  const tint=col==='pink'?[255,120,170]:[245,245,245],line=col==='pink'?[150,40,80]:[90,90,100];
-  for(let f=0;f*FRAME_W<W;f++){const m=shoeMask(p,W,H,f);for(let k=0;k<W*H;k++){if(!m[k])continue;const i=k*4,v=Math.max(p[i],p[i+1],p[i+2]),edge=v<38,c=edge?line:tint,q=edge?1:.78+.22*v/105;
-      p[i]=c[0]*q;p[i+1]=c[1]*q;p[i+2]=c[2]*q;}}
+function shoeDark(p,i){if(p[i+3]<200)return false;const r=p[i],g=p[i+1],b=p[i+2];return Math.max(r,g,b)<128&&b-r<=12&&r-b<=60;}
+function shoeColor(cv,col){const g=cv.getContext('2d'),W=cv.width,H=cv.height,d=g.getImageData(0,0,W,H),p=d.data,src=new Uint8ClampedArray(p);
+  const tint=col==='pink'?[255,122,172]:[246,246,244];
+  for(let f=0;f*FRAME_W<W;f++){const m=shoeMask(src,W,H,f);
+    for(let k=0;k<W*H;k++){if(!m[k])continue;const x=k%W,y=(k/W)|0;let rim=false;   // pixels within 2px of the shoe's edge = its cartoon outline: keep them dark
+      for(let dy=-2;dy<=2&&!rim;dy++)for(let dx=-2;dx<=2;dx++){const xx=x+dx,yy=y+dy;if(xx<0||yy<0||xx>=W||yy>=H||!shoeDark(src,(yy*W+xx)*4)){rim=true;break;}}
+      if(rim)continue;const i=k*4,v=Math.max(src[i],src[i+1],src[i+2]),q=Math.min(1,.82+.25*v/110);p[i]=tint[0]*q;p[i+1]=tint[1]*q;p[i+2]=tint[2]*q;}}
   g.putImageData(d,0,0);}
 // item-only pictures for the dress-up panel
 function itemPic(slot,id,look){const c=document.createElement('canvas');c.width=c.height=120;const g=c.getContext('2d');
