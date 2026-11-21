@@ -366,7 +366,7 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden)window.__hi
 <script>
 // ---- UI icon set (ui_icons.webp, 18 cells in one row) — emoji are shown until it loads ----
 // bump ASSET_V whenever an icon/emote picture changes, so phones download the new one instead of a cached copy
-var ASSET_V='20261121l';
+var ASSET_V='20261121m';
 const IC_N=['logo','pad','freeze','hide','zombie','fire','flash','run','shirt','gear','globe','trophy','girl','boy','jump','tag','logout','hello'];
 const IC={},IC_C={};
 function icFrom(img,i,name){const n=img.height,c=document.createElement('canvas');c.width=c.height=n;c.getContext('2d').drawImage(img,i*n,0,n,n,0,0,n,n);IC_C[name]=c;IC[name]=c.toDataURL();}
@@ -607,10 +607,13 @@ function blackShoes(cv){const g=cv.getContext('2d'),W=cv.width,H=cv.height,d=g.g
 const WEAR={hat:[['none','No hat'],['straw','Straw hat'],['beanie','Beanie']],shoes:[['black','Black'],['pink','Pink'],['white','Sneakers']],glasses:[['none','No glasses'],['round','Glasses']]};
 let ANCH=null;fetch('anchors_girl.json?v='+ASSET_V).then(r=>r.json()).then(j=>{ANCH=j;}).catch(()=>{});
 const HAT_IMG=new Image();HAT_IMG.src='hats.webp?v='+ASSET_V;
+// item pictures for the Dress-up panel: 9 cells of 200px (6 outfits, 3 shoes)
+const ITEM_IMG=new Image();ITEM_IMG.src='items.webp?v='+ASSET_V;ITEM_IMG.onload=()=>{try{if(document.querySelector('#wearPick'))buildPicker();}catch(e){}};
+const ITEM_CELL={girl_school:0,girl_sport:1,girl_party:2,girl_sunny:3,boy_school:4,boy_sport:5,black:6,pink:7,white:8};
 const SHEET_OF={idle:'idle',act:'act',right:'right',down:'down',up:'up',downright:'dr',upright:'ur'};
 const IDLE_VIEW=['right','down','up','dr','ur'];
 // hat size / place per view: width, x shift from head centre, how far the hat bottom goes below the top of the hair
-const HAT_FIT={straw:{row:0,v:{down:[168,0,66],dr:[166,6,64],right:[162,16,62],ur:[166,-4,64],up:[168,0,66]}},
+const HAT_FIT={straw:{row:0,v:{down:[152,0,62],dr:[150,5,60],right:[146,12,58],ur:[150,-3,60],up:[152,0,62]}},
   beanie:{row:1,v:{down:[134,0,78],dr:[134,5,76],right:[130,14,74],ur:[134,-4,76],up:[134,0,78]}}};
 const HAT_COL={down:0,dr:1,right:2,ur:3,up:4};
 function lookDir(look){const [g,o,h]=look.split('_');return lookPath(g,o,h).split('/')[1];}
@@ -620,7 +623,8 @@ function bakeWear(cv,sheetKey,w,dir){const a=ANCH&&ANCH[dir]&&ANCH[dir][SHEET_OF
   for(let i=0;i<n;i++){const f=a[i];if(!f)continue;const [cx,top,eyes]=f,view=sheetKey==='idle'||sheetKey==='act'?IDLE_VIEW[i]:SHEET_OF[sheetKey],ox=i*FRAME_W;
     if(w.glasses==='round'&&eyes.length&&view!=='up'&&view!=='ur')drawSpecs(g,ox,eyes,view);
     if(w.hat!=='none'&&HAT_IMG.complete&&HAT_IMG.naturalWidth){const H=HAT_FIT[w.hat],[hw,dx,dy]=H.v[view],cs=HAT_IMG.height/2,sx=HAT_COL[view]*cs,sy=H.row*cs;
-      const k=hw/(cs*.96),hh=cs*k;g.drawImage(HAT_IMG,sx,sy,cs,cs,ox+cx+dx-hw/2-cs*.02*k,top+dy-hh+4*k,cs*k,hh);}}
+      const k=hw/(cs*.96),hh=cs*k,w2=cs*k;let x=ox+cx+dx-hw/2-cs*.02*k;x=Math.max(ox+1-cs*.02*k,Math.min(x,ox+FRAME_W-1-hw-cs*.02*k));   // keep the hat inside its own frame
+      g.save();g.beginPath();g.rect(ox,0,FRAME_W,cv.height);g.clip();g.drawImage(HAT_IMG,sx,sy,cs,cs,x,top+dy-hh+4*k,w2,hh);g.restore();}}
   return cv;}
 function drawSpecs(g,ox,eyes,view){g.save();g.lineWidth=2.6;g.strokeStyle='#2a2a2a';g.lineJoin='round';
   for(const [x,y,r] of eyes){g.beginPath();g.ellipse(ox+x,y,r*1.55,r*1.35,0,0,7);g.fillStyle='rgba(200,230,255,.22)';g.fill();g.stroke();}
@@ -644,10 +648,10 @@ function itemPic(slot,id,look){const c=document.createElement('canvas');c.width=
   const none=()=>{g.strokeStyle='#c9b79a';g.lineWidth=7;g.beginPath();g.arc(60,60,34,0,7);g.moveTo(36,84);g.lineTo(84,36);g.stroke();};
   if(slot==='hat'){if(id==='none')none();else if(HAT_IMG.complete&&HAT_IMG.naturalWidth){const cs=HAT_IMG.height/2;g.drawImage(HAT_IMG,0,HAT_FIT[id].row*cs,cs,cs,6,6,108,108);}}
   else if(slot==='glasses'){if(id==='none')none();else drawSpecs(g,0,[[38,62,8],[82,62,8]],'down');}
-  else if(slot==='shoes'){const base=BASE[look];if(base){const src=toCanvas(base.idle);const sg=src.getContext('2d'),W=src.width,H=src.height,m=shoeMask(sg.getImageData(0,0,W,H).data,W,H,1,6);if(id!=='black')shoeColor(src,id);const d=sg.getImageData(0,0,W,H),p=d.data;
-      for(let k=0;k<W*H;k++)if(!m[k])p[k*4+3]=0;sg.putImageData(d,0,0);let x0=W,y0=H,x1=0,y1=0;for(let k=0;k<W*H;k++)if(m[k]){const x=k%W,y=(k/W)|0;x0=Math.min(x0,x);x1=Math.max(x1,x);y0=Math.min(y0,y);y1=Math.max(y1,y);}
-      if(x1>x0){const w=x1-x0+1,h=y1-y0+1,k2=Math.min(100/w,70/h);g.drawImage(src,x0,y0,w,h,60-w*k2/2,64-h*k2/2,w*k2,h*k2);}}}
-  else if(slot==='outfit'){const v=variant(id);if(v){c.height=120;g.drawImage(v.idle,FRAME_W+18,160,FRAME_W-36,72,4,8,112,104);}}
+  else if(slot==='shoes'){if(ITEM_IMG.complete&&ITEM_IMG.naturalWidth)g.drawImage(ITEM_IMG,ITEM_CELL[id]*200,0,200,200,6,6,108,108);}
+  else if(slot==='outfit'){const [lk,col]=id.split(':'),[gg,oo]=lk.split('_'),n=ITEM_CELL[gg+'_'+oo];
+    if(n!=null&&ITEM_IMG.complete&&ITEM_IMG.naturalWidth){const t=document.createElement('canvas');t.width=t.height=200;t.getContext('2d').drawImage(ITEM_IMG,n*200,0,200,200,0,0,200,200);
+      g.drawImage(OUTFITS[oo].sport&&col&&col!=='blue'&&col!=='-'?recolor(t,HOUSE[col]):t,6,6,108,108);}}
   return c;}
 function variant(key){ // key = "g_o_h:color" or "g_o_h:color|hat,shoes,glasses"
   if(BANK[key])return BANK[key];
@@ -783,7 +787,7 @@ function buildPicker(){
   const box=$('charPick');box.innerHTML='';
   for(const g of Object.keys(GENDERS))for(const o of Object.keys(OUTFITS)){
     if(OUTFITS[o].only&&OUTFITS[o].only!==g)continue;const key=lookKey(g,o,pick.h[g],pick.c);if(!BASE[key.split(':')[0]])continue;
-    box.appendChild(chip(pick.g==='girl'?itemPic('outfit',key):thumb(key),OUTFITS[o].dress?OUTFITS[o].name:`${OUTFITS[o].name} ${GENDERS[g].name}`,pick.g===g&&pick.o===o,()=>{pick.g=g;pick.o=o;saveWear();applyPick();}));}
+    box.appendChild(chip(itemPic('outfit',key),OUTFITS[o].dress?OUTFITS[o].name:`${OUTFITS[o].name} ${GENDERS[g].name}`,pick.g===g&&pick.o===o,()=>{pick.g=g;pick.o=o;saveWear();applyPick();}));}
   const hb=$('hairPick');hb.innerHTML='';
   for(const [h,name] of GENDERS[pick.g].hairs){const key=lookKey(pick.g,pick.o,h,pick.c);if(!BASE[key.split(':')[0]])continue;
     const c=document.createElement('canvas');c.width=FRAME_W;c.height=128;const v=variant(key);c.getContext('2d').drawImage(v.idle,FRAME_W,44,FRAME_W,128,0,0,FRAME_W,128);
