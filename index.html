@@ -1401,16 +1401,18 @@ function drawPeel(q){const blink=q.t<1&&Math.floor(q.t*8)%2;if(blink)return;cons
   ctx.restore();}
 // ---- Stinky look: skunk ears + tail (drawn for all 8 directions), stink cloud, smell waves and flies ----
 const SK_DIR={right:[1,0],downright:[1,1],down:[0,1],downleft:[-1,1],left:[-1,0],upleft:[-1,-1],up:[0,-1],upright:[1,-1]};
-function skunkTail(a,w,h,top){const [fx,fy]=SK_DIR[a.dir]||[0,1],t=performance.now()/1000,back=fx?-fx:1,sway=Math.sin(t*(a.moving?9:2.2))*.14;
-  // a small, round, fluffy tail that pops up behind the hips
-  const flip=back*(fy<0&&!fx?-1:1),bx=a.x+back*w*(fx?.16:.2)*(fy<0&&!fx?-1:1),by=top+h*.74,r=w*.16;
-  ctx.save();ctx.translate(bx,by);ctx.scale(flip,1);ctx.rotate(sway+.15);ctx.lineJoin='round';
-  const blob=()=>{ctx.beginPath();ctx.moveTo(0,0);ctx.bezierCurveTo(r*1.1,-r*.2,r*1.9,-r*1.3,r*1.25,-r*2.3);ctx.bezierCurveTo(r*.85,-r*2.95,-r*.25,-r*2.75,-r*.15,-r*2.05);
-    ctx.bezierCurveTo(-r*.05,-r*1.55,r*.55,-r*1.3,r*.4,-r*.75);ctx.bezierCurveTo(r*.3,-r*.35,-r*.05,-r*.2,0,0);ctx.closePath();};
-  blob();ctx.fillStyle='#3a3542';ctx.fill();ctx.lineWidth=2.4;ctx.strokeStyle='#fff';ctx.stroke();ctx.lineWidth=1.3;ctx.strokeStyle='#1c1820';ctx.stroke();
-  ctx.beginPath();ctx.moveTo(r*.35,-r*.35);ctx.bezierCurveTo(r*1.05,-r*.7,r*1.35,-r*1.5,r*1.0,-r*2.15);ctx.lineCap='round';ctx.lineWidth=r*.42;ctx.strokeStyle='#fbfbfb';ctx.stroke();
+function skunkTail(a,w,h,top){const [fx,fy]=SK_DIR[a.dir]||[0,1],t=performance.now()/1000,sway=Math.sin(t*(a.moving?9:2.2))*.12;
+  // a big, plump, fluffy tail that grows out of the bottom, on the side away from where the kid faces
+  const back=fx?-fx:(fy<0?1:1),bx=a.x-fx*w*(fy?.15:.2)+(!fx&&fy>0?w*.06:0),by=top+h*.82,r=w*.2,flip=fx?back:1;
+  ctx.save();ctx.translate(bx,by);ctx.scale(flip,1);ctx.rotate(sway+(fx?.2:0));ctx.lineJoin='round';
+  const blob=()=>{ctx.beginPath();ctx.moveTo(0,0);ctx.bezierCurveTo(r*1.5,-r*.15,r*1.85,-r*1.55,r*1.0,-r*2.25);ctx.bezierCurveTo(r*.2,-r*2.85,-r*1.05,-r*2.3,-r*.7,-r*1.4);
+    ctx.bezierCurveTo(-r*.45,-r*.75,-r*.35,-r*.25,0,0);ctx.closePath();};   // plump puff
+  blob();ctx.fillStyle='#3a3542';ctx.fill();ctx.lineWidth=2.8;ctx.strokeStyle='#fff';ctx.stroke();ctx.lineWidth=1.5;ctx.strokeStyle='#1c1820';ctx.stroke();
+  ctx.save();blob();ctx.clip();ctx.beginPath();ctx.moveTo(r*.1,-r*.1);ctx.bezierCurveTo(r*.75,-r*.6,r*.95,-r*1.4,r*.35,-r*2.3);   // white stripe inside
+  ctx.lineCap='round';ctx.lineWidth=r*.55;ctx.strokeStyle='#fbfbfb';ctx.stroke();ctx.restore();
   ctx.restore();}
-function skunkEars(a,w,h,top){const [fx,fy]=SK_DIR[a.dir]||[0,1],cx=a.x+fx*w*.04,y=top+h*.3,sp=w*(fx&&!fy?.12:.19),r=w*.075;
+function skunkEars(a,w,h,top){{const ch=charFor(a);if(ch&&ch.includes('|')&&wearOf(ch).hat!=='none')return;}   // wearing a hat: no skunk ears
+  const [fx,fy]=SK_DIR[a.dir]||[0,1],cx=a.x+fx*w*.04,y=top+h*.3,sp=w*(fx&&!fy?.12:.19),r=w*.075;
   ctx.save();
   for(const s of [-1,1]){const x=cx+s*sp;ctx.beginPath();ctx.arc(x,y-r*.6,r,0,7);ctx.fillStyle='#3a3542';ctx.fill();ctx.lineWidth=2;ctx.strokeStyle='#fff';ctx.stroke();ctx.lineWidth=1.2;ctx.strokeStyle='#1c1820';ctx.stroke();
     if(fy>=0){ctx.beginPath();ctx.arc(x,y-r*.5,r*.5,0,7);ctx.fillStyle='#ffadc2';ctx.fill();}}
