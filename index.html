@@ -353,7 +353,7 @@
 <script>
 // ---- UI icon set (ui_icons.webp, 18 cells in one row) — emoji are shown until it loads ----
 // bump ASSET_V whenever an icon/emote picture changes, so phones download the new one instead of a cached copy
-var ASSET_V='20261120z';
+var ASSET_V='20261121a';
 const IC_N=['logo','pad','freeze','hide','zombie','fire','flash','run','shirt','gear','globe','trophy','girl','boy','jump','tag','logout','hello'];
 const IC={},IC_C={};
 function icFrom(img,i,name){const n=img.height,c=document.createElement('canvas');c.width=c.height=n;c.getContext('2d').drawImage(img,i*n,0,n,n,0,0,n,n);IC_C[name]=c;IC[name]=c.toDataURL();}
@@ -1740,11 +1740,11 @@ const PET_DEFS={   // pets that have their sprite sheet in the game now
   capybara:{name:'Capybara',h:113,special:'relax',feel:3,still:[2,3]},
   hamster:{name:'Hamster',h:45,special:'cheeks',feel:7,still:[2,3]},
   holland_lop:{name:'Bunny',h:68,special:'hop',feel:2,still:[2,3]},
-  baby_penguin:{name:'Penguin',h:89,special:'flap',feel:10,still:[2,3]},
+  baby_penguin:{name:'Penguin',h:72,special:'flap',feel:10,still:[2,3]},
   shiba:{name:'Shiba',h:91,special:'proud',feel:7,still:[2,3]},
   otter:{name:'Otter',h:89,special:'float',feel:3,still:[2,3]},
   red_panda:{name:'Red Panda',h:106,special:'standup',feel:7,still:[2,3]},
-  budgie:{name:'Budgie',h:65,special:'flap',feel:10,still:[2,3],fly:{row:1,frames:[1,2,3,2],alt:34,speed:2.4}},
+  budgie:{name:'Budgie',h:51,special:'flap',feel:10,still:[2,3],fly:{row:1,frames:[1,2,3,2],alt:34,speed:2.4}},
   orange_cat:{name:'Orange Cat',h:80,special:'stretch',feel:2,still:[2,3]},
   guinea_pig:{name:'Guinea Pig',h:64,special:'popcorn',feel:7,still:[2,3]},
   hedgehog:{name:'Hedgehog',h:54,special:'curl',feel:3,still:[2,3]},
@@ -1771,8 +1771,8 @@ const PET_DEFS={   // pets that have their sprite sheet in the game now
   leopard_gecko:{name:'Leopard Gecko',h:66,special:'lick',feel:7,still:[2,3]},
   axolotl:{name:'Axolotl',h:57,special:'wiggle',feel:7,still:[2,3]},
   sugar_glider:{name:'Sugar Glider',h:61,special:'glide',feel:7,still:[2,3]},
-  macaw:{name:'Macaw',h:104,special:'flap',feel:10,still:[2,3],fly:{row:1,frames:[1,2,3,2],alt:40,speed:2.0}},
-  cockatoo:{name:'Cockatoo',h:86,special:'crest',feel:10,still:[2,3],fly:{row:1,frames:[1,2,3,2],alt:38,speed:2.2}},
+  macaw:{name:'Macaw',h:73,special:'flap',feel:10,still:[2,3],fly:{row:1,frames:[1,2,3,2],alt:40,speed:2.0}},
+  cockatoo:{name:'Cockatoo',h:60,special:'crest',feel:10,still:[2,3],fly:{row:1,frames:[1,2,3,2],alt:38,speed:2.2}},
   french_bulldog:{name:'French Bulldog',h:86,special:'snort',feel:7,still:[2,3]},
   mini_pig:{name:'Mini Pig',h:103,special:'dig',feel:7,still:[2,3]},
   sheep:{name:'Sheep',h:125,special:'baa',feel:2,still:[2,3]}};
