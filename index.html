@@ -366,7 +366,7 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden)window.__hi
 <script>
 // ---- UI icon set (ui_icons.webp, 18 cells in one row) — emoji are shown until it loads ----
 // bump ASSET_V whenever an icon/emote picture changes, so phones download the new one instead of a cached copy
-var ASSET_V='20261121s';
+var ASSET_V='20261121t';
 const IC_N=['logo','pad','freeze','hide','zombie','fire','flash','run','shirt','gear','globe','trophy','girl','boy','jump','tag','logout','hello'];
 const IC={},IC_C={};
 function icFrom(img,i,name){const n=img.height,c=document.createElement('canvas');c.width=c.height=n;c.getContext('2d').drawImage(img,i*n,0,n,n,0,0,n,n);IC_C[name]=c;IC[name]=c.toDataURL();}
@@ -380,7 +380,8 @@ const FRAME_W = 170, FRAME_H = 244, N_FRAMES = 8, DRAW = 0.55; // HD frames draw
 const LD={total:0,done:0};
 function ldTick(){const pc=LD.total?Math.round(100*LD.done/LD.total):0;const f=document.getElementById('ldFill');if(f){f.style.width=pc+'%';document.getElementById('ldPct').textContent=pc>=100?'Ready ✓':'Loading '+pc+'%';
   try{if(!ready)['lgEnter','lgEnter2','lgEnter3'].forEach(id=>{const b=document.getElementById(id);if(b)b.textContent='Loading '+pc+'%';});}catch(e){}}}
-function loadImg(src,tries){LD.total++;tries=tries||4;return new Promise(res=>{const fin=v=>{LD.done++;ldTick();res(v);};let n=0;
+function loadImg(src,tries){LD.total++;if(!src.includes('?')&&!src.startsWith('data:'))src+='?v='+ASSET_V;   // new version = fresh pictures (the server lets phones keep .webp for 7 days)
+  tries=tries||4;return new Promise(res=>{const fin=v=>{LD.done++;ldTick();res(v);};let n=0;
   const go=()=>{const im=new Image();im.onload=()=>(im.decode?im.decode().catch(()=>{}):Promise.resolve()).then(()=>fin(im));
    im.onerror=()=>{n++;if(n<tries)setTimeout(go,400*n);else fin(null);};im.src=n?src+(src.includes('?')?'&':'?')+'r='+n:src;};go();});}
 const cv = document.getElementById('c'), ctx = cv.getContext('2d');
