@@ -366,7 +366,7 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden)window.__hi
 <script>
 // ---- UI icon set (ui_icons.webp, 18 cells in one row) — emoji are shown until it loads ----
 // bump ASSET_V whenever an icon/emote picture changes, so phones download the new one instead of a cached copy
-var ASSET_V='20261121k';
+var ASSET_V='20261121l';
 const IC_N=['logo','pad','freeze','hide','zombie','fire','flash','run','shirt','gear','globe','trophy','girl','boy','jump','tag','logout','hello'];
 const IC={},IC_C={};
 function icFrom(img,i,name){const n=img.height,c=document.createElement('canvas');c.width=c.height=n;c.getContext('2d').drawImage(img,i*n,0,n,n,0,0,n,n);IC_C[name]=c;IC[name]=c.toDataURL();}
@@ -628,13 +628,27 @@ function drawSpecs(g,ox,eyes,view){g.save();g.lineWidth=2.6;g.strokeStyle='#2a2a
   else{const [a]=eyes;g.beginPath();g.moveTo(ox+a[0]-a[2]*1.5,a[1]-a[2]*.2);g.lineTo(ox+a[0]-a[2]*4.2,a[1]-a[2]*.6);g.stroke();}
   g.restore();}
 // shoes: the dark pixels at the very bottom of each leg -> pink or white sneakers
+function shoeMask(p,W,H,f,tol=28){const m=new Uint8Array(W*H),x0=f*FRAME_W,x1=Math.min(W,x0+FRAME_W);let low=0;
+  for(let x=x0;x<x1;x++){let y=H-1;while(y>0&&p[(y*W+x)*4+3]<100)y--;low=Math.max(low,y);}
+  for(let x=x0;x<x1;x++){let y=H-1;while(y>0&&p[(y*W+x)*4+3]<100)y--;if(y<low-tol)continue;   // only feet near the ground (a lifted foot is a little higher), never the hands
+    for(let k=0;k<17&&y-k>0;k++){const i=((y-k)*W+x)*4;if(p[i+3]<60)break;const v=Math.max(p[i],p[i+1],p[i+2]);
+      if(v>105||p[i+2]-p[i]>28||p[i]-p[i+2]>30)break;m[(y-k)*W+x]=1;}}   // stop at socks, skin, navy trousers or a red skirt
+  return m;}
 function shoeColor(cv,col){const g=cv.getContext('2d'),W=cv.width,H=cv.height,d=g.getImageData(0,0,W,H),p=d.data;
   const tint=col==='pink'?[255,120,170]:[245,245,245],line=col==='pink'?[150,40,80]:[90,90,100];
-  for(let f=0;f*FRAME_W<W;f++){let bot=0;for(let y=H-1;y>0&&!bot;y--)for(let x=f*FRAME_W;x<(f+1)*FRAME_W;x++)if(p[(y*W+x)*4+3]>100){bot=y;break;}
-    for(let y=Math.max(0,bot-30);y<=bot;y++)for(let x=f*FRAME_W;x<(f+1)*FRAME_W;x++){const i=(y*W+x)*4;if(p[i+3]<60)continue;const v=Math.max(p[i],p[i+1],p[i+2]);
-      if(v>95||p[i]-p[i+2]>30)continue;            // only the dark shoe (not skin, socks or a red skirt)
-      const k=v/95;const edge=v<38;const c=edge?line:tint;p[i]=c[0]*(edge?1:.78+.22*k);p[i+1]=c[1]*(edge?1:.78+.22*k);p[i+2]=c[2]*(edge?1:.78+.22*k);}}
+  for(let f=0;f*FRAME_W<W;f++){const m=shoeMask(p,W,H,f);for(let k=0;k<W*H;k++){if(!m[k])continue;const i=k*4,v=Math.max(p[i],p[i+1],p[i+2]),edge=v<38,c=edge?line:tint,q=edge?1:.78+.22*v/105;
+      p[i]=c[0]*q;p[i+1]=c[1]*q;p[i+2]=c[2]*q;}}
   g.putImageData(d,0,0);}
+// item-only pictures for the dress-up panel
+function itemPic(slot,id,look){const c=document.createElement('canvas');c.width=c.height=120;const g=c.getContext('2d');
+  const none=()=>{g.strokeStyle='#c9b79a';g.lineWidth=7;g.beginPath();g.arc(60,60,34,0,7);g.moveTo(36,84);g.lineTo(84,36);g.stroke();};
+  if(slot==='hat'){if(id==='none')none();else if(HAT_IMG.complete&&HAT_IMG.naturalWidth){const cs=HAT_IMG.height/2;g.drawImage(HAT_IMG,0,HAT_FIT[id].row*cs,cs,cs,6,6,108,108);}}
+  else if(slot==='glasses'){if(id==='none')none();else drawSpecs(g,0,[[38,62,8],[82,62,8]],'down');}
+  else if(slot==='shoes'){const base=BASE[look];if(base){const src=toCanvas(base.idle);const sg=src.getContext('2d'),W=src.width,H=src.height,m=shoeMask(sg.getImageData(0,0,W,H).data,W,H,1,6);if(id!=='black')shoeColor(src,id);const d=sg.getImageData(0,0,W,H),p=d.data;
+      for(let k=0;k<W*H;k++)if(!m[k])p[k*4+3]=0;sg.putImageData(d,0,0);let x0=W,y0=H,x1=0,y1=0;for(let k=0;k<W*H;k++)if(m[k]){const x=k%W,y=(k/W)|0;x0=Math.min(x0,x);x1=Math.max(x1,x);y0=Math.min(y0,y);y1=Math.max(y1,y);}
+      if(x1>x0){const w=x1-x0+1,h=y1-y0+1,k2=Math.min(100/w,70/h);g.drawImage(src,x0,y0,w,h,60-w*k2/2,64-h*k2/2,w*k2,h*k2);}}}
+  else if(slot==='outfit'){const v=variant(id);if(v){c.height=120;g.drawImage(v.idle,FRAME_W+18,160,FRAME_W-36,72,4,8,112,104);}}
+  return c;}
 function variant(key){ // key = "g_o_h:color" or "g_o_h:color|hat,shoes,glasses"
   if(BANK[key])return BANK[key];
   const base0=key.split('|')[0],w=key.includes('|')?wearOf(key):null;
@@ -753,7 +767,7 @@ spd.oninput=()=>{S.speed=+spd.value;$('spdv').textContent=S.speed};
 scl.oninput=()=>{S.scale=scl.value/10;$('sclv').textContent=S.scale.toFixed(1)+'×'};
 $('hideBtn').onclick=()=>{hud.style.display='none';showBtn.style.display='block';app.classList.remove('hudOpen')};
 const openHud=tab=>{hud.style.display='block';app.classList.add('hudOpen');document.querySelector(`.tab[data-tab=${tab}]`).click();document.querySelector('.tab[data-tab=dress]').style.display=tab==='set'&&!app.classList.contains('inHouse')?'none':'';};
-showBtn.onclick=()=>openHud('dress');$('gearBtn').onclick=()=>openHud('set');
+showBtn.onclick=()=>{if(app.classList.contains('hudOpen'))$('hideBtn').onclick();else openHud('dress');};$('gearBtn').onclick=()=>openHud('set');
 $('npcToggle').onchange=e=>{S.npcs=e.target.checked};
 setTimeout(()=>{const fsOk=!!document.documentElement.requestFullscreen;$('fsRow').style.display=fsOk?'':'none';
   $('fsToggle').onchange=e=>{if(e.target.checked)tryLandscape();else if(document.fullscreenElement)document.exitFullscreen().catch(()=>{});};
@@ -769,7 +783,7 @@ function buildPicker(){
   const box=$('charPick');box.innerHTML='';
   for(const g of Object.keys(GENDERS))for(const o of Object.keys(OUTFITS)){
     if(OUTFITS[o].only&&OUTFITS[o].only!==g)continue;const key=lookKey(g,o,pick.h[g],pick.c);if(!BASE[key.split(':')[0]])continue;
-    box.appendChild(chip(thumb(key),OUTFITS[o].dress?OUTFITS[o].name:`${OUTFITS[o].name} ${GENDERS[g].name}`,pick.g===g&&pick.o===o,()=>{pick.g=g;pick.o=o;saveWear();applyPick();}));}
+    box.appendChild(chip(pick.g==='girl'?itemPic('outfit',key):thumb(key),OUTFITS[o].dress?OUTFITS[o].name:`${OUTFITS[o].name} ${GENDERS[g].name}`,pick.g===g&&pick.o===o,()=>{pick.g=g;pick.o=o;saveWear();applyPick();}));}
   const hb=$('hairPick');hb.innerHTML='';
   for(const [h,name] of GENDERS[pick.g].hairs){const key=lookKey(pick.g,pick.o,h,pick.c);if(!BASE[key.split(':')[0]])continue;
     const c=document.createElement('canvas');c.width=FRAME_W;c.height=128;const v=variant(key);c.getContext('2d').drawImage(v.idle,FRAME_W,44,FRAME_W,128,0,0,FRAME_W,128);
@@ -779,8 +793,7 @@ function buildPicker(){
   const wr=$('wearPick');wr.innerHTML='';wr.style.display=pick.g==='girl'?'':'none';
   if(pick.g==='girl')for(const [slot,label] of [['hat','Hat'],['shoes','Shoes'],['glasses','Glasses']]){const row=document.createElement('div');row.className='row';row.innerHTML=`<label>${label}</label>`;
     const ch=document.createElement('div');ch.className='chips wear';row.appendChild(ch);
-    for(const [id,name] of WEAR[slot]){const w={...pick.w,[slot]:id},key=lookKey(pick.g,pick.o,pick.h[pick.g],pick.c,w),c=document.createElement('canvas');c.width=FRAME_W;
-      const v=variant(key);if(slot==='shoes'){c.width=110;c.height=60;if(v)c.getContext('2d').drawImage(v.idle,FRAME_W+30,FRAME_H-62,110,60,0,0,110,60);}else{c.height=150;if(v)c.getContext('2d').drawImage(v.idle,FRAME_W,0,FRAME_W,150,0,0,FRAME_W,150);}
+    for(const [id,name] of WEAR[slot]){const c=itemPic(slot,id,lookKey(pick.g,pick.o,pick.h[pick.g],pick.c).split(':')[0]);
       ch.appendChild(chip(c,name,pick.w[slot]===id,()=>{pick.w[slot]=id;saveWear();applyPick();}));}
     wr.appendChild(row);}
   const sw=$('colorPick');sw.innerHTML='';sw.style.display=OUTFITS[pick.o].sport?'flex':'none';
