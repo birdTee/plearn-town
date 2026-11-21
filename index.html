@@ -1352,7 +1352,7 @@ function mgEnd(win){MG.phase='end';MG.win=win;if(MG.online&&MG.isHost){NET.g=hos
   if(MG.mode==='freeze')mvp=chaserWon?best(ps.filter(p=>p.role==='it'),'tag','tag','tags'):best(ps.filter(p=>p.role==='run'),'save','save','saves');
   else if(MG.mode==='zombie')mvp=best(ps,'bite','bite','bites');
   else if(MG.mode==='hide')mvp=chaserWon?best(ps.filter(p=>p.role==='seeker'),'find','find','finds'):best(ps.filter(p=>p.role==='hider'&&!p.found),'close','close call','close calls');
-  else if(MG.mode==='stinky'){const clean=ps.filter(p=>p.role!=='stinky');mvp=best(ps,'slip','banana slip','banana slips');   // most banana slips wins MVP, even if you ended up stinky
+  else if(MG.mode==='stinky'){const clean=ps.filter(p=>p.role!=='stinky');mvp=best(clean,'slip','banana slip','banana slips');
     if(!mvp&&clean.length){const c=clean.slice().sort((a,b)=>(S0(a).stinkT||0)-(S0(b).stinkT||0))[0];mvp={p:c,txt:(S0(c).stinkT||0)<1?'never stinky':`stinky only ${Math.round(S0(c).stinkT)} s`};}}
   MG.mvp=mvp;
   sfxJingle(youWin);
