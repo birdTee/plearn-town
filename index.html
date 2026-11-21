@@ -366,7 +366,7 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden)window.__hi
 <script>
 // ---- UI icon set (ui_icons.webp, 18 cells in one row) — emoji are shown until it loads ----
 // bump ASSET_V whenever an icon/emote picture changes, so phones download the new one instead of a cached copy
-var ASSET_V='20261121u';
+var ASSET_V='20261121v';
 const IC_N=['logo','pad','freeze','hide','zombie','fire','flash','run','shirt','gear','globe','trophy','girl','boy','jump','tag','logout','hello'];
 const IC={},IC_C={};
 function icFrom(img,i,name){const n=img.height,c=document.createElement('canvas');c.width=c.height=n;c.getContext('2d').drawImage(img,i*n,0,n,n,0,0,n,n);IC_C[name]=c;IC[name]=c.toDataURL();}
@@ -632,8 +632,9 @@ function bakeWear(cv,sheetKey,w,dir){const a=ANCH&&ANCH[dir]&&ANCH[dir][SHEET_OF
 function tuckHair(g,ox,img,sx,sy,cs,x,y,w,h){const t=document.createElement('canvas');t.width=FRAME_W;t.height=FRAME_H;const tg=t.getContext('2d');tg.drawImage(img,sx,sy,cs,cs,x-ox,y,w,h);
   const ha=tg.getImageData(0,0,FRAME_W,FRAME_H).data;let y0=FRAME_H,y1=0,x0=FRAME_W,x1=0;
   for(let yy=0;yy<FRAME_H;yy++)for(let xx=0;xx<FRAME_W;xx++)if(ha[(yy*FRAME_W+xx)*4+3]>60){y0=Math.min(y0,yy);y1=Math.max(y1,yy);x0=Math.min(x0,xx);x1=Math.max(x1,xx);}
-  if(y1<=y0)return;const cut=y0+(y1-y0)*.62,d=g.getImageData(ox,0,FRAME_W,FRAME_H),p=d.data;
-  for(let yy=0;yy<cut;yy++)for(let xx=0;xx<FRAME_W;xx++){const i=(yy*FRAME_W+xx)*4;if(ha[i+3]>60||!p[i+3])continue;
+  if(y1<=y0)return;const cut=y0+(y1-y0)*.9,d=g.getImageData(ox,0,FRAME_W,FRAME_H),p=d.data;
+  for(let yy=0;yy<cut;yy++)for(let xx=0;xx<FRAME_W;xx++){if(xx>=x0-1&&yy>y0+(y1-y0)*.55)continue;   // under the brim (front, bangs) stays
+    const i=(yy*FRAME_W+xx)*4;if(ha[i+3]>60||!p[i+3])continue;
     const v=Math.max(p[i],p[i+1],p[i+2]);if(v<110||(p[i]>150&&p[i+1]<90))p[i+3]=0;}   // dark hair or the red hair tie
   g.putImageData(d,ox,0);}
 function drawSpecs(g,ox,eyes,view,kind='round'){const thick=kind==='thick';g.save();g.lineWidth=thick?4.8:2.6;g.strokeStyle=thick?'#1a1414':'#2a2a2a';g.lineJoin='round';
