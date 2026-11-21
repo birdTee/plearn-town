@@ -353,7 +353,7 @@
 <script>
 // ---- UI icon set (ui_icons.webp, 18 cells in one row) — emoji are shown until it loads ----
 // bump ASSET_V whenever an icon/emote picture changes, so phones download the new one instead of a cached copy
-var ASSET_V='20261121c';
+var ASSET_V='20261121d';
 const IC_N=['logo','pad','freeze','hide','zombie','fire','flash','run','shirt','gear','globe','trophy','girl','boy','jump','tag','logout','hello'];
 const IC={},IC_C={};
 function icFrom(img,i,name){const n=img.height,c=document.createElement('canvas');c.width=c.height=n;c.getContext('2d').drawImage(img,i*n,0,n,n,0,0,n,n);IC_C[name]=c;IC[name]=c.toDataURL();}
@@ -1845,7 +1845,10 @@ const FOOD=[];   // food dropped on the ground: {x,y,left,kind}
 const POOP=[];const CLEAN_IMG=new Image();CLEAN_IMG.src='clean.webp?v='+ASSET_V;   // 0 poop, 1 broom, 2 dustpan, 3 sparkle
 function cleanIcon(g,i,x,y,sz,rot){if(!(CLEAN_IMG.complete&&CLEAN_IMG.naturalWidth))return;const c=CLEAN_IMG.height;g.save();g.translate(x,y);if(rot)g.rotate(rot);g.drawImage(CLEAN_IMG,i*c,0,c,c,-sz/2,-sz/2,sz,sz);g.restore();}
 let CLEAN=null;   // {poop,t}: the broom is busy
-function petPoop(p){if(POOP.length>=8)return;const x=p.x-p.face*((PET_GEO[p.id]?.b||.4)*petCellH(p)+5),y=p.y+1;POOP.push({x,y,t0:performance.now(),from:p.face});sfxAt(p,(t,d)=>{tone({type:'sine',f:300,to:140,slide:.12,len:.14,v:.22,t,dest:d});});updPoopN();}
+// keep anything on the lawn (poop, food) inside the yard: not in the house, not over the fence, not in a bush or flower bed
+function yardSpot(x,y,fx,fy){const k=S.scale/0.7,x0=40*HK+14*k,x1=PET_MAXX()-14*k,y0=PET_MINY()+6*k,y1=HOME.RH+1440*HK;
+  x=clamp(x,x0,x1);y=clamp(y,y0,y1);if(homeHit(x,y,10*k,4*k)){x=clamp(fx,x0,x1);y=clamp(fy,y0,y1);}return {x,y};}
+function petPoop(p){if(POOP.length>=8)return;const q=yardSpot(p.x-p.face*((PET_GEO[p.id]?.b||.4)*petCellH(p)+5),p.y+1,p.x,p.y+6),x=q.x,y=q.y;POOP.push({x,y,t0:performance.now(),from:p.face});sfxAt(p,(t,d)=>{tone({type:'sine',f:300,to:140,slide:.12,len:.14,v:.22,t,dest:d});});updPoopN();}
 function updPoopN(){const b=$('poopN');if(b)b.textContent=POOP.length||'';}
 function startClean(){if(MAPID!=='home'||CLEAN)return;
   const R0=130*S.scale/0.7,left=FOOD.filter(f=>!PETS.some(p=>p.food===f&&p.state==='eat'));
@@ -1897,6 +1900,7 @@ function nearestPet(){return petsHere().sort((a,b)=>dist(a,P)-dist(b,P))[0];}
 function petAction(a,p){p=p||nearestPet();if(!p)return;p.state=a;p.st=0;if(a==='love'){mood(p,'love');sfxEmote(P,PET_DEFS[p.id].feel);}}
 function dropFood(kind){if(MAPID!=='home'||!inYard())return false;kind=kind||'kibble';const dx=P.dir&&P.dir.includes('left')?-1:P.dir==='right'||P.dir==='dr'||P.dir==='ur'?1:0,dy=P.dir==='down'||P.dir==='dl'||P.dir==='dr'?1:P.dir==='up'||P.dir==='ul'||P.dir==='ur'?-1:0;
   let x=P.x+dx*50,y=P.y+dy*34+(dx||dy?0:30);if(homeHit(x,y,10,5)){x=P.x;y=P.y+30;}
+  {const q=yardSpot(x,y,P.x,P.y+30);x=q.x;y=q.y;}
   FOOD.push({x,y,left:1,kind,t0:performance.now()});if(FOOD.length>6)FOOD.shift();sfxPop(P);return true;}
 const randYard=()=>({x:60*HK+Math.random()*(PET_MAXX()-90*HK),y:PET_MINY()+40*HK+Math.random()*(HOME.RH+1400*HK-PET_MINY()-40*HK)});
 function petMoveTo(p,tx,ty,sp,dt){const d=Math.hypot(tx-p.x,ty-p.y);if(d<1)return true;const fl=PET_DEFS[p.id].fly,st=Math.min(sp*dt*(fl&&p.alt>fl.alt*.5?fl.speed:1),d),nx=p.x+(tx-p.x)/d*st,ny=p.y+(ty-p.y)/d*st;
