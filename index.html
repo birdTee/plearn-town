@@ -366,7 +366,7 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden)window.__hi
 <script>
 // ---- UI icon set (ui_icons.webp, 18 cells in one row) — emoji are shown until it loads ----
 // bump ASSET_V whenever an icon/emote picture changes, so phones download the new one instead of a cached copy
-var ASSET_V='20261121x';
+var ASSET_V='20261121y';
 const IC_N=['logo','pad','freeze','hide','zombie','fire','flash','run','shirt','gear','globe','trophy','girl','boy','jump','tag','logout','hello'];
 const IC={},IC_C={};
 function icFrom(img,i,name){const n=img.height,c=document.createElement('canvas');c.width=c.height=n;c.getContext('2d').drawImage(img,i*n,0,n,n,0,0,n,n);IC_C[name]=c;IC[name]=c.toDataURL();}
@@ -568,7 +568,9 @@ const GLASSES=[['none','None'],['round','Round'],['square','Square'],['red','Red
 
 function toCanvas(im){const c=document.createElement('canvas');c.width=im.width;c.height=im.height;c.getContext('2d').drawImage(im,0,0);return c;}
 function mirror(src){const c=document.createElement('canvas');c.width=src.width;c.height=src.height;const f=c.getContext('2d');
-  for(let i=0;i<Math.round(src.width/FRAME_W);i++){f.save();f.translate(i*FRAME_W+FRAME_W,0);f.scale(-1,1);f.drawImage(src,i*FRAME_W,0,FRAME_W,FRAME_H,0,0,FRAME_W,FRAME_H);f.restore();}return c;}
+  for(let i=0;i<Math.round(src.width/FRAME_W);i++){f.save();f.translate(i*FRAME_W+FRAME_W,0);f.scale(-1,1);f.drawImage(src,i*FRAME_W,0,FRAME_W,FRAME_H,0,0,FRAME_W,FRAME_H);f.restore();}
+  const ov=typeof HATOV!=='undefined'&&HATOV.get(src);if(ov){const m=document.createElement('canvas');m.width=ov.width;m.height=ov.height;const mg=m.getContext('2d');
+    for(let i=0;i<Math.round(ov.width/HFW);i++){mg.save();mg.translate(i*HFW+HFW,0);mg.scale(-1,1);mg.drawImage(ov,i*HFW,0,HFW,FRAME_H,0,0,HFW,FRAME_H);mg.restore();}HATOV.set(c,m);}return c;}
 // shirt recolour: light/mid sky-blue pixels only (navy trousers are dark and stay navy)
 function recolor(src,t){const c=toCanvas(src);const g=c.getContext('2d');const d=g.getImageData(0,0,c.width,c.height),p=d.data;
   for(let i=0;i<p.length;i+=4){if(p[i+3]<8)continue;const r=p[i]/255,gg=p[i+1]/255,b=p[i+2]/255;
@@ -614,19 +616,23 @@ const ITEM_CELL={girl_school:0,girl_sport:1,girl_party:2,girl_sunny:3,boy_school
 const SHEET_OF={idle:'idle',act:'act',right:'right',down:'down',up:'up',downright:'dr',upright:'ur'};
 const IDLE_VIEW=['right','down','up','dr','ur'];
 // hat size / place per view: width, x shift from head centre, how far the hat bottom goes below the top of the hair
-const HAT_FIT={straw:{row:0,v:{down:[150.5,0.0,61.6],dr:[168.6,12.0,86.8],right:[166,11,87.5],ur:[184.8,17.4,73.4],up:[167.2,0,66.6]}},
-  beanie:{row:1,v:{down:[147.4,0,82.0],dr:[169.0,9.6,79.5],right:[169.0,10.2,78.9],ur:[173.8,10,73.7],up:[147.4,0,82.0]}}};
+const HAT_FIT={straw:{row:0,v:{down:[165.6,0,66.1],dr:[176.7,-0.0,89.2],right:[185.9,6.0,92.1],ur:[193.6,4.2,76.1],up:[183.9,0,71.6]}},
+  beanie:{row:1,v:{down:[162.1,0,81.0],dr:[185.9,1.1,78.5],right:[185.9,1.7,77.9],ur:[191.2,1.3,72.7],up:[162.1,0,81.0]}}};
 const HAT_COL={down:0,dr:1,right:2,ur:3,up:4};
 function lookDir(look){const [g,o,h]=look.split('_');return lookPath(g,o,h).split('/')[1];}
 function wearOf(key){const w=(key.split('|')[1]||'').split(',');return {hat:w[0]||'none',shoes:w[1]||'black',glasses:w[2]||'none'};}
+// hats are drawn on their own wider layer (HAT_PAD px spare each side) so a big brim is never cut by the sprite frame
+const HAT_PAD=48,HFW=FRAME_W+2*HAT_PAD,HATOV=new WeakMap();
+function drawWithHat(g,img,fi,x,y,w,h){g.drawImage(img,fi*FRAME_W,0,FRAME_W,FRAME_H,x,y,w,h);const ov=HATOV.get(img);if(ov){const k=w/FRAME_W;g.drawImage(ov,fi*HFW,0,HFW,FRAME_H,x-HAT_PAD*k,y,HFW*k,h);}}
 function bakeWear(cv,sheetKey,w,dir){const a=ANCH&&ANCH[dir]&&ANCH[dir][SHEET_OF[sheetKey]];if(!a)return cv;const g=cv.getContext('2d'),n=Math.round(cv.width/FRAME_W);
+  let ov=null,og=null;if(w.hat!=='none'){ov=document.createElement('canvas');ov.width=HFW*n;ov.height=FRAME_H;og=ov.getContext('2d');HATOV.set(cv,ov);}
   if(w.shoes!=='black')shoeColor(cv,w.shoes);
   for(let i=0;i<n;i++){const f=a[i];if(!f)continue;const [cx,top,eyes]=f,view=sheetKey==='idle'||sheetKey==='act'?IDLE_VIEW[i]:SHEET_OF[sheetKey],ox=i*FRAME_W;
     if(w.glasses!=='none'&&eyes.length&&view!=='up'&&view!=='ur')drawSpecs(g,ox,eyes,view,w.glasses);
     if(w.hat!=='none'&&HAT_IMG.complete&&HAT_IMG.naturalWidth){const H=HAT_FIT[w.hat],[hw,dx,dy]=H.v[view],cs=HAT_IMG.height/2,sx=HAT_COL[view]*cs,sy=H.row*cs;
       const k=hw/(cs*.96),hh=cs*k,w2=cs*k;let x=ox+cx+dx-hw/2-cs*.02*k;
       if(view==='dr'&&!/_bob|_braids/.test(dir))tuckHair(g,ox,HAT_IMG,sx,sy,cs,x,top+dy-hh+4*k,w2,hh);
-      g.save();g.beginPath();g.rect(ox,0,FRAME_W,cv.height);g.clip();g.drawImage(HAT_IMG,sx,sy,cs,cs,x,top+dy-hh+4*k,w2,hh);g.restore();}}
+      og.drawImage(HAT_IMG,sx,sy,cs,cs,x-ox+i*HFW+HAT_PAD,top+dy-hh+4*k,w2,hh);}}
   return cv;}
 // hide the ponytail tie that would poke up out of the hat in 3/4 views: hair above the brim line, beside the hat, is cleared
 function tuckHair(g,ox,img,sx,sy,cs,x,y,w,h){const t=document.createElement('canvas');t.width=FRAME_W;t.height=FRAME_H;const tg=t.getContext('2d');tg.drawImage(img,sx,sy,cs,cs,x-ox,y,w,h);
@@ -808,7 +814,7 @@ const pick={g:'girl',o:'school',h:{girl:'ponytail',boy:'short'},c:'blue',acc:'no
 function saveWear(){store.set('sw_wear',{g:pick.g,o:pick.o,h:pick.h,c:pick.c,w:pick.w});}
 const lookKey=(g,o,h,c,w)=>{const k=`${g}_${o}_${h}:${OUTFITS[o].sport?c:'-'}`;
   return w&&g==='girl'&&(w.hat!=='none'||w.shoes!=='black'||w.glasses!=='none')?`${k}|${w.hat},${w.shoes},${w.glasses}`:k;};
-function thumb(key,idx=1){const v=variant(key);const c=document.createElement('canvas');c.width=FRAME_W;c.height=FRAME_H;if(v)c.getContext('2d').drawImage(v.idle,idx*FRAME_W,0,FRAME_W,FRAME_H,0,0,FRAME_W,FRAME_H);return c;}
+function thumb(key,idx=1){const v=variant(key);const c=document.createElement('canvas');c.width=FRAME_W;c.height=FRAME_H;if(v)drawWithHat(c.getContext('2d'),v.idle,idx,0,0,FRAME_W,FRAME_H);return c;}
 function chip(canvas,label,on,fn){const b=document.createElement('button');b.className='chip'+(on?' on':'');b.appendChild(canvas);const s=document.createElement('span');s.textContent=label;b.appendChild(s);b.onclick=fn;return b;}
 function buildPicker(){
   const box=$('charPick');box.innerHTML='';
@@ -1131,8 +1137,8 @@ function drawActor(a,isPlayer){if(hiddenForMe(a))return;const CH=charFor(a);
   ctx.globalAlpha=alpha;
   const top0=a.y-h+3*S.scale*DRAW*2-z,skBack=stinky&&(SK_DIR[a.dir]||[0,1])[1]>=0;
   if(stinky){stinkCloud(a,h);if(skBack)skunkTail(a,w,h,top0);}
-  if(tint){const c=tinted(img,fi,tint,CH+(IS_LEFT[a.dir]?'L':'')+(z>2||a.frozen?'A':(a.moving?a.dir:'I')));ctx.drawImage(c,0,0,FRAME_W,FRAME_H,a.x-w/2,a.y-h+3*S.scale*DRAW*2-z,w,h);}
-  else ctx.drawImage(img,fi*FRAME_W,0,FRAME_W,FRAME_H,a.x-w/2,a.y-h+3*S.scale*DRAW*2-z,w,h);
+  if(tint){const c=tinted(img,fi,tint,CH+(IS_LEFT[a.dir]?'L':'')+(z>2||a.frozen?'A':(a.moving?a.dir:'I')));ctx.drawImage(c,0,0,FRAME_W,FRAME_H,a.x-w/2,a.y-h+3*S.scale*DRAW*2-z,w,h);const ov=HATOV.get(img);if(ov){const k=w/FRAME_W;ctx.drawImage(ov,fi*HFW,0,HFW,FRAME_H,a.x-w/2-HAT_PAD*k,a.y-h+3*S.scale*DRAW*2-z,HFW*k,h);}}
+  else drawWithHat(ctx,img,fi,a.x-w/2,a.y-h+3*S.scale*DRAW*2-z,w,h);
   if(stinky){if(!skBack)skunkTail(a,w,h,top0);skunkEars(a,w,h,top0);}
   if(a.frozen)drawIce(a,w,h);
   if(slip)ctx.restore();
