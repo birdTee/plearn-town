@@ -140,14 +140,14 @@
   .petChip.on::after{content:'✕';position:absolute;top:-6px;right:-6px;width:18px;height:18px;border-radius:9px;background:#e8483f;color:#fff;font:700 11px/18px system-ui;text-align:center}
   #petPanel.petPanel{width:auto;max-width:calc(var(--aw) - 24px);max-height:none;overflow:visible;padding:8px 10px 10px}
   .petTop{display:flex;align-items:baseline;gap:8px;margin:0 40px 6px 2px;font:700 14px 'Mali',system-ui,sans-serif;color:#3b2a1a}.petTop span{font-size:12px;font-weight:600;color:#7a5a3a}
-  .petGrid{display:grid;grid-template-columns:repeat(10,40px);gap:4px}
-  .narrow .petGrid{grid-template-columns:repeat(8,38px)}.narrow .petTile{width:38px;height:38px}
-  .petTile{position:relative;width:40px;height:40px;border-radius:10px;background:#fff3d6;border:2px solid #f0d9a8;box-sizing:border-box;touch-action:none;cursor:grab;display:flex;align-items:center;justify-content:center}
-  .petTile canvas{width:100%;height:100%;pointer-events:none}.petTile.on{background:#ffd84a;border-color:#e0a91c}.petTile.sel{outline:2px solid #e8483f;outline-offset:1px}
+  .petGrid{display:grid;grid-template-columns:repeat(9,44px);gap:3px 4px}
+  .narrow .petGrid{grid-template-columns:repeat(9,40px)}.narrow .petTile{width:40px;height:40px}
+  .petTile{position:relative;width:44px;height:44px;border-radius:50%;background:transparent;border:0;box-sizing:border-box;align-items:flex-end!important;touch-action:none;cursor:grab;display:flex;align-items:center;justify-content:center}
+  .petTile canvas{width:100%;height:100%;pointer-events:none;object-fit:contain}.petTile.on{background:radial-gradient(circle,#ffe58a 0,#ffd84a 55%,rgba(255,216,74,0) 72%)}.petTile.sel{outline:2px solid #e8483f;outline-offset:1px}
   .petOut{position:absolute;top:-7px;right:-7px;width:18px;height:18px;border:0;border-radius:9px;background:#e8483f;color:#fff;font:700 10px/18px system-ui;padding:0;cursor:pointer}
   .petInfo{display:flex;align-items:center;gap:3px;min-height:22px;margin:7px 2px 4px;font:600 12px 'Mali',system-ui,sans-serif;color:#6b4a2b}.petInfo canvas{width:20px;height:20px}
   .petDo{display:flex;gap:6px}.petDo button{flex:1;border:2px solid #f0d9a8;border-radius:12px;background:#fff3d6;font:700 13px 'Mali',system-ui,sans-serif;color:#3b2a1a;padding:6px 8px;cursor:pointer}
-  .petTile::before{content:'';position:absolute;left:3px;bottom:3px;width:7px;height:7px;border-radius:50%;background:var(--tc)}
+  .petTile::before{content:'';position:absolute;left:1px;bottom:1px;width:6px;height:6px;border-radius:50%;background:var(--tc)}
   .tier-common{--tc:#5aa84f}.tier-rare{--tc:#3b8fe0}.tier-ultra{--tc:#9a5ad8}.tier-secret{--tc:#e0483f}
   .tierTag{background:var(--tc);color:#fff;border-radius:8px;padding:1px 7px;margin-right:6px;font-size:11px}
   .petTile.loading{cursor:progress}.tileSpin{display:block;width:20px;height:20px;border-radius:50%;border:3px solid #f0d9a8;border-top-color:#ff9f1c;animation:tileSpin .8s linear infinite}
@@ -353,7 +353,7 @@
 <script>
 // ---- UI icon set (ui_icons.webp, 18 cells in one row) — emoji are shown until it loads ----
 // bump ASSET_V whenever an icon/emote picture changes, so phones download the new one instead of a cached copy
-var ASSET_V='20261121d';
+var ASSET_V='20261121e';
 const IC_N=['logo','pad','freeze','hide','zombie','fire','flash','run','shirt','gear','globe','trophy','girl','boy','jump','tag','logout','hello'];
 const IC={},IC_C={};
 function icFrom(img,i,name){const n=img.height,c=document.createElement('canvas');c.width=c.height=n;c.getContext('2d').drawImage(img,i*n,0,n,n,0,0,n,n);IC_C[name]=c;IC[name]=c.toDataURL();}
@@ -1149,7 +1149,8 @@ $('mgAddBot').onclick=()=>{const left=NPCS.filter(n=>!MG.bots.includes(n));if(le
 $('mgAllBots').onclick=()=>{MG.bots=[...NPCS];mgList();};
 $('mgNoBots').onclick=()=>{MG.bots=[];mgList();};
 function mgClose(){MG.joinTimers.forEach(clearTimeout);mgPanel.style.display='none';}
-$('petBtn').addEventListener('click',e=>{e.stopPropagation();const b=$('petPanel');if(b.style.display==='none'){buildPetPanel();b.style.display='block';}else b.style.display='none';});
+$('petBtn').addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();const b=$('petPanel');if(b.style.display==='none'){buildPetPanel();b.style.display='block';}else b.style.display='none';});
+$('petBtn').addEventListener('click',e=>e.stopPropagation());
 ['pointerdown','touchstart','mousedown','click'].forEach(t=>$('petPanel').addEventListener(t,e=>e.stopPropagation(),{passive:true}));
 $('mgBtn').onclick=mgOpen;$('mgClose').onclick=()=>{if(MG.phase==='end')mgFinish();mgClose();};$('mgCancel').onclick=()=>{if(!MG.on){if(MG.online&&MG.isHost){NET.g=null;MG.online=false;MG.isHost=false;}if(NET.j){NET.j=null;NET.host=null;}NET.sendT=0;$('mgStart').style.display='';$('mgCancel').textContent='Cancel';}mgClose();};$('mgStart').onclick=mgStart;
 $('mgAgain').onclick=()=>{mgFinish();mgOpen();mgLobby(MG.mode);};$('mgDone').onclick=()=>{mgFinish();mgClose();};
@@ -2017,11 +2018,18 @@ const TIER_OF={};for(const t in PET_TIERS)PET_TIERS[t].forEach(id=>TIER_OF[id]=t
 const TIER_NAME={common:'Common',rare:'Rare',ultra:'Ultra Rare',secret:'Secret'};
 let PET_INFO_ID=null;
 addEventListener('petloaded',e=>{const box=$('petPanel');if(box&&box.style.display!=='none'&&box.querySelector('.petTile.loading'))buildPetPanel();});
+const TILE_PIC={};
+function tileSize(id){const v=PET_DEFS[id].h,lo=55,hi=150;return 0.62+0.38*Math.sqrt(Math.max(0,Math.min(1,(v-lo)/(hi-lo))));}   // 0.62 (tiny pets) .. 1.0 (alpaca)
+function tilePic(id){if(TILE_PIC[id])return TILE_PIC[id];if(!petImg(id))return null;const c=petStill(id,24);const k=tileSize(id);c.style.width=c.style.height=(k*100)+'%';return TILE_PIC[id]=c;}
+// get each tile picture ready as soon as its pet has loaded (one at a time, in quiet moments), so the panel opens at once
+const TILE_TODO=[];let tileBusy=false;
+function warmTiles(){if(tileBusy)return;tileBusy=true;const step=()=>{const id=TILE_TODO.shift();if(!id){tileBusy=false;return;}tilePic(id);(window.requestIdleCallback||setTimeout)(step,{timeout:200});};(window.requestIdleCallback||setTimeout)(step,{timeout:200});}
+addEventListener('petloaded',e=>{TILE_TODO.push(e.detail);warmTiles();});
 function buildPetPanel(){const box=$('petPanel');box.innerHTML='';
   const top=document.createElement('div');top.className='petTop';top.innerHTML=`<b>Pets</b><span>Drag onto the lawn · ${PETS.length} out</span>`;box.appendChild(top);
   const grid=document.createElement('div');grid.className='petGrid';box.appendChild(grid);
   Object.keys(PET_DEFS).filter(id=>PETS_IMG[id]!==false||PETS.some(p=>p.id===id)).forEach(id=>{const t=document.createElement('div');const out=PETS.some(p=>p.id===id);t.className='petTile tier-'+(TIER_OF[id]||'common')+(out?' on':'')+(PET_INFO_ID===id?' sel':'');t.title=PET_DEFS[id].name;
-    if(petImg(id))t.appendChild(petStill(id,22));else{t.classList.add('loading');t.innerHTML='<i class="tileSpin"></i>';}petDragSetup(t,id);
+    const pic=tilePic(id);if(pic)t.appendChild(pic);else{t.classList.add('loading');t.innerHTML='<i class="tileSpin"></i>';}petDragSetup(t,id);
     if(out){const x=document.createElement('button');x.className='petOut';x.textContent='✕';x.setAttribute('aria-label','Send home');
       x.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();sendPetHome(id);if(PET_INFO_ID===id)PET_INFO_ID=null;buildPetPanel();});t.appendChild(x);}
     grid.appendChild(t);});
@@ -2029,8 +2037,6 @@ function buildPetPanel(){const box=$('petPanel');box.innerHTML='';
   if(PET_INFO_ID){const id=PET_INFO_ID,hg=Math.round(hungerOf(id)),tr=TIER_OF[id]||'common';const tg=document.createElement('b');tg.className='tierTag tier-'+tr;tg.textContent=TIER_NAME[tr];info.appendChild(tg);info.append(PET_DEFS[id].name+' likes ');likedFoods(id).forEach(f=>info.appendChild(iconCanvas(f.id,20)));
     const t=document.createElement('span');t.style.cssText='margin-left:6px;font-weight:700;color:'+(hg>66?'#d0342c':hg>33?'#c98a00':'#3a9a3a');t.textContent=hg>66?'Hungry':hg>33?'A bit hungry':'Full';info.appendChild(t);}
   else info.textContent='Tap a pet to see what it likes to eat.';
-  const row=document.createElement('div');row.className='petDo';box.appendChild(row);
-  [['love','❤️ Pet it'],['special','💤 Own action']].forEach(([v,l])=>{const b=document.createElement('button');b.textContent=l;b.onclick=e=>{e.stopPropagation();petAction(v);};row.appendChild(b);});
   const x=document.createElement('button');x.className='petX';x.innerHTML='✕';x.onclick=e=>{e.stopPropagation();box.style.display='none';};box.prepend(x);applyIcons(box);}
 {const c=$('btnClean').querySelector('canvas'),g=c.getContext('2d'),p=()=>{g.clearRect(0,0,72,72);cleanIcon(g,1,36,36,70,0);};p();CLEAN_IMG.addEventListener('load',p);}
 $('btnClean').addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();foodPanel.style.display='none';startClean();});
