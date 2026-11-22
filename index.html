@@ -658,8 +658,11 @@ function brimFill(ug,g,i,ox,lx,hy,w2,hh,rot,sx,sy,cs,hat){const t=document.creat
   for(const p of pts){while(lo.length>1&&cr(lo[lo.length-2],lo[lo.length-1],p)<=0)lo.pop();lo.push(p);}
   for(let k=pts.length-1;k>=0;k--){const p=pts[k];while(up.length>1&&cr(up[up.length-2],up[up.length-1],p)<=0)up.pop();up.push(p);}
   const hull=lo.slice(0,-1).concat(up.slice(0,-1));
-  ug.save();ug.beginPath();hull.forEach(([x,y],k)=>k?ug.lineTo(i*HFW+x+.5,y+.5):ug.moveTo(i*HFW+x+.5,y+.5));ug.closePath();
-  ug.fillStyle=hat==='beanie'?'#7a1c1c':'#9a6a34';ug.fill();ug.restore();}
+  const m=document.createElement('canvas');m.width=HFW;m.height=FRAME_H;const mg=m.getContext('2d');mg.beginPath();hull.forEach(([x,y],k)=>k?mg.lineTo(x+.5,y+.5):mg.moveTo(x+.5,y+.5));mg.closePath();
+  mg.fillStyle=hat==='beanie'?'#7a1c1c':'#9a6a34';mg.fill();const md=mg.getImageData(0,0,HFW,FRAME_H),mp=md.data;
+  for(let x=0;x<HFW;x++){let top=-1;for(let y=0;y<FRAME_H;y++)if(ha[(y*HFW+x)*4+3]>60){top=y;break;}   // only UNDER the hat (inside), never on its outer top edge
+    for(let y=0;y<FRAME_H;y++){const j=(y*HFW+x)*4;if(top<0||y<=top)mp[j+3]=0;}}
+  mg.putImageData(md,0,0);ug.drawImage(m,i*HFW,0);}
 function tuckHair(g,ox,img,sx,sy,cs,x,y,w,h,view){const side=view==='dr'||view==='right'||view==='ur';const t=document.createElement('canvas');t.width=FRAME_W;t.height=FRAME_H;const tg=t.getContext('2d');tg.drawImage(img,sx,sy,cs,cs,x-ox,y,w,h);
   const ha=tg.getImageData(0,0,FRAME_W,FRAME_H).data;let y0=FRAME_H,y1=0,x0=FRAME_W,x1=0;
   for(let yy=0;yy<FRAME_H;yy++)for(let xx=0;xx<FRAME_W;xx++)if(ha[(yy*FRAME_W+xx)*4+3]>60){y0=Math.min(y0,yy);y1=Math.max(y1,yy);x0=Math.min(x0,xx);x1=Math.max(x1,xx);}
