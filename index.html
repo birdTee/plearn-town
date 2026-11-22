@@ -577,7 +577,9 @@ function toCanvas(im){const c=document.createElement('canvas');c.width=im.width;
 function mirror(src){const c=document.createElement('canvas');c.width=src.width;c.height=src.height;const f=c.getContext('2d');
   for(let i=0;i<Math.round(src.width/FRAME_W);i++){f.save();f.translate(i*FRAME_W+FRAME_W,0);f.scale(-1,1);f.drawImage(src,i*FRAME_W,0,FRAME_W,FRAME_H,0,0,FRAME_W,FRAME_H);f.restore();}
   const ov=typeof HATOV!=='undefined'&&HATOV.get(src);if(ov){const m=document.createElement('canvas');m.width=ov.width;m.height=ov.height;const mg=m.getContext('2d');
-    for(let i=0;i<Math.round(ov.width/HFW);i++){mg.save();mg.translate(i*HFW+HFW,0);mg.scale(-1,1);mg.drawImage(ov,i*HFW,0,HFW,FRAME_H,0,0,HFW,FRAME_H);mg.restore();}HATOV.set(c,m);}return c;}
+    for(let i=0;i<Math.round(ov.width/HFW);i++){mg.save();mg.translate(i*HFW+HFW,0);mg.scale(-1,1);mg.drawImage(ov,i*HFW,0,HFW,FRAME_H,0,0,HFW,FRAME_H);mg.restore();}HATOV.set(c,m);}
+  const un=typeof HATUN!=='undefined'&&HATUN.get(src);if(un){const m=document.createElement('canvas');m.width=un.width;m.height=un.height;const mg=m.getContext('2d');
+    for(let i=0;i<Math.round(un.width/HFW);i++){mg.save();mg.translate(i*HFW+HFW,0);mg.scale(-1,1);mg.drawImage(un,i*HFW,0,HFW,FRAME_H,0,0,HFW,FRAME_H);mg.restore();}HATUN.set(c,m);}return c;}
 // shirt recolour: light/mid sky-blue pixels only (navy trousers are dark and stay navy)
 function recolor(src,t){const c=toCanvas(src);const g=c.getContext('2d');const d=g.getImageData(0,0,c.width,c.height),p=d.data;
   for(let i=0;i<p.length;i+=4){if(p[i+3]<8)continue;const r=p[i]/255,gg=p[i+1]/255,b=p[i+2]/255;
@@ -629,29 +631,35 @@ const HAT_COL={down:0,dr:1,right:2,ur:3,up:4};
 function lookDir(look){const [g,o,h]=look.split('_');return lookPath(g,o,h).split('/')[1];}
 function wearOf(key){const w=(key.split('|')[1]||'').split(',');return {hat:w[0]||'none',shoes:w[1]||'black',glasses:w[2]||'none'};}
 // hats are drawn on their own wider layer (HAT_PAD px spare each side) so a big brim is never cut by the sprite frame
-const HAT_PAD=48,HFW=FRAME_W+2*HAT_PAD,HATOV=new WeakMap();
-function drawWithHat(g,img,fi,x,y,w,h){g.drawImage(img,fi*FRAME_W,0,FRAME_W,FRAME_H,x,y,w,h);const ov=HATOV.get(img);if(ov){const k=w/FRAME_W;g.drawImage(ov,fi*HFW,0,HFW,FRAME_H,x-HAT_PAD*k,y,HFW*k,h);}}
+const HAT_PAD=48,HFW=FRAME_W+2*HAT_PAD,HATOV=new WeakMap(),HATUN=new WeakMap();   // HATUN: inside of the hat, drawn behind the kid
+function drawWithHat(g,img,fi,x,y,w,h){const un=HATUN.get(img);if(un){const k=w/FRAME_W;g.drawImage(un,fi*HFW,0,HFW,FRAME_H,x-HAT_PAD*k,y,HFW*k,h);}g.drawImage(img,fi*FRAME_W,0,FRAME_W,FRAME_H,x,y,w,h);const ov=HATOV.get(img);if(ov){const k=w/FRAME_W;g.drawImage(ov,fi*HFW,0,HFW,FRAME_H,x-HAT_PAD*k,y,HFW*k,h);}}
 function bakeWear(cv,sheetKey,w,dir){const a=ANCH&&ANCH[dir]&&ANCH[dir][SHEET_OF[sheetKey]];if(!a)return cv;const g=cv.getContext('2d'),n=Math.round(cv.width/FRAME_W);
-  let ov=null,og=null;if(w.hat!=='none'){ov=document.createElement('canvas');ov.width=HFW*n;ov.height=FRAME_H;og=ov.getContext('2d');HATOV.set(cv,ov);}
+  let ov=null,og=null;if(w.hat!=='none'){ov=document.createElement('canvas');ov.width=HFW*n;ov.height=FRAME_H;og=ov.getContext('2d');HATOV.set(cv,ov);const un=document.createElement('canvas');un.width=HFW*n;un.height=FRAME_H;HATUN.set(cv,un);}
   if(w.shoes!=='black')shoeColor(cv,w.shoes);
   for(let i=0;i<n;i++){const f=a[i];if(!f)continue;const [cx,top,eyes]=f,view=sheetKey==='idle'||sheetKey==='act'?IDLE_VIEW[i]:SHEET_OF[sheetKey],ox=i*FRAME_W;
     if(w.glasses!=='none'&&eyes.length&&view!=='up'&&view!=='ur')drawSpecs(g,ox,eyes,view,w.glasses);
     if(w.hat!=='none'&&HAT_IMG.complete&&HAT_IMG.naturalWidth){const H=HAT_FIT[w.hat],[hw,dx,dy,rot=0]=(dir.startsWith('boy')&&H.boy&&H.boy[view])||H.v[view],cs=HAT_IMG.height/2,sx=HAT_COL[view]*cs,sy=H.row*cs;
       const k=hw/(cs*.96),hh=cs*k,w2=cs*k,fcx=view==='down'&&eyes.length===2?(eyes[0][0]+eyes[1][0])/2:cx;let x=ox+fcx+dx-hw/2-cs*.02*k;   // front: centre on the face (between the eyes)
       tuckHair(g,ox,HAT_IMG,sx,sy,cs,x,top+dy-hh+4*k,w2,hh,view);
-      const hx=x-ox+i*HFW+HAT_PAD,hy=top+dy-hh+4*k;brimFill(og,g,i,ox,hx-i*HFW,hy,w2,hh,rot,sx,sy,cs,w.hat);og.save();og.translate(hx+w2/2,hy+hh*.85);og.rotate(rot*Math.PI/180);   // tilt around the brim
+      const hx=x-ox+i*HFW+HAT_PAD,hy=top+dy-hh+4*k;brimFill(HATUN.get(cv).getContext('2d'),g,i,ox,hx-i*HFW,hy,w2,hh,rot,sx,sy,cs,w.hat);og.save();og.translate(hx+w2/2,hy+hh*.85);og.rotate(rot*Math.PI/180);   // tilt around the brim
       og.drawImage(HAT_IMG,sx,sy,cs,cs,-w2/2,-hh*.85,w2,hh);og.restore();}}
   return cv;}
 // hide the ponytail tie that would poke up out of the hat in 3/4 views: hair above the brim line, beside the hat, is cleared
 // under the brim: where neither hat nor head covers, paint the inside of the hat (no see-through gap on small heads)
-function brimFill(og,g,i,ox,lx,hy,w2,hh,rot,sx,sy,cs,hat){const t=document.createElement('canvas');t.width=HFW;t.height=FRAME_H;const tg=t.getContext('2d');
+// inside of the hat: the hat's outline (convex hull of its lower part) filled with a darker hat colour, drawn BEHIND the head,
+// so the gap between the upper and lower brim never shows the floor through it
+function brimFill(ug,g,i,ox,lx,hy,w2,hh,rot,sx,sy,cs,hat){const t=document.createElement('canvas');t.width=HFW;t.height=FRAME_H;const tg=t.getContext('2d');
   tg.translate(lx+w2/2,hy+hh*.85);tg.rotate(rot*Math.PI/180);tg.drawImage(HAT_IMG,sx,sy,cs,cs,-w2/2,-hh*.85,w2,hh);
-  const hd=tg.getImageData(0,0,HFW,FRAME_H),ha=hd.data,sp=g.getImageData(ox,0,FRAME_W,FRAME_H).data;let y0=FRAME_H,y1=0;
+  const ha=tg.getImageData(0,0,HFW,FRAME_H).data;let y0=FRAME_H,y1=0;
   for(let y=0;y<FRAME_H;y++)for(let x=0;x<HFW;x++)if(ha[(y*HFW+x)*4+3]>60){y0=Math.min(y0,y);y1=Math.max(y1,y);}
-  if(y1<=y0)return;const out=tg.createImageData(HFW,FRAME_H),o=out.data,col=hat==='beanie'?[120,28,28]:[150,104,52];let any=0;
-  for(let y=Math.round(y0+(y1-y0)*.45);y<=y1;y++){let xl=-1,xr=-1;for(let x=0;x<HFW;x++)if(ha[(y*HFW+x)*4+3]>60){if(xl<0)xl=x;xr=x;}
-    for(let x=xl+1;x<xr;x++){const j=(y*HFW+x)*4;if(ha[j+3]>60)continue;const sxp=x-HAT_PAD;if(sxp>=0&&sxp<FRAME_W&&sp[(y*FRAME_W+sxp)*4+3]>60)continue;o[j]=col[0];o[j+1]=col[1];o[j+2]=col[2];o[j+3]=255;any=1;}}
-  if(any){tg.setTransform(1,0,0,1,0,0);tg.clearRect(0,0,HFW,FRAME_H);tg.putImageData(out,0,0);og.drawImage(t,i*HFW,0);}}
+  if(y1<=y0)return;const ys=Math.round(y0+(y1-y0)*.4),pts=[];
+  for(let y=ys;y<=y1;y++){let xl=-1,xr=-1;for(let x=0;x<HFW;x++)if(ha[(y*HFW+x)*4+3]>60){if(xl<0)xl=x;xr=x;}if(xl>=0){pts.push([xl,y]);if(xr!==xl)pts.push([xr,y]);}}
+  if(pts.length<3)return;pts.sort((a,b)=>a[0]-b[0]||a[1]-b[1]);const cr=(o,a,b)=>(a[0]-o[0])*(b[1]-o[1])-(a[1]-o[1])*(b[0]-o[0]);const lo=[],up=[];
+  for(const p of pts){while(lo.length>1&&cr(lo[lo.length-2],lo[lo.length-1],p)<=0)lo.pop();lo.push(p);}
+  for(let k=pts.length-1;k>=0;k--){const p=pts[k];while(up.length>1&&cr(up[up.length-2],up[up.length-1],p)<=0)up.pop();up.push(p);}
+  const hull=lo.slice(0,-1).concat(up.slice(0,-1));
+  ug.save();ug.beginPath();hull.forEach(([x,y],k)=>k?ug.lineTo(i*HFW+x+.5,y+.5):ug.moveTo(i*HFW+x+.5,y+.5));ug.closePath();
+  ug.fillStyle=hat==='beanie'?'#7a1c1c':'#9a6a34';ug.fill();ug.restore();}
 function tuckHair(g,ox,img,sx,sy,cs,x,y,w,h,view){const side=view==='dr'||view==='right'||view==='ur';const t=document.createElement('canvas');t.width=FRAME_W;t.height=FRAME_H;const tg=t.getContext('2d');tg.drawImage(img,sx,sy,cs,cs,x-ox,y,w,h);
   const ha=tg.getImageData(0,0,FRAME_W,FRAME_H).data;let y0=FRAME_H,y1=0,x0=FRAME_W,x1=0;
   for(let yy=0;yy<FRAME_H;yy++)for(let xx=0;xx<FRAME_W;xx++)if(ha[(yy*FRAME_W+xx)*4+3]>60){y0=Math.min(y0,yy);y1=Math.max(y1,yy);x0=Math.min(x0,xx);x1=Math.max(x1,xx);}
@@ -1165,7 +1173,7 @@ function drawActor(a,isPlayer){if(hiddenForMe(a))return;const CH=charFor(a);
   ctx.globalAlpha=alpha;
   const top0=a.y-h+3*S.scale*DRAW*2-z,skBack=stinky&&(SK_DIR[a.dir]||[0,1])[1]>=0;
   if(stinky){stinkCloud(a,h);if(skBack)skunkTail(a,w,h,top0);}
-  if(tint){const c=tinted(img,fi,tint,CH+(IS_LEFT[a.dir]?'L':'')+(z>2||a.frozen?'A':(a.moving?a.dir:'I')));ctx.drawImage(c,0,0,FRAME_W,FRAME_H,a.x-w/2,a.y-h+3*S.scale*DRAW*2-z,w,h);const ov=HATOV.get(img);if(ov){const k=w/FRAME_W;ctx.drawImage(ov,fi*HFW,0,HFW,FRAME_H,a.x-w/2-HAT_PAD*k,a.y-h+3*S.scale*DRAW*2-z,HFW*k,h);}}
+  if(tint){const c=tinted(img,fi,tint,CH+(IS_LEFT[a.dir]?'L':'')+(z>2||a.frozen?'A':(a.moving?a.dir:'I')));{const un=HATUN.get(img);if(un){const k=w/FRAME_W;ctx.drawImage(un,fi*HFW,0,HFW,FRAME_H,a.x-w/2-HAT_PAD*k,a.y-h+3*S.scale*DRAW*2-z,HFW*k,h);}}ctx.drawImage(c,0,0,FRAME_W,FRAME_H,a.x-w/2,a.y-h+3*S.scale*DRAW*2-z,w,h);const ov=HATOV.get(img);if(ov){const k=w/FRAME_W;ctx.drawImage(ov,fi*HFW,0,HFW,FRAME_H,a.x-w/2-HAT_PAD*k,a.y-h+3*S.scale*DRAW*2-z,HFW*k,h);}}
   else drawWithHat(ctx,img,fi,a.x-w/2,a.y-h+3*S.scale*DRAW*2-z,w,h);
   if(stinky){if(!skBack)skunkTail(a,w,h,top0);skunkEars(a,w,h,top0);}
   if(a.frozen)drawIce(a,w,h);
