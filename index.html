@@ -122,7 +122,7 @@
   .actB.tag.bite{background:#6fbf4a;box-shadow:0 5px 0 #3f8a2a}
   #fade{position:absolute;inset:0;background:#fffaf0;opacity:0;pointer-events:none;transition:opacity .28s;z-index:40}#fade.on{opacity:1}
   .atHome #mgBtn,.atHome #btnTag,.atHome #btnEmo{display:none!important}
-  #btnFood,#btnClean{display:none}.atHome #btnFood,.atHome #btnClean{display:flex}.atHome #btnChat{display:none!important}
+  #btnFood,#btnClean,#btnPat{display:none}.atHome #btnFood,.atHome #btnClean,.atHome #btnPat{display:flex}#btnPat{font-size:30px}.atHome #btnChat{display:none!important}
   #btnClean b{position:absolute;top:-4px;right:-4px;min-width:18px;height:18px;border-radius:9px;background:#e8483f;color:#fff;font:700 11px/18px 'Mali',system-ui,sans-serif;box-shadow:0 1px 3px rgba(0,0,0,.3)}#btnClean b:empty{display:none}#app:not(.atHome) .foodPanel{display:none!important}
   .foodPanel{position:absolute;right:16px;bottom:196px;z-index:5;background:#fffaf0;border-radius:18px;padding:8px;display:flex;gap:6px;box-shadow:0 5px 0 #e7d7b8,0 10px 24px rgba(0,0,0,.25)}
   .foodPanel{display:grid!important;grid-template-columns:repeat(4,60px)}.foodPanel[style*='none']{display:none!important}.foodPanel button{width:60px;height:66px;border:0;border-radius:12px;background:#fff3d6;cursor:pointer;padding:2px 0 0;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:'Mali',system-ui,sans-serif;font-size:11px;color:#6b4a2b;font-weight:700}
@@ -291,7 +291,7 @@
 <div id="fade"></div>
 <button id="petBtn" class="mgBtn petBtn">🐾 Pet</button>
 <div id="petPanel" class="petPanel" style="display:none"></div>
-<div id="chatBtns"><button id="btnEmo" class="smB" aria-label="Emotes">😊<small>H L 1-0</small></button><button id="btnFood" class="smB" aria-label="Pet food"><canvas width="72" height="72" style="width:38px;height:38px"></canvas></button><button id="btnClean" class="smB" aria-label="Clean up poop"><canvas width="72" height="72" style="width:40px;height:40px"></canvas><b id="poopN"></b></button><button id="btnChat" class="smB" aria-label="Chat">💬<small>Enter</small></button></div>
+<div id="chatBtns"><button id="btnEmo" class="smB" aria-label="Emotes">😊<small>H L 1-0</small></button><button id="btnFood" class="smB" aria-label="Pet food"><canvas width="72" height="72" style="width:38px;height:38px"></canvas></button><button id="btnPat" class="smB" aria-label="Pet and play">🖐️</button><button id="btnClean" class="smB" aria-label="Clean up poop"><canvas width="72" height="72" style="width:40px;height:40px"></canvas><b id="poopN"></b></button><button id="btnChat" class="smB" aria-label="Chat">💬<small>Enter</small></button></div>
 <div id="emoPanel" class="emoPanel" style="display:none"></div>
 <div id="foodPanel" class="foodPanel" style="display:none"><div class="fpTip">Feed your pets in the front yard</div></div>
 <div id="chatPanel" class="chatPanel" style="display:none"><div class="quick" id="quick"></div>
@@ -2062,6 +2062,27 @@ const petsHere=()=>MAPID==='home'?PETS.filter(p=>p.placed&&PET_DEFS[p.id]):[];
 // does a body at (x,y) with half-size rx,ry bump into a pet?
 function hitPet(x,y,rx,ry,ox,oy){for(const p of petsHere()){const f=petFoot(p);const v=overlap(x,y,rx,ry,p,f.rx,f.ry);if(v<1&&v<overlap(ox,oy,rx,ry,p,f.rx,f.ry))return true;}return false;}
 function nearestPet(){return petsHere().sort((a,b)=>dist(a,P)-dist(b,P))[0];}
+// ---- petting & playing: each pet reacts by its own nature (tame & playful pets love it, shy ones may not) ----
+const BOND=(()=>{try{return JSON.parse(localStorage.getItem('sw_bond'))||{};}catch(e){return {};}})();   // grows with gentle care, 0..10
+function saveBond(){try{localStorage.setItem('sw_bond',JSON.stringify(BOND));}catch(e){}}
+const bondOf=id=>BOND[id]||0;
+function addBond(id,v){BOND[id]=Math.max(0,Math.min(10,bondOf(id)+v));saveBond();}
+const SPIKY={hedgehog:1};   // these say "ouch" back
+function patPet(){if(MAPID!=='home')return;const p=nearestPet();const reach=95*S.scale/0.7;
+  if(!p||dist(p,P)>reach+petH(p)*.4){say(P,'Get closer to a pet 🐾');return;}
+  const info=PET_INFO[p.id]||{tame:.5},now=performance.now()/1000,again=now-(p.patT||-99)<4;p.patT=now;
+  P.dir=p.x<P.x-8?(p.y<P.y-20?'upleft':'left'):p.x>P.x+8?(p.y<P.y-20?'upright':'right'):(p.y<P.y?'up':'down');
+  p.face=P.x<p.x?-1:1;p.plan='idle';p.wander=null;p.going=false;p.wantT=2.5;
+  const like=Math.min(.97,info.tame+bondOf(p.id)*.045),r=Math.random();
+  if(again&&info.tame<.8&&r>like*.6){   // too much fuss: it has had enough
+    mood(p,'yuck');walkOff(p);return;}
+  if(r<like){petAction('love',p);addBond(p.id,info.tame<.5?.6:.35);   // shy pets warm up a little more each time
+    if(info.tame>=.75&&Math.random()<.45){setTimeout(()=>{if(p.state==='stand'||p.state==='love'){p.state='special';p.st=0;}},1600);}   // playful ones show off a trick
+    return;}
+  if(info.tame<.5){mood(p,SPIKY[p.id]?'sad':'yuck');if(SPIKY[p.id])say(P,'Ouch! 🦔');walkOff(p);addBond(p.id,.1);return;}   // shy: does not like it, moves away
+  mood(p,'curious');addBond(p.id,.15);}
+function walkOff(p){const ang=Math.atan2(p.y-P.y,p.x-P.x)+(Math.random()-.5),d=120+Math.random()*80;let w={x:p.x+Math.cos(ang)*d,y:p.y+Math.sin(ang)*d*.7};
+  if(!petFree(p,w.x,w.y))w=randYard();p.plan='stroll';p.wander=w;p.wantT=3;}
 function petAction(a,p){p=p||nearestPet();if(!p)return;p.state=a;p.st=0;if(a==='love'){mood(p,'love');sfxEmote(P,PET_DEFS[p.id].feel);}}
 function dropFood(kind){if(MAPID!=='home'||!inYard())return false;kind=kind||'kibble';const dx=P.dir&&P.dir.includes('left')?-1:P.dir==='right'||P.dir==='dr'||P.dir==='ur'?1:0,dy=P.dir==='down'||P.dir==='dl'||P.dir==='dr'?1:P.dir==='up'||P.dir==='ul'||P.dir==='ur'?-1:0;
   let x=P.x+dx*50,y=P.y+dy*34+(dx||dy?0:30);if(homeHit(x,y,10,5)){x=P.x;y=P.y+30;}
@@ -2199,10 +2220,13 @@ function buildPetPanel(){const box=$('petPanel');box.innerHTML='';
     grid.appendChild(t);});
   const info=document.createElement('div');info.className='petInfo';box.appendChild(info);
   if(PET_INFO_ID){const id=PET_INFO_ID,hg=Math.round(hungerOf(id)),tr=TIER_OF[id]||'common';const tg=document.createElement('b');tg.className='tierTag tier-'+tr;tg.textContent=TIER_NAME[tr];info.appendChild(tg);info.append(PET_DEFS[id].name+' likes ');likedFoods(id).forEach(f=>info.appendChild(iconCanvas(f.id,20)));
-    const t=document.createElement('span');t.style.cssText='margin-left:6px;font-weight:700;color:'+(hg>66?'#d0342c':hg>33?'#c98a00':'#3a9a3a');t.textContent=hg>66?'Hungry':hg>33?'A bit hungry':'Full';info.appendChild(t);}
+    const t=document.createElement('span');t.style.cssText='margin-left:6px;font-weight:700;color:'+(hg>66?'#d0342c':hg>33?'#c98a00':'#3a9a3a');t.textContent=hg>66?'Hungry':hg>33?'A bit hungry':'Full';info.appendChild(t);
+    {const b=document.createElement('span');const n=Math.round(bondOf(id)/2);b.style.cssText='margin-left:8px;letter-spacing:-1px';b.title='Friendship';b.textContent='❤'.repeat(n)+'♡'.repeat(5-n);b.style.color='#e8483f';info.appendChild(b);
+     const m=document.createElement('span');const tm=(PET_INFO[id]||{}).tame||.5;m.style.cssText='margin-left:6px;font-size:12px;color:#7a5a3a';m.textContent=tm>=.75?'loves to play':tm>=.5?'likes gentle pats':'shy, go slowly';info.appendChild(m);}}
   else info.textContent='Tap a pet to see what it likes to eat.';
   const x=document.createElement('button');x.className='petX';x.innerHTML='✕';x.onclick=e=>{e.stopPropagation();box.style.display='none';};box.prepend(x);applyIcons(box);}
 {const c=$('btnClean').querySelector('canvas'),g=c.getContext('2d'),p=()=>{g.clearRect(0,0,72,72);cleanIcon(g,1,36,36,70,0);};p();CLEAN_IMG.addEventListener('load',p);}
+$('btnPat').addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();foodPanel.style.display='none';patPet();});
 $('btnClean').addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();foodPanel.style.display='none';startClean();});
 const foodPanel=$('foodPanel');
 function buildFoodPanel(){foodPanel.querySelectorAll('button').forEach(b=>b.remove());FOODS.forEach(f=>{const b=document.createElement('button');b.setAttribute('aria-label',f.n);b.appendChild(iconCanvas(f.id,40));b.append(f.n);
